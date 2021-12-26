@@ -1,11 +1,12 @@
 package com.milaboratory.statplots.boxplot
 
-import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Format
+import com.milaboratory.statplots.boxplot.BoxPlotMode.*
+import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Formatted
 import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Significance
 import com.milaboratory.statplots.util.*
 import jetbrains.letsPlot.elementLine
 import jetbrains.letsPlot.geom.geomBoxplot
-import jetbrains.letsPlot.geom.geomLine
+import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.letsPlot
@@ -16,6 +17,7 @@ import org.jetbrains.kotlinx.dataframe.api.filter
 import org.jetbrains.kotlinx.dataframe.api.map
 import org.jetbrains.kotlinx.dataframe.api.rows
 import org.jetbrains.kotlinx.dataframe.api.toMap
+import kotlin.math.abs
 import kotlin.reflect.KProperty0
 
 sealed interface LabelFormat {
@@ -24,10 +26,10 @@ sealed interface LabelFormat {
 
         val Significance: LabelFormat = significance
 
-        data class Format(val fmt: String = "{Method}, p = {pValue}") : LabelFormat {
+        data class Formatted(val fmt: String = "{Method}, p = {pValue}") : LabelFormat {
             fun format(method: TestMethod, pValue: String) =
                 fmt.replace("{Method}", method.str)
-                    .replace("{pValue}}", pValue)
+                    .replace("{pValue}", pValue)
         }
     }
 }
@@ -82,40 +84,42 @@ class BoxPlot(
 
     /** max y */
     private var yMax = compareMeans.yMax
+    private val yDelta = abs(compareMeans.yMax - compareMeans.yMin) * 0.1
 
-    private fun ord(column: String, value: Any) = data[column].distinct().toList().indexOf(value)
+    private fun ord(column: String, value: Any): Int = data[column].distinct().toList().indexOf(value)
+    private fun ord(column: String, value: RefGroup): Int = ord(column, value.value())
 
-    private fun ensureNotSet(vararg props: KProperty0<Any?>) {
+    private fun ensureNotSet(mode: BoxPlotMode, vararg props: KProperty0<Any?>) {
         for (prop in props)
             if (prop.get() != null)
-                throw IllegalArgumentException("${prop.name} != null");
+                throw IllegalArgumentException("${prop.name} != null for $mode");
     }
 
     private val mode: BoxPlotMode = run {
         if (comparisons != null || allComparisons == true) {
-            ensureNotSet(::group, ::refGroup)
-            return@run BoxPlotMode.WithComparisons
+            ensureNotSet(WithComparisons, ::group, ::refGroup)
+            return@run WithComparisons
         }
 
         if (refGroup != null) {
-            ensureNotSet(::group, ::comparisons)
-            return@run BoxPlotMode.WithReference
+            ensureNotSet(WithReference, ::group, ::comparisons)
+            return@run WithReference
         }
 
         if (group != null) {
-            ensureNotSet(::refGroup, ::comparisons, ::showOverallPValue)
+            ensureNotSet(WithGroupBy, ::refGroup, ::comparisons, ::showOverallPValue)
             return@run if (facet)
-                BoxPlotMode.FacetBy
+                FacetBy
             else
-                BoxPlotMode.WithGroupBy
+                WithGroupBy
         }
 
-        return@run BoxPlotMode.Empty
+        return@run Empty
     }
 
     /** */
     private fun adjustAndGetYMax() = run {
-        yMax *= 1.1
+        yMax += yDelta
         yMax
     }
 
@@ -149,7 +153,7 @@ class BoxPlot(
 
         val labels = when (labelFormat) {
             Significance -> stat.pSignif.map { if (hideNS && it == SignificanceLevel.NS) "" else it.string }.toList()
-            is Format -> stat.pValueFmt.map { labelFormat.format(method, it) }.toList()
+            is Formatted -> stat.pValueFmt.map { labelFormat.format(method, it) }.toList()
             else -> throw RuntimeException()
         }
 
@@ -178,8 +182,6 @@ class BoxPlot(
         )
 
     private fun addComparisons(plot: Plot): Plot = run {
-//        comparisons!!
-
         val stat = if (allComparisons == true)
             compareMeans.stat
         else {
@@ -188,39 +190,26 @@ class BoxPlot(
                 .filter { (group1.value() to group2.value()) in set }
         }.filter { pSignif != SignificanceLevel.NS }
 
-        val mustach = yMax * 0.01
+        val mustach = yDelta * 0.2
         var plt = plot
-        for (row in stat.rows()) {
+        val rows = stat.rows().sortedBy { abs(ord(x, it.group1) - ord(x, it.group2)) }
+        for (row in rows) {
             val yValue = adjustAndGetYMax()
             val gr1 = row.group1.value()
             val gr2 = row.group2.value()
 
-            plt += geomLine(
+            plt += geomPath(
                 mapOf(
-                    x to listOf(gr1, gr2),
-                    y to listOf(yValue, yValue)
-                )
-            )
-
-            plt += geomLine(
-                mapOf(
-                    x to listOf(gr1, gr1),
-                    y to listOf(yValue, yValue - mustach)
-                )
-            )
-
-            plt += geomLine(
-                mapOf(
-                    x to listOf(gr2, gr2),
-                    y to listOf(yValue, yValue - mustach)
+                    x to listOf(gr1, gr1, gr2, gr2),
+                    y to listOf(yValue - mustach, yValue, yValue, yValue - mustach)
                 ),
-
-                )
+                color = "black"
+            )
 
             plt += geomText(
                 x = (ord(x, gr1) + ord(x, gr2)) / 2.0,
-                y = yValue + mustach,
-                vjust = "top",
+                y = yValue + yDelta / 2,
+                size = 7,
                 label = row.pValueFmt
             )
         }
@@ -232,17 +221,17 @@ class BoxPlot(
         var plt = basePlot()
 
         when (mode) {
-            BoxPlotMode.Empty -> {
+            Empty -> {
                 // nothing to do
             }
-            BoxPlotMode.WithReference -> {
+            WithReference -> {
                 plt = addGroupPValues(plt)
             }
-            BoxPlotMode.WithComparisons -> {
+            WithComparisons -> {
                 plt = addComparisons(plt)
             }
-            BoxPlotMode.FacetBy -> {}
-            BoxPlotMode.WithGroupBy -> {}
+            FacetBy -> {}
+            WithGroupBy -> {}
         }
 
         if (showOverallPValue == true) {

@@ -217,7 +217,6 @@ class CompareMeans(
     }
 
     private val compareMeansFmt by lazy {
-        val n = nfmt(compareMeansAdj.map { it.pValue }.toList())
         compareMeansAdj.map {
             it.copy(
                 pValueFmt = formatPValue(it.pValueAdj)
@@ -249,15 +248,6 @@ enum class SignificanceLevel(val string: String) {
     }
 }
 
-private fun nfmt(dl: List<Double>) =
-    dl.map { d ->
-        d.toString()
-            .replace(".", "")
-            .toCharArray()
-            .indexOfFirst { it != '0' }
-    }.maxOrNull() ?: 3
-
-
 /** Method for calculation of p-value */
 enum class TestMethod(val pairedOnly: Boolean, val str: String) {
     TTest(true, "T-test") {
@@ -266,10 +256,7 @@ enum class TestMethod(val pairedOnly: Boolean, val str: String) {
                 throw IllegalArgumentException("more than 2 datasets passed")
             val a = arr[0]
             val b = arr[1]
-            return if (a.size != b.size)
-                TTest().tTest(a, b)
-            else
-                TTest().pairedTTest(a, b)
+            return TTest().tTest(a, b)
         }
     },
     Wilcoxon(true, "Wilcoxon") {
@@ -289,10 +276,9 @@ enum class TestMethod(val pairedOnly: Boolean, val str: String) {
             OneWayAnova().anovaPValue(arr.toList())
 
     },
-    Kruskal(false, "Kruskal-Wallis") {
-        override fun pValue(vararg arr: DoubleArray): Double {
-            TODO("Not yet implemented")
-        }
+    KruskalWallis(false, "Kruskal-Wallis") {
+        override fun pValue(vararg arr: DoubleArray) =
+            KruskalWallis().kruskalWallisTest(arr.toList())
     };
 
     override fun toString(): String {
