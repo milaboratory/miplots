@@ -1,6 +1,8 @@
 package com.milaboratory.statplots.util
 
 import jetbrains.datalore.plot.PlotSvgExport
+import jetbrains.letsPlot.Figure
+import jetbrains.letsPlot.GGBunch
 import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.intern.toSpec
 import org.apache.batik.transcoder.TranscoderInput
@@ -16,11 +18,17 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.writeBytes
 
 
-fun Plot.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
-fun Plot.toPDF() = toPdf(this.toSvg())
-fun Plot.toEPS() = toEPS(this.toSvg())
+fun Figure.toSpec() = when (this) {
+    is Plot -> this.toSpec()
+    is GGBunch -> this.toSpec()
+    else -> throw RuntimeException()
+}
 
-fun toPdf(svg: String) = toVector(svg, ExportType.PDF)
+fun Figure.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
+fun Figure.toPDF() = toPDF(toSvg())
+fun Figure.toEPS() = toEPS(this.toSvg())
+
+fun toPDF(svg: String) = toVector(svg, ExportType.PDF)
 fun toEPS(svg: String) = toVector(svg, ExportType.EPS)
 
 enum class ExportType { PDF, EPS }

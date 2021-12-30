@@ -9,51 +9,15 @@ import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.*
 
 /**
- * A formula containing
- *   y - a numeric variable
- *   factor -  a factor with one or multiple levels
- */
-data class Formula(
-    /** A numeric variable */
-    val y: String,
-    /** A factor */
-    val factor: Factor
-)
-
-/**
- * A group of columns representing a factor for grouping
- */
-data class Factor(val columnNames: List<String>) {
-    internal val arr = columnNames.toTypedArray()
-}
-
-fun Factor(vararg columnNames: String) = Factor(columnNames.toList())
-
-/**
  * Reference group
  **/
-sealed interface RefGroup {
-    fun value(): Any
-
+data class RefGroup internal constructor(val value: String?) {
     companion object {
-        internal object All : RefGroup {
-            override fun value(): Any = ""
-            override fun toString() = "all"
-        }
-
         /** All dataset */
-        val all: RefGroup = All
-
-        internal data class RefGroupImpl(val colValues: List<Any?>) : RefGroup {
-            override fun value(): Any = colValues.joinToString(",")
-            override fun toString() = colValues.joinToString("+")
-        }
+        val all = RefGroup(null)
 
         /** Select part of dataset for specific values of columns */
-        fun of(vararg columnValues: Any): RefGroup = RefGroupImpl(columnValues.toList())
-
-        /** Select part of dataset for specific values of columns */
-        fun of(columnValues: List<Any>): RefGroup = RefGroupImpl(columnValues)
+        fun of(value: String): RefGroup = RefGroup(value)
     }
 }
 
@@ -64,9 +28,14 @@ interface CompareMeansParameters {
     val data: AnyFrame
 
     /**
-     * The formula
+     * Y value
      */
-    val formula: Formula
+    val y: String
+
+    /**
+     * X category
+     */
+    val x: String
 
     /**
      * The type of test. Default is Wilcox
@@ -74,11 +43,9 @@ interface CompareMeansParameters {
     val method: TestMethod
 
     /**
-     * Variables used to group the data set before applying the test.
-     * When specified the mean comparisons will be performed in each
-     * subset of the data formed by the different levels of the groupBy variables.
+     * The type of test for multiple groups. Default is Kruskal-Wallis
      */
-    val groupBy: Factor?
+    val multipleGroupsMethod: TestMethod
 
     /**
      * Method for adjusting p values. Default is Holm.
@@ -96,23 +63,28 @@ interface CompareMeansParameters {
 
 class CompareMeans(
     override val data: AnyFrame,
-    override val formula: Formula,
+    override val x: String,
+    override val y: String,
     override val method: TestMethod = TestMethod.Wilcoxon,
-    override val groupBy: Factor? = null,
+    override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
     override val pAdjustMethod: PValueCorrection.Method? = null,
     override val refGroup: RefGroup? = null,
 ) : CompareMeansParameters {
 
     /** all data array */
     private val allData by lazy {
-        data[formula.y].cast<Double>().toDoubleArray()
+        data[y].cast<Double>().toDoubleArray()
     }
 
     /** data array for each group*/
-    private val groups: List<Pair<RefGroup, DoubleArray>> by lazy {
-        data.groupBy(*formula.factor.arr).groups.toList().map {
-            getRefGroup(it, formula.factor.arr) to it[formula.y].cast<Double>().toDoubleArray()
-        }
+    private val groups: Map<Any, DoubleArray> by lazy {
+        data.groupBy(x)
+            .groups.toList()
+            .map {
+                getGroup(it) to it[y].cast<Double>().toDoubleArray()
+            }
+            .filter { it.second.size > 2 }
+            .toMap()
     }
 
     /** maximal y value */
@@ -123,13 +95,13 @@ class CompareMeans(
 
     /** Method used to compute overall p-value */
     val overallPValueMethod =
-        if (method.pairedOnly && groups.map { it.second }.filter { it.size > 2 }.size > 2)
-            TestMethod.ANOVA
+        if (method.pairedOnly && groups.size > 2)
+            multipleGroupsMethod
         else method
 
     /** Overall p-value computed with one way ANOVA */
     val overallPValue by lazy {
-        val datum = groups.map { it.second }.filter { it.size > 2 }
+        val datum = groups.values
         if (datum.size < 2)
             -1.0
         else
@@ -141,17 +113,23 @@ class CompareMeans(
         formatPValue(overallPValue)
     }
 
+    /** Significance for [overallPValue] */
+    val overallPValueSign by lazy {
+        SignificanceLevel.of(overallPValue)
+    }
+
     /** List of all "compare means" with no p-Value adjustment */
     private val compareMeansRaw: List<CompareMeansRow> by lazy {
         if (refGroup != null) {
-            val groups = this.groups.toMap()
+            val refGroup = this@CompareMeans.refGroup.value
 
             //  get reference data
             val refData = (
-                    if (refGroup == RefGroup.all)
+                    if (refGroup == null)
                         allData
                     else
-                        groups[refGroup] ?: throw IllegalArgumentException("reference group not found")
+                        groups[refGroup]
+                            ?: throw IllegalArgumentException("reference group not found")
                     )
 
             groups.map { (group, data) ->
@@ -164,7 +142,7 @@ class CompareMeans(
                 val pValue = method.pValue(refData, data)
 
                 CompareMeansRow(
-                    formula.y, method,
+                    y, method,
                     refGroup, group,
                     pValue, pValue,
                     "", SignificanceLevel.of(pValue)
@@ -173,22 +151,20 @@ class CompareMeans(
         } else {
             val cmpList = mutableListOf<CompareMeansRow>()
 
-            for (i in groups.indices) {
+            val gKeys = groups.keys.toList()
+            for (i in gKeys.indices) {
                 for (j in 0 until i) {
-                    val iGroup = groups[i]
-                    val jGroup = groups[j]
-
-                    if (iGroup.second.size < 2 || jGroup.second.size < 2)
-                        continue
+                    val iGroup = gKeys[i]
+                    val jGroup = gKeys[j]
 
                     val pValue = method.pValue(
-                        iGroup.second,
-                        jGroup.second
+                        groups[iGroup]!!,
+                        groups[jGroup]!!
                     )
 
                     cmpList += CompareMeansRow(
-                        formula.y, method,
-                        iGroup.first, jGroup.first,
+                        y, method,
+                        iGroup, jGroup,
                         pValue, pValue,
                         "", SignificanceLevel.of(pValue)
                     )
@@ -227,10 +203,7 @@ class CompareMeans(
     /** Compare means statistics */
     val stat by lazy { compareMeansFmt.toDataFrame() }
 
-    private fun getRefGroup(df: AnyFrame, group: Array<String>) = run {
-        val f = df.first()
-        RefGroup.Companion.RefGroupImpl(group.map { f[it] })
-    }
+    private fun getGroup(df: AnyFrame) = df.first()[x] ?: throw RuntimeException()
 }
 
 enum class SignificanceLevel(val string: String) {
@@ -300,11 +273,11 @@ data class CompareMeansRow(
     /** Method used */
     val method: TestMethod,
 
-    /** First group */
-    val group1: RefGroup,
+    /** First group (null for comparison against all) */
+    val group1: Any?,
 
     /** Second group */
-    val group2: RefGroup,
+    val group2: Any,
 
     /** The p-value */
     val pValue: Double,
