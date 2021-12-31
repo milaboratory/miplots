@@ -203,8 +203,10 @@ class CompareMeans(
     /** Compare means statistics */
     val stat by lazy { compareMeansFmt.toDataFrame() }
 
-    private fun getGroup(df: AnyFrame) = df.first()[x] ?: throw RuntimeException()
+    private fun getGroup(df: AnyFrame) = df.first()[x] ?: NA
 }
+
+val NA = "NA"
 
 enum class SignificanceLevel(val string: String) {
     NS("ns"),
