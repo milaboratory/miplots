@@ -4,12 +4,16 @@ import com.milaboratory.statplots.boxplot.BoxPlotMode.*
 import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Formatted
 import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Significance
 import com.milaboratory.statplots.util.*
+import jetbrains.letsPlot.elementBlank
 import jetbrains.letsPlot.elementLine
+import jetbrains.letsPlot.facet.facetWrap
 import jetbrains.letsPlot.geom.geomBoxplot
 import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.intern.Plot
+import jetbrains.letsPlot.label.xlab
 import jetbrains.letsPlot.letsPlot
+import jetbrains.letsPlot.scale.scaleXContinuous
 import jetbrains.letsPlot.theme
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.*
@@ -39,11 +43,19 @@ enum class BoxPlotMode {
 
     /// with grouping
     WithGroupBy,
+    WithFacet
 }
 
 interface BoxPlotParameters : CompareMeansParameters {
     /** Group data by specified column */
     val group: String?
+
+    /** Organize groupped data in facets */
+    val facetWrap: Boolean?
+
+    /** Number of columns/rows in facet view */
+    val ncol: Int?
+    val nrow: Int?
 
     /** Show overall p-value */
     val showOverallPValue: Boolean?
@@ -69,6 +81,9 @@ class BoxPlot(
     override val x: String,
     override val y: String,
     override val group: String? = null,
+    override val facetWrap: Boolean? = null,
+    override val ncol: Int? = null,
+    override val nrow: Int? = null,
     override val showOverallPValue: Boolean? = null,
     override val comparisons: List<Pair<String, String>>? = null,
     override val allComparisons: Boolean? = null,
@@ -77,21 +92,33 @@ class BoxPlot(
     override val labelFormat: LabelFormat = Significance,
     _yMin: Double? = null,
     _yMax: Double? = null,
-    _xLim: List<Any?>? = null,
     override val method: TestMethod = TestMethod.Wilcoxon,
     override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
     override val pAdjustMethod: PValueCorrection.Method? = null,
 ) : BoxPlotParameters {
 
-    override val data = _data.fillNA { cols(x, *listOfNotNull(group).toTypedArray()) }.with { NA }
+    override val data: AnyFrame
+
+    // numeric x axis name
+    private val xNumeric = x + "__Numeric"
+
+    // x ordinals
+    private val xord: Map<Any?, Int>
+
+    // x numeric values
+    private val xnum: Map<Any?, Double>
 
     init {
-        if (data[x].all { it is Double })
+        if (_data[x].all { it is Double })
             throw IllegalArgumentException("x must be categorical")
+        val xdist = _data[x].distinct().toList()
+        xord = xdist.mapIndexed { i, v -> v to i }.toMap()
+        xnum = xord.mapValues { (_, v) -> v.toDouble() }
+        data = _data
+            .fillNA { cols(x, *listOfNotNull(group).toTypedArray()) }
+            .with { NA }
+            .add(xNumeric) { xnum[it[x]]!! }
     }
-
-    /** ordinals for x variable */
-    private val xord = (_xLim ?: data[x].distinct().toList()).mapIndexed { i, e -> e to i }.toMap()
 
     /** Compare means stat */
     private val compareMeans = CompareMeans(
@@ -100,9 +127,12 @@ class BoxPlot(
         refGroup = refGroup
     )
 
+    /** y column */
+    private val ydata = data[y].convertToDouble()
+
     /** minmax y */
-    private var yMin = _yMin ?: compareMeans.yMin
-    private var yMax = _yMax ?: compareMeans.yMax
+    private var yMin = _yMin ?: ydata.min()
+    private var yMax = _yMax ?: ydata.max()
     private val yDelta = abs(yMax - yMin) * 0.1
 
     private fun ensureNotSet(mode: BoxPlotMode, vararg props: KProperty0<Any?>) {
@@ -114,16 +144,16 @@ class BoxPlot(
     private val mode: BoxPlotMode = run {
         if (group != null) {
             ensureNotSet(WithGroupBy, ::refGroup, ::comparisons, ::showOverallPValue)
-            return@run WithGroupBy
+            return@run if (facetWrap == true) WithFacet else WithGroupBy
         }
 
         if (comparisons != null || allComparisons == true) {
-            ensureNotSet(WithComparisons, ::group, ::refGroup)
+            ensureNotSet(WithComparisons, ::group, ::refGroup, ::facetWrap, ::ncol, ::nrow)
             return@run WithComparisons
         }
 
         if (refGroup != null) {
-            ensureNotSet(WithReference, ::group, ::comparisons)
+            ensureNotSet(WithReference, ::group, ::comparisons, ::facetWrap, ::ncol, ::nrow)
             return@run WithReference
         }
 
@@ -139,25 +169,39 @@ class BoxPlot(
     /** base box plot */
     private fun basePlot() = run {
         var plt = letsPlot(data.toMap()) {
-            x = this@BoxPlot.x
+            x = this@BoxPlot.xNumeric
             y = this@BoxPlot.y
         }
 
         plt += geomBoxplot {
-            fill = this@BoxPlot.group ?: this@BoxPlot.x
+            fill =
+                if (this@BoxPlot.group == null)
+                    this@BoxPlot.x
+                else
+                    if (this@BoxPlot.facetWrap == true)
+                        this@BoxPlot.x
+                    else
+                        this@BoxPlot.group
+
         }
 
-        plt += theme(panelGrid = "blank", axisLineY = elementLine())
+        plt += xlab(x)
+
+        plt += theme(panelGrid = elementBlank(), panelGridMajorY = elementLine())
             .legendPositionNone()
 
-        if (group != null)
+        plt += scaleXContinuous(
+            breaks = xnum.values.toList(),
+            labels = xnum.keys.toList().map { it.toString() })
+
+        if (group != null && facetWrap == false)
             plt += theme().legendPositionTop()
 
         plt
     }
 
     /** Add group p-values to the plot */
-    private fun addGroupPValues(plot: Plot): Plot = run {
+    private fun addPValues(plot: Plot): Plot = run {
         val stat = compareMeans.stat
 
         val labels = when (labelFormat) {
@@ -168,12 +212,11 @@ class BoxPlot(
 
         plot + geomText(
             mapOf(
-                x to stat.group2.toList().map { it },
+                xNumeric to stat.group2.toList().map { xnum[it] },
                 "labels" to labels
             ),
             y = adjustAndGetYMax()
         ) {
-            x = this@BoxPlot.x
             label = "labels"
         }
     }
@@ -189,7 +232,13 @@ class BoxPlot(
         )
 
     /** Add comparisons */
-    private fun addComparisons(plot: Plot): Plot = run {
+    /** Add comparisons */
+    private fun addComparisons(
+        plot: Plot,
+        compareMeans: CompareMeans,
+        facet: Any?
+    ): Plot = run {
+        var plt = plot
         val stat = if (allComparisons == true)
             compareMeans.stat
         else {
@@ -199,27 +248,32 @@ class BoxPlot(
         }.filter { pSignif != SignificanceLevel.NS }
 
         val mustach = yDelta * 0.2
-        var plt = plot
         val rows = stat.rows().sortedBy { abs(xord[it.group1!!]!! - xord[it.group2]!!) }
         for (row in rows) {
             val yValue = adjustAndGetYMax()
-            val gr1 = row.group1!!
-            val gr2 = row.group2
+            val gr1 = xnum[row.group1!!]!!
+            val gr2 = xnum[row.group2]!!
 
-            plt += geomPath(
-                mapOf(
-                    x to listOf(gr1, gr1, gr2, gr2),
-                    y to listOf(yValue - mustach, yValue, yValue, yValue - mustach)
-                ),
-                color = "black"
+            val pathData: MutableMap<String, List<Any?>> = mutableMapOf(
+                xNumeric to listOf(gr1, gr1, gr2, gr2),
+                y to listOf(yValue - mustach, yValue, yValue, yValue - mustach),
             )
+            if (facet != null)
+                pathData += group!! to List(4) { facet }
 
-            plt += geomText(
-                x = (xord[gr1]!! + xord[gr2]!!) / 2.0,
-                y = yValue + yDelta / 2,
-                size = 7,
-                label = row.pValueFmt
+            plt += geomPath(pathData, color = "black")
+
+            val textData: MutableMap<String, List<Any?>> = mutableMapOf(
+                xNumeric to listOf((gr1 + gr2) / 2.0),
+                y to listOf(yValue + yDelta / 2),
+                "label" to listOf(row.pValueFmt)
             )
+            if (facet != null)
+                textData += group!! to listOf(facet)
+
+            plt += geomText(data = textData, size = 6) {
+                label = "label"
+            }
         }
 
         plt
@@ -237,7 +291,7 @@ class BoxPlot(
     }
 
     /** Add p-value for each group in grouped boxplot (no facets) */
-    private fun addInterGroupPValues(plot: Plot): Plot = run {
+    private fun addPValuesByGroup(plot: Plot): Plot = run {
         val stat = groupedCompareMeans
 
         val labels = stat.values.map {
@@ -250,14 +304,33 @@ class BoxPlot(
 
         plot + geomText(
             mapOf(
-                x to stat.keys.toList().map { it },
+                xNumeric to stat.keys.toList().map { xnum[it] },
                 "labels" to labels
             ),
             y = adjustAndGetYMax()
         ) {
-            x = this@BoxPlot.x
             label = "labels"
         }
+    }
+
+    /** Compare means stat by groups */
+    private val compareMeansFacets by lazy {
+        data.groupBy(group!!).groups.toList().map {
+            it.first()[group] to CompareMeans(
+                data = it, x = x, y = y,
+                method = method, multipleGroupsMethod = multipleGroupsMethod, pAdjustMethod = pAdjustMethod,
+                refGroup = refGroup
+            )
+        }
+    }
+
+    /** Add comparisons */
+    private fun addFacetComparisons(plot: Plot): Plot = run {
+        var plt = plot
+        for ((facet, compareMeans) in compareMeansFacets) {
+            plt = addComparisons(plt, compareMeans, facet)
+        }
+        plt
     }
 
     val plot = run {
@@ -268,19 +341,26 @@ class BoxPlot(
                 // nothing to do
             }
             WithReference -> {
-                plt = addGroupPValues(plt)
+                plt = addPValues(plt)
             }
             WithComparisons -> {
-                plt = addComparisons(plt)
+                plt = addComparisons(plt, this.compareMeans, null)
             }
             WithGroupBy -> {
-                plt = addInterGroupPValues(plt)
+                plt = addPValuesByGroup(plt)
+            }
+
+            WithFacet -> {
+                plt = addFacetComparisons(plt)
             }
         }
 
         if (showOverallPValue == true) {
             plt = addOverallPValue(plt)
         }
+
+        if (facetWrap == true)
+            plt += facetWrap(facets = group!!, ncol = ncol, nrow = nrow)
 
         plt
     }
