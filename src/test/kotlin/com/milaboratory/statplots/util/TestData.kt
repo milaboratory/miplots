@@ -12,9 +12,9 @@ import java.io.File
  */
 class TestData {
     companion object {
-        val mieloma by lazy {
+        val myeloma by lazy {
             DataFrame.readTSV(
-                File(javaClass.getResource("/Mieloma.tsv")!!.toURI())
+                File(javaClass.getResource("/Myeloma.tsv")!!.toURI())
             )
         }
 

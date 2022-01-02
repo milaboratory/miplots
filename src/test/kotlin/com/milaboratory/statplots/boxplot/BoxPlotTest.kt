@@ -2,7 +2,7 @@ package com.milaboratory.statplots.boxplot
 
 import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Formatted
 import com.milaboratory.statplots.util.RefGroup
-import com.milaboratory.statplots.util.TestData.Companion.mieloma
+import com.milaboratory.statplots.util.TestData.Companion.myeloma
 import com.milaboratory.statplots.util.TestData.Companion.toothGrowth
 import com.milaboratory.statplots.util.TestMethod
 import com.milaboratory.statplots.util.toPDF
@@ -14,23 +14,23 @@ import java.nio.file.Paths
  *
  */
 internal class BoxPlotTest {
-    fun mielomaEmpty() = BoxPlot(
-        mieloma,
+    fun myelomaEmpty() = BoxPlot(
+        myeloma,
         x = "molecular_group",
         y = "IRF4",
         showOverallPValue = true,
     ).plot
 
-    fun mielomaRefSign() = BoxPlot(
-        mieloma,
+    fun myelomaRefSign() = BoxPlot(
+        myeloma,
         x = "molecular_group",
         y = "IRF4",
         showOverallPValue = true,
         refGroup = RefGroup.all,
     ).plot
 
-    fun mielomaRefPVal() = BoxPlot(
-        mieloma,
+    fun myelomaRefPVal() = BoxPlot(
+        myeloma,
         x = "molecular_group",
         y = "IRF4",
         showOverallPValue = true,
@@ -39,30 +39,30 @@ internal class BoxPlotTest {
 
     ).plot
 
-    fun mielomaAllComps() = BoxPlot(
-        mieloma,
+    fun myelomaAllComps() = BoxPlot(
+        myeloma,
         x = "molecular_group",
         y = "IRF4",
         showOverallPValue = true,
         allComparisons = true
     ).plot
 
-    fun mielomaGroupped1() = BoxPlot(
-        mieloma,
+    fun myelomaGroupped1() = BoxPlot(
+        myeloma,
         x = "molecular_group",
         y = "IRF4",
         group = "chr1q21_status",
     ).plot
 
     @Test
-    internal fun testMieloma() {
+    internal fun testMyeloma() {
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            mielomaEmpty().toPDF(),
-            mielomaRefSign().toPDF(),
-            mielomaRefPVal().toPDF(),
-            mielomaAllComps().toPDF(),
-            mielomaGroupped1().toPDF()
+            myelomaEmpty().toPDF(),
+            myelomaRefSign().toPDF(),
+            myelomaRefPVal().toPDF(),
+            myelomaAllComps().toPDF(),
+            myelomaGroupped1().toPDF()
         )
     }
 

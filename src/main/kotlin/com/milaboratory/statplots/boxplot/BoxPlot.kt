@@ -10,8 +10,6 @@ import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.letsPlot
-import jetbrains.letsPlot.scale.scaleFillDiscrete
-import jetbrains.letsPlot.scale.xlim
 import jetbrains.letsPlot.theme
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.*

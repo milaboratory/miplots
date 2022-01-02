@@ -4,10 +4,13 @@ import com.milaboratory.statplots.util.PValueCorrection
 import com.milaboratory.statplots.util.RefGroup
 import com.milaboratory.statplots.util.TestMethod
 import jetbrains.letsPlot.GGBunch
+import jetbrains.letsPlot.elementText
 import jetbrains.letsPlot.ggsize
 import jetbrains.letsPlot.label.ggtitle
 import jetbrains.letsPlot.scale.scaleFillDiscrete
+import jetbrains.letsPlot.scale.scaleXContinuous
 import jetbrains.letsPlot.scale.xlim
+import jetbrains.letsPlot.theme
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 
@@ -19,6 +22,7 @@ class BoxPlotFacets(
     override val x: String,
     override val y: String,
     val facet: String,
+    val ncol: Int? = null,
     override val group: String? = null,
     override val showOverallPValue: Boolean? = null,
     override val comparisons: List<Pair<String, String>>? = null,
@@ -68,9 +72,13 @@ class BoxPlotFacets(
                         ggtitle("$facet = $gName")
             }.toList()
 
+
         var bunch = GGBunch()
+        val ncol = this.ncol ?: plots.size
         for (i in plots.indices) {
-            bunch = bunch.addPlot(plots[i], i * width, 0)
+            val col = i % ncol
+            val row = i / ncol
+            bunch = bunch.addPlot(plots[i], col * width, row * height)
         }
 
         bunch
