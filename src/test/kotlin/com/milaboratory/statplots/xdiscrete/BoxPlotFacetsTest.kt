@@ -1,4 +1,4 @@
-package com.milaboratory.statplots.boxplot
+package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.util.TestData
 import com.milaboratory.statplots.util.toPDF

@@ -1,9 +1,9 @@
-package com.milaboratory.statplots.boxplot
+package com.milaboratory.statplots.xdiscrete
 
-import com.milaboratory.statplots.boxplot.BoxPlotMode.*
-import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Formatted
-import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Significance
 import com.milaboratory.statplots.util.*
+import com.milaboratory.statplots.xdiscrete.BoxPlotMode.*
+import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
+import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Significance
 import jetbrains.letsPlot.elementBlank
 import jetbrains.letsPlot.elementLine
 import jetbrains.letsPlot.facet.facetWrap
@@ -96,7 +96,7 @@ class BoxPlot(
     override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
     override val pAdjustMethod: PValueCorrection.Method? = null,
 ) : BoxPlotParameters {
-
+    override val paired = false
     override val data: AnyFrame
 
     // numeric x axis name

@@ -1,6 +1,6 @@
-package com.milaboratory.statplots.boxplot
+package com.milaboratory.statplots.xdiscrete
 
-import com.milaboratory.statplots.boxplot.LabelFormat.Companion.Formatted
+import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
 import com.milaboratory.statplots.util.RefGroup
 import com.milaboratory.statplots.util.TestData.Companion.myeloma
 import com.milaboratory.statplots.util.TestData.Companion.toothGrowth

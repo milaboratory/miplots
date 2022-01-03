@@ -1,9 +1,6 @@
 package com.milaboratory.statplots.util
 
-import org.apache.commons.math3.stat.inference.MannWhitneyUTest
-import org.apache.commons.math3.stat.inference.OneWayAnova
-import org.apache.commons.math3.stat.inference.TTest
-import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest
+import org.apache.commons.math3.stat.inference.*
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.*
@@ -43,12 +40,17 @@ interface CompareMeansParameters {
     val method: TestMethod
 
     /**
+     * A logical indicating whether a paired test should be performed. Used only in T-test and in Wilcox
+     */
+    val paired: Boolean
+
+    /**
      * The type of test for multiple groups. Default is Kruskal-Wallis
      */
     val multipleGroupsMethod: TestMethod
 
     /**
-     * Method for adjusting p values. Default is Holm.
+     * Method for adjusting p values (null for no adjustment). Default is Bonferroni.
      */
     val pAdjustMethod: PValueCorrection.Method?
 
@@ -66,8 +68,9 @@ class CompareMeans(
     override val x: String,
     override val y: String,
     override val method: TestMethod = TestMethod.Wilcoxon,
+    override val paired: Boolean = false,
     override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
-    override val pAdjustMethod: PValueCorrection.Method? = null,
+    override val pAdjustMethod: PValueCorrection.Method? = PValueCorrection.Method.Bonferroni,
     override val refGroup: RefGroup? = null,
 ) : CompareMeansParameters {
 
@@ -87,12 +90,6 @@ class CompareMeans(
             .toMap()
     }
 
-    /** maximal y value */
-    val yMax by lazy { allData.maxOrNull() ?: 0.0 }
-
-    /** minimal y value */
-    val yMin by lazy { allData.minOrNull() ?: 0.0 }
-
     /** Method used to compute overall p-value */
     val overallPValueMethod =
         if (method.pairedOnly && groups.size > 2)
@@ -105,7 +102,7 @@ class CompareMeans(
         if (datum.size < 2)
             -1.0
         else
-            overallPValueMethod.pValue(*datum.toTypedArray())
+            overallPValueMethod.pValue(*datum.toTypedArray(), paired = false)
     }
 
     /** Formatted [overallPValue] */
@@ -139,7 +136,7 @@ class CompareMeans(
                 if (refData.size < 2 || data.size < 2)
                     return@map null
 
-                val pValue = method.pValue(refData, data)
+                val pValue = method.pValue(refData, data, paired = paired)
 
                 CompareMeansRow(
                     y, method,
@@ -159,7 +156,8 @@ class CompareMeans(
 
                     val pValue = method.pValue(
                         groups[iGroup]!!,
-                        groups[jGroup]!!
+                        groups[jGroup]!!,
+                        paired = paired
                     )
 
                     cmpList += CompareMeansRow(
@@ -206,7 +204,7 @@ class CompareMeans(
     private fun getGroup(df: AnyFrame) = df.first()[x] ?: NA
 }
 
-val NA = "NA"
+const val NA = "NA"
 
 enum class SignificanceLevel(val string: String) {
     NS("ns"),
@@ -226,16 +224,19 @@ enum class SignificanceLevel(val string: String) {
 /** Method for calculation of p-value */
 enum class TestMethod(val pairedOnly: Boolean, val str: String) {
     TTest(true, "T-test") {
-        override fun pValue(vararg arr: DoubleArray): Double {
+        override fun pValue(vararg arr: DoubleArray, paired: Boolean): Double {
             if (arr.size != 2)
                 throw IllegalArgumentException("more than 2 datasets passed")
             val a = arr[0]
             val b = arr[1]
-            return TTest().tTest(a, b)
+            return if (paired)
+                TTest().pairedTTest(a, b)
+            else
+                TTest().tTest(a, b)
         }
     },
     Wilcoxon(true, "Wilcoxon") {
-        override fun pValue(vararg arr: DoubleArray): Double {
+        override fun pValue(vararg arr: DoubleArray, paired: Boolean): Double {
             if (arr.size != 2)
                 throw IllegalArgumentException("more than 2 datasets passed")
             val a = arr[0]
@@ -243,24 +244,36 @@ enum class TestMethod(val pairedOnly: Boolean, val str: String) {
             return if (a.size != b.size)
                 MannWhitneyUTest().mannWhitneyUTest(a, b)
             else
-                WilcoxonSignedRankTest().wilcoxonSignedRankTest(a, b, false)
+                return if (paired)
+                    WilcoxonSignedRankTest().wilcoxonSignedRankTest(a, b, false)
+                else
+                    MannWhitneyUTest().mannWhitneyUTest(a, b)
         }
     },
     ANOVA(false, "Anova") {
-        override fun pValue(vararg arr: DoubleArray) =
+        override fun pValue(vararg arr: DoubleArray, paired: Boolean) =
             OneWayAnova().anovaPValue(arr.toList())
 
     },
     KruskalWallis(false, "Kruskal-Wallis") {
-        override fun pValue(vararg arr: DoubleArray) =
+        override fun pValue(vararg arr: DoubleArray, paired: Boolean) =
             KruskalWallis().kruskalWallisTest(arr.toList())
+    },
+    KolmogorovSmirnov(true, "Kolmogorov-Smirnov") {
+        override fun pValue(vararg arr: DoubleArray, paired: Boolean): Double {
+            if (arr.size != 2)
+                throw IllegalArgumentException("more than 2 datasets passed")
+            val a = arr[0]
+            val b = arr[1]
+            return KolmogorovSmirnovTest().kolmogorovSmirnovTest(a, b)
+        }
     };
 
     override fun toString(): String {
-        return str;
+        return str
     }
 
-    abstract fun pValue(vararg arr: DoubleArray): Double
+    abstract fun pValue(vararg arr: DoubleArray, paired: Boolean): Double
 }
 
 /**
