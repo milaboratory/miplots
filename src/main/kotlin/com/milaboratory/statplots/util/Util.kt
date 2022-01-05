@@ -21,3 +21,10 @@ fun formatPValue(value: Double) =
         "%.2f".format(Math.round((1000 * value)) / 1000.0)
 
 
+fun <K, V> Map<K?, V?>.filterNotNull(): Map<K, V> = this.mapNotNull {
+    it.key?.let { key ->
+        it.value?.let { value ->
+            key to value
+        }
+    }
+}.toMap()

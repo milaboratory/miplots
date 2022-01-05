@@ -18,22 +18,7 @@ data class RefGroup internal constructor(val value: String?) {
     }
 }
 
-interface CompareMeansParameters {
-    /**
-     * A dataframe containing the variables in the formula.
-     */
-    val data: AnyFrame
-
-    /**
-     * Y value
-     */
-    val y: String
-
-    /**
-     * X category
-     */
-    val x: String
-
+interface CompareMeansOptions {
     /**
      * The type of test. Default is Wilcox
      */
@@ -63,16 +48,35 @@ interface CompareMeansParameters {
     val refGroup: RefGroup?
 }
 
+data class CompareMeansOptionsCapsule(
+    override val method: TestMethod,
+    override val paired: Boolean,
+    override val multipleGroupsMethod: TestMethod,
+    override val pAdjustMethod: PValueCorrection.Method?,
+    override val refGroup: RefGroup?
+) : CompareMeansOptions {
+    constructor(oth: CompareMeansOptions) : this(
+        oth.method,
+        oth.paired,
+        oth.multipleGroupsMethod,
+        oth.pAdjustMethod,
+        oth.refGroup
+    )
+}
+
 class CompareMeans(
-    override val data: AnyFrame,
-    override val x: String,
-    override val y: String,
+    /** A dataframe containing the variables in the formula. */
+    val data: AnyFrame,
+    /** Y value */
+    val y: String,
+    /** X category */
+    val x: String,
     override val method: TestMethod = TestMethod.Wilcoxon,
     override val paired: Boolean = false,
     override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
     override val pAdjustMethod: PValueCorrection.Method? = PValueCorrection.Method.Bonferroni,
     override val refGroup: RefGroup? = null,
-) : CompareMeansParameters {
+) : CompareMeansOptions {
 
     /** all data array */
     private val allData by lazy {
