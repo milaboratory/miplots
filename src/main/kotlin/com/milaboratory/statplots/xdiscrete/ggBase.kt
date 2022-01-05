@@ -22,7 +22,7 @@ open class ggBaseAes(
 /**
  *
  */
-abstract class ggBase(
+open class ggBase(
     _data: AnyFrame,
     /** x series (discrete) */
     val x: String,

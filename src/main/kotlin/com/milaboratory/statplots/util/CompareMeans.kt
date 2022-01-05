@@ -78,6 +78,12 @@ class CompareMeans(
     override val refGroup: RefGroup? = null,
 ) : CompareMeansOptions {
 
+    init {
+        if (paired && !method.supportPaired) {
+            throw IllegalArgumentException("${method.str} does not support paired test")
+        }
+    }
+
     /** all data array */
     private val allData by lazy {
         data[y].cast<Double>().toDoubleArray()
@@ -96,7 +102,7 @@ class CompareMeans(
 
     /** Method used to compute overall p-value */
     val overallPValueMethod =
-        if (method.pairedOnly && groups.size > 2)
+        if (!method.multipleGroups && groups.size > 2)
             multipleGroupsMethod
         else method
 
@@ -226,8 +232,8 @@ enum class SignificanceLevel(val string: String) {
 }
 
 /** Method for calculation of p-value */
-enum class TestMethod(val pairedOnly: Boolean, val str: String) {
-    TTest(true, "T-test") {
+enum class TestMethod(val multipleGroups: Boolean, val supportPaired: Boolean, val str: String) {
+    TTest(false, true, "T-test") {
         override fun pValue(vararg arr: DoubleArray, paired: Boolean): Double {
             if (arr.size != 2)
                 throw IllegalArgumentException("more than 2 datasets passed")
@@ -239,7 +245,7 @@ enum class TestMethod(val pairedOnly: Boolean, val str: String) {
                 TTest().tTest(a, b)
         }
     },
-    Wilcoxon(true, "Wilcoxon") {
+    Wilcoxon(false, true, "Wilcoxon") {
         override fun pValue(vararg arr: DoubleArray, paired: Boolean): Double {
             if (arr.size != 2)
                 throw IllegalArgumentException("more than 2 datasets passed")
@@ -254,16 +260,16 @@ enum class TestMethod(val pairedOnly: Boolean, val str: String) {
                     MannWhitneyUTest().mannWhitneyUTest(a, b)
         }
     },
-    ANOVA(false, "Anova") {
+    ANOVA(true, false, "Anova") {
         override fun pValue(vararg arr: DoubleArray, paired: Boolean) =
             OneWayAnova().anovaPValue(arr.toList())
 
     },
-    KruskalWallis(false, "Kruskal-Wallis") {
+    KruskalWallis(true, false, "Kruskal-Wallis") {
         override fun pValue(vararg arr: DoubleArray, paired: Boolean) =
             KruskalWallis().kruskalWallisTest(arr.toList())
     },
-    KolmogorovSmirnov(true, "Kolmogorov-Smirnov") {
+    KolmogorovSmirnov(true, false, "Kolmogorov-Smirnov") {
         override fun pValue(vararg arr: DoubleArray, paired: Boolean): Double {
             if (arr.size != 2)
                 throw IllegalArgumentException("more than 2 datasets passed")

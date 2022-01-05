@@ -3,7 +3,9 @@ package com.milaboratory.statplots.util;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class PValueCorrection {
+public final class PValueCorrection {
+    private PValueCorrection() {}
+
     private static int[] seqLen(int start, int end) {
         int[] result;
         if (start == end) {

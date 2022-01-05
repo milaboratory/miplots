@@ -61,22 +61,30 @@ internal class statCompareMeansTest {
         y = "len"
     ) {
         fill = "dose"
+    }
+
+    fun toothOverall() = ggBoxPlot(
+        toothGrowth,
+        x = "dose",
+        y = "len"
+    ) {
+        fill = "dose"
     } + statCompareMeans()
 
     fun toothRefSign() = toothEmpty() + statCompareMeans(
         refGroup = RefGroup.all
-    )
+    ) + statCompareMeans()
 
     fun toothRefPVal() = toothEmpty() + statCompareMeans(
         refGroup = RefGroup.of("1.0"),
         labelFormat = Formatted("{pValue}")
-    )
+    ) + statCompareMeans()
 
     fun toothAllComps() = toothEmpty() + statCompareMeans(
         allComparisons = true,
         method = TestMethod.KruskalWallis,
         multipleGroupsMethod = TestMethod.KruskalWallis
-    )
+    ) + statCompareMeans()
 
     fun toothGrouped() = ggBoxPlot(
         toothGrowth,
@@ -95,6 +103,7 @@ internal class statCompareMeansTest {
         writePDF(
             Paths.get("scratch/bp.pdf"),
             toothEmpty().toPDF(),
+            toothOverall().toPDF(),
             toothRefSign().toPDF(),
             toothRefPVal().toPDF(),
             toothAllComps().toPDF(),

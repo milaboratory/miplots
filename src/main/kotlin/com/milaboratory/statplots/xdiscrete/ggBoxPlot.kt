@@ -5,7 +5,6 @@ package com.milaboratory.statplots.xdiscrete
 import jetbrains.letsPlot.geom.geomBoxplot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
-
 /** Box plot */
 class ggBoxPlot(
     data: AnyFrame, x: String, y: String,

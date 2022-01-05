@@ -10,6 +10,7 @@ import jetbrains.letsPlot.intern.Feature
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.abs
+import kotlin.math.max
 
 sealed interface LabelFormat {
     companion object {
@@ -69,10 +70,10 @@ private class StatCompareMeansFeature(
     }
 
     /** Add overall p-value to the plot */
-    private fun overallPValueLayer(compareMeans: CompareMeans, facet: Any?): Feature {
+    private fun overallPValueLayer(compareMeans: CompareMeans, facet: Any?, yCoord: Double): Feature {
         val data = mutableMapOf<String, List<Any>>(
             plt.xNumeric to listOf(0.0),
-            plt.y to listOf(plt.adjustAndGetYMax()),
+            plt.y to listOf(yCoord),
             "label" to listOf("${compareMeans.overallPValueMethod}, p = ${compareMeans.overallPValueFmt}")
         )
         if (facet != null) {
@@ -87,14 +88,15 @@ private class StatCompareMeansFeature(
     }
 
     private fun overallPValueLayer(): Feature {
-        return if (plt.facetBy != null)
-            facetLayer(statData.compareMeansFacets, this::overallPValueLayer)
-        else
-            overallPValueLayer(statData.compareMeans, null)
+        val yCoord = plt.adjustAndGetYMax()
+        return if (plt.facetBy != null) {
+            facetLayer(statData.compareMeansFacets) { c, f -> overallPValueLayer(c, f, yCoord) }
+        } else
+            overallPValueLayer(statData.compareMeans, null, yCoord)
     }
 
     /** Add group p-values to the plot */
-    private fun pValuesLayer(compareMeans: CompareMeans, facet: Any?): Feature = run {
+    private fun pValuesLayer(compareMeans: CompareMeans, facet: Any?, yCoord: Double): Feature = run {
         val stat: DataFrame<CompareMeansRow> = compareMeans.stat
 
         val labels = when (ops.labelFormat) {
@@ -106,10 +108,9 @@ private class StatCompareMeansFeature(
             else -> throw RuntimeException()
         }
 
-        val y = plt.adjustAndGetYMax()
         val data = mutableMapOf<String, List<Any>>(
             plt.xNumeric to stat.group2.toList().map { plt.xnum[it]!! },
-            plt.y to List(labels.size) { y },
+            plt.y to List(labels.size) { yCoord },
             "__label" to labels
         )
         if (facet != null)
@@ -119,17 +120,19 @@ private class StatCompareMeansFeature(
     }
 
     private fun pValuesLayer(): Feature {
+        val yCoord = plt.adjustAndGetYMax()
         return if (plt.facetBy != null)
-            facetLayer(statData.compareMeansFacets, this::pValuesLayer)
+            facetLayer(statData.compareMeansFacets) { c, f -> pValuesLayer(c, f, yCoord) }
         else
-            pValuesLayer(statData.compareMeans, null)
+            pValuesLayer(statData.compareMeans, null, yCoord)
     }
 
     /** Add comparisons */
     private fun comparisonsLayer(
         compareMeans: CompareMeans,
-        facet: Any?
-    ): Feature = run {
+        facet: Any?,
+        yCoordBase: Double
+    ): Pair<Feature, Double> = run {
         val stat = if (ops.allComparisons == true)
             compareMeans.stat
         else {
@@ -157,17 +160,14 @@ private class StatCompareMeansFeature(
         if (facet != null)
             textData += plt.facetBy!! to mutableListOf()
 
-
-        var group = 0
-        for (row in rows) {
-            val yValue = plt.adjustAndGetYMax()
+        var yValue = yCoordBase
+        for ((group, row) in rows.withIndex()) {
             val gr1 = plt.xnum[row.group1!!]!!
             val gr2 = plt.xnum[row.group2]!!
 
             pathData[plt.xNumeric]!!.addAll(listOf(gr1, gr1, gr2, gr2))
             pathData[plt.y]!!.addAll(listOf(yValue - mustach, yValue, yValue, yValue - mustach))
             pathData["__group"]!!.addAll(List(4) { group })
-            ++group
             if (facet != null)
                 pathData[plt.facetBy!!]!!.addAll(List(4) { facet })
 
@@ -176,24 +176,29 @@ private class StatCompareMeansFeature(
             textData["__label"]!!.addAll(listOf(row.pValueFmt))
             if (facet != null)
                 textData[plt.facetBy]!!.addAll(listOf(facet))
+
+            yValue += plt.yDelta
         }
 
         geomPath(pathData, color = "black") {
             this.group = "__group"
         } + geomText(textData, size = 6) {
             label = "__label"
-        }
+        } to yValue
     }
 
-    private fun comparisonsLayer(): Feature {
-        return if (plt.facetBy != null)
-            facetLayer(statData.compareMeansFacets, this::comparisonsLayer)
+    private fun comparisonsLayer(): Feature = run {
+        val yCoordBase = plt.yMax
+        val r = if (plt.facetBy != null)
+            facetLayerP(statData.compareMeansFacets) { c, f -> comparisonsLayer(c, f, yCoordBase) }
         else
-            comparisonsLayer(statData.compareMeans, null)
+            comparisonsLayer(statData.compareMeans, null, yCoordBase)
+        plt.yMax = r.second
+        r.first
     }
 
     /** Add p-value for each group in grouped boxplot (no facets) */
-    private fun pValuesGroupByLayer(stat: Map<Any, CompareMeans>, facet: Any?): Feature = run {
+    private fun pValuesGroupByLayer(stat: Map<Any, CompareMeans>, facet: Any?, yCoord: Double): Feature = run {
         val labels = stat.values.map {
             when (ops.labelFormat) {
                 LabelFormat.Significance -> it.overallPValueSign.string
@@ -205,7 +210,7 @@ private class StatCompareMeansFeature(
         val data = mutableMapOf<String, List<Any>>(
             plt.xNumeric to stat.keys.toList().map { plt.xnum[it]!! },
             "labels" to labels,
-            plt.y to listOf(plt.adjustAndGetYMax())
+            plt.y to List(labels.size) { yCoord }
         )
         if (facet != null)
             data += plt.facetBy!! to listOf(facet)
@@ -214,10 +219,11 @@ private class StatCompareMeansFeature(
     }
 
     private fun pValuesGroupByLayer(): Feature {
+        val yCoord = plt.adjustAndGetYMax()
         return if (plt.facetBy != null)
-            facetLayer(statData.compareMeansFacetsGroupBy, this::pValuesGroupByLayer)
+            facetLayer(statData.compareMeansFacetsGroupBy) { c, f -> pValuesGroupByLayer(c, f, yCoord) }
         else
-            pValuesGroupByLayer(statData.compareMeansGroupBy, null)
+            pValuesGroupByLayer(statData.compareMeansGroupBy, null, yCoord)
     }
 
     fun getFeature() = when (mode) {
@@ -228,6 +234,24 @@ private class StatCompareMeansFeature(
     }
 
     companion object {
+        internal operator fun Pair<Feature, Double>.plus(oth: Pair<Feature, Double>) = run {
+            (this.first + oth.first) to max(this.second, oth.second)
+        }
+
+        internal fun <T> facetLayerP(
+            facets: Map<Any?, T>,
+            layer: (T, Any?) -> Pair<Feature, Double>
+        ): Pair<Feature, Double> = run {
+            var feature: Pair<Feature, Double>? = null
+            for ((facet, compareMeans) in facets) {
+                if (feature == null)
+                    feature = layer(compareMeans, facet)
+                else
+                    feature += layer(compareMeans, facet)
+            }
+            feature!!
+        }
+
         internal fun <T> facetLayer(
             facets: Map<Any?, T>,
             layer: (T, Any?) -> Feature
