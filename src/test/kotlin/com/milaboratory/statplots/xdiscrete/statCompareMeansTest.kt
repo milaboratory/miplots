@@ -40,7 +40,7 @@ internal class statCompareMeansTest {
         x = "molecular_group",
         y = "IRF4"
     ) {
-        fill = "chr1q21_status"
+        color = "chr1q21_status"
     } + statCompareMeans()
 
     @Test

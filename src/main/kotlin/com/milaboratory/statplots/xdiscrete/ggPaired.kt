@@ -24,6 +24,7 @@ fun ggPaired(
     lineSize: Double? = 0.5,
     lineColor: Any? = "black",
     linetype: Any? = "solid",
+    orientation: Orientation = Orientation.Vertical,
     aesMapping: ggBaseAes.() -> Unit = {}
 ) = run {
     val _data: AnyFrame
@@ -71,6 +72,7 @@ fun ggPaired(
         lineSize,
         lineColor,
         linetype,
+        orientation,
         aesMapping
     )
 }
@@ -86,12 +88,15 @@ class ggPaired internal constructor(
     facetNRow: Int?,
     color: String?,
     fill: String?,
-    val pointSize: Double? = null,
-    val lineSize: Double? = null,
-    val lineColor: Any? = null,
-    val linetype: Any? = null,
+    val pointSize: Double?,
+    val lineSize: Double?,
+    val lineColor: Any?,
+    val linetype: Any?,
+    orientation: Orientation,
     aesMapping: ggBaseAes.() -> Unit = {}
-) : ggBase(data, x, y, facetBy, facetNCol, facetNRow, color, fill, aesMapping) {
+) : ggBase(data, x, y, facetBy, facetNCol, facetNRow, color, fill, orientation, aesMapping) {
+
+    override val groupBy: String? = aes.fill ?: aes.color
 
     private fun linesLayer(a: List<Any?>, b: List<Any?>, facet: Any?): Feature = run {
         val pathData = mutableMapOf<String, MutableList<Any?>>(

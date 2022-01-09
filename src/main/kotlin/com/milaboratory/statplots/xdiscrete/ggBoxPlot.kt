@@ -2,8 +2,25 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.WithFeature
 import jetbrains.letsPlot.geom.geomBoxplot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
+
+class ggBoxPlotFeature(
+    /** Outline color */
+    val color: String? = null,
+    /** Fill color */
+    val fill: String? = null,
+    /** Additional mapping */
+    aesMapping: ggBaseAes.() -> Unit = {}
+) : WithFeature {
+    internal val aes = ggBaseAes().apply(aesMapping)
+    override fun getFeature(base: ggBase) =
+        geomBoxplot(color = color, fill = fill) {
+            this.color = aes.color
+            this.fill = aes.fill
+        }
+}
 
 /** Box plot */
 class ggBoxPlot(
@@ -18,16 +35,14 @@ class ggBoxPlot(
     color: String? = null,
     /** Fill color */
     fill: String? = null,
+    /** Orientation */
+    orientation: Orientation = Orientation.Vertical,
     /** Additional mapping */
     aesMapping: ggBaseAes.() -> Unit = {}
-) : ggBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, aesMapping) {
+) : ggBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+
+    override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
+
     /** base box plot */
-    override var plot = run {
-        var plt = super.plot
-        plt += geomBoxplot(color = color, fill = fill) {
-            this.color = aes.color
-            this.fill = aes.fill
-        }
-        plt
-    }
+    override var plot = super.plot + ggBoxPlotFeature(color, fill, aesMapping).getFeature(this)
 }

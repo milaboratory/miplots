@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.NA
 import jetbrains.datalore.plot.PlotSvgExport
 import jetbrains.letsPlot.facet.facetWrap
@@ -17,7 +18,16 @@ import kotlin.math.abs
 open class ggBaseAes(
     var color: String? = null,
     var fill: String? = null,
+    var shape: String? = null,
+    var size: String? = null,
+    var linetype: String? = null,
+    var width: String? = null
 )
+
+enum class Orientation {
+    Vertical,
+    Horizontal
+}
 
 /**
  *
@@ -39,12 +49,23 @@ open class ggBase(
     val color: String? = null,
     /** Fill color */
     val fill: String? = null,
+    /** Plot orientation */
+    val orientation: Orientation = Orientation.Vertical,
     /** Aesthetics mapping */
     aesMapping: ggBaseAes.() -> Unit = {}
 ) {
+    init {
+        if (orientation == Orientation.Horizontal)
+            throw UnsupportedOperationException("horizontal orientation is not supported yet")
+    }
+
     val aes = ggBaseAes().apply(aesMapping)
 
     val data: AnyFrame
+
+    /** whether grouping was applied */
+    open val groupBy: String? = null
+    protected fun distinctGroupBy(g: String?) = if (g == x) null else g
 
     // numeric x axis name
     internal val xNumeric = x + "__Numeric"
@@ -105,10 +126,6 @@ open class ggBase(
     internal val cache = mutableMapOf<Any, Any>()
 }
 
-interface WithFeature {
-    fun getFeature(base: ggBase): Feature
-}
-
 operator fun ggBase.plusAssign(feature: Feature) {
     this.plot += feature
 }
@@ -126,7 +143,6 @@ operator fun ggBase.plus(feature: WithFeature) = run {
     this.plot += feature.getFeature(this)
     this
 }
-
 
 fun ggBase.toSpec() = this.plot.toSpec()
 fun ggBase.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())

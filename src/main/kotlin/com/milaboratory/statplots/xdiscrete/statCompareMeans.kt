@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.*
 import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
 import jetbrains.letsPlot.geom.geomPath
@@ -54,7 +55,7 @@ private class StatCompareMeansFeature(
     val ops: StatCompareMeansOptions
 ) {
     private val mode: BoxPlotMode = run {
-        if (plt.aes.fill != null && plt.aes.fill != plt.x) {
+        if (plt.groupBy != null && plt.groupBy != plt.x) {
             return@run BoxPlotMode.WithGroupBy
         }
 
@@ -290,7 +291,7 @@ private class StatCompareMeansData(
         plt.data.groupBy(plt.x).groups.toList().associate {
             it.first()[plt.x]!! to CompareMeans(
                 data = it,
-                x = plt.aes.fill!!,
+                x = plt.groupBy!!,
                 y = plt.y,
                 method = cmpOps.method,
                 multipleGroupsMethod = cmpOps.multipleGroupsMethod,
@@ -322,7 +323,7 @@ private class StatCompareMeansData(
                     facet.groupBy(plt.x).groups.toList().associate { group ->
                         group.first()[plt.x]!! to CompareMeans(
                             data = group,
-                            x = plt.aes.fill!!,
+                            x = plt.groupBy!!,
                             y = plt.y,
                             method = cmpOps.method,
                             multipleGroupsMethod = cmpOps.multipleGroupsMethod,
