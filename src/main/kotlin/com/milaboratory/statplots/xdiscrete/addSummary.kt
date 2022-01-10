@@ -11,6 +11,7 @@ import jetbrains.letsPlot.geom.geomErrorBar
 import jetbrains.letsPlot.geom.geomLineRange
 import jetbrains.letsPlot.geom.geomPointRange
 import jetbrains.letsPlot.intern.layer.PosOptions
+import jetbrains.letsPlot.positionDodge
 import org.jetbrains.kotlinx.dataframe.api.toMap
 
 /**
@@ -19,7 +20,7 @@ import org.jetbrains.kotlinx.dataframe.api.toMap
 class addSummary(
     val statFun: StatFun,
     val errorPlotType: ErrorPlotType,
-    val position: PosOptions = Pos.identity,
+    val position: PosOptions? = null,
     val color: String? = null,
     val fill: String? = null,
     val shape: String? = null,
@@ -28,9 +29,9 @@ class addSummary(
     val linetype: String? = null,
     val aesMapping: ggBaseAes.() -> Unit = {}
 ) : WithFeature {
-
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: ggBase) = run {
+        val position = this.position ?: if (base is ggBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
         val stat = statFun.apply(base.descStat).toMap()
         val aes = ggBaseAes().apply(aesMapping)
 
