@@ -9,7 +9,7 @@ import jetbrains.letsPlot.intern.Feature
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 
-fun ggPaired(
+fun GGPaired(
     data: AnyFrame,
     x: String? = null,
     y: String? = null,
@@ -57,7 +57,7 @@ fun ggPaired(
         _cond2 = xd[1] as String
     }
 
-    ggPaired(
+    GGPaired(
         _cond1,
         _cond2,
         _data,
@@ -80,7 +80,7 @@ fun ggPaired(
 /**
  *
  */
-class ggPaired internal constructor(
+class GGPaired internal constructor(
     val cond1: String, val cond2: String,
     data: AnyFrame, x: String, y: String,
     facetBy: String?,
@@ -94,7 +94,7 @@ class ggPaired internal constructor(
     val linetype: Any?,
     orientation: Orientation,
     aesMapping: ggBaseAes.() -> Unit = {}
-) : ggBase(data, x, y, facetBy, facetNCol, facetNRow, color, fill, orientation, aesMapping) {
+) : GGBase(data, x, y, facetBy, facetNCol, facetNRow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
 

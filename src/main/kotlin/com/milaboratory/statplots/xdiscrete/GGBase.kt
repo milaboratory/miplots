@@ -36,7 +36,7 @@ enum class Orientation {
 /**
  *
  */
-open class ggBase(
+open class GGBase(
     _data: AnyFrame,
     /** x series (discrete) */
     val x: String,
@@ -110,8 +110,8 @@ open class ggBase(
     /** base plot */
     open var plot = run {
         var plt = letsPlot(data.toMap()) {
-            x = this@ggBase.xNumeric
-            y = this@ggBase.y
+            x = this@GGBase.xNumeric
+            y = this@GGBase.y
         }
 
         plt += xlab(x)
@@ -137,28 +137,28 @@ open class ggBase(
     }
 }
 
-operator fun ggBase.plusAssign(feature: Feature) {
+operator fun GGBase.plusAssign(feature: Feature) {
     this.plot += feature
 }
 
-operator fun ggBase.plusAssign(feature: WithFeature) {
+operator fun GGBase.plusAssign(feature: WithFeature) {
     this.plot += feature.getFeature(this)
 }
 
-operator fun ggBase.plus(feature: Feature) = run {
+operator fun GGBase.plus(feature: Feature) = run {
     this.plot += feature
     this
 }
 
-operator fun ggBase.plus(feature: WithFeature) = run {
+operator fun GGBase.plus(feature: WithFeature) = run {
     this.plot += feature.getFeature(this)
     this
 }
 
-fun ggBase.toSpec() = this.plot.toSpec()
-fun ggBase.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
-fun ggBase.toPDF() = com.milaboratory.statplots.util.toPDF(toSvg())
-fun ggBase.toEPS() = com.milaboratory.statplots.util.toEPS(this.toSvg())
-fun writePDF(destination: Path, vararg plots: ggBase) {
+fun GGBase.toSpec() = this.plot.toSpec()
+fun GGBase.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
+fun GGBase.toPDF() = com.milaboratory.statplots.util.toPDF(toSvg())
+fun GGBase.toEPS() = com.milaboratory.statplots.util.toEPS(this.toSvg())
+fun writePDF(destination: Path, vararg plots: GGBase) {
     com.milaboratory.statplots.util.writePDF(destination, plots.toList().map { it.toPDF() })
 }

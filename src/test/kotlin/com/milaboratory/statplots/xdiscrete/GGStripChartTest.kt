@@ -12,14 +12,14 @@ import java.nio.file.Paths
 /**
  *
  */
-internal class ggStripChartTest {
+internal class GGStripChartTest {
     @Test
     internal fun testTooth() {
-        val plt1 = ggStripChart(TestData.toothGrowth, x = "dose", y = "len", size = 3.0) {
+        val plt1 = GGStripChart(TestData.toothGrowth, x = "dose", y = "len", size = 3.0) {
             shape = "dose"
         }
 
-        val plt2 = ggStripChart(
+        val plt2 = GGStripChart(
             TestData.toothGrowth, x = "dose", y = "len",
             size = 3.0,
             position = positionDodge(0.8)

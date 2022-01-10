@@ -1,90 +1,82 @@
+@file:Suppress("ClassName")
+
 package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.StatPoint
-import jetbrains.letsPlot.Pos
-import jetbrains.letsPlot.Stat
-import jetbrains.letsPlot.geom.geomBar
+import jetbrains.letsPlot.geom.geomLine
 import jetbrains.letsPlot.intern.Feature
-import jetbrains.letsPlot.intern.layer.PosOptions
-import jetbrains.letsPlot.intern.layer.StatOptions
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.toMap
 
-/**
- *
- */
-class ggBarPlotFeature(
-    val stat: StatOptions = Stat.count(),
-    val statFun: StatFun? = null,
-    val position: PosOptions = Pos.stack,
-    val color: String? = null,
-    val fill: String? = null,
-    val size: Double? = null,
-    val width: Double? = null,
-    val aesMapping: ggBaseAes.() -> Unit = {}
-) : WithFeature {
-    override fun getFeature(base: ggBase): Feature = run {
-        val aes = ggBaseAes().apply(aesMapping)
-        if (statFun == null) {
-            geomBar(fill = fill, color = color, width = width, stat = stat, position = position) {
-                fill = aes.fill
-                color = aes.color
-                width = aes.width
-            }
-        } else {
-            val statData = statFun.apply(base.descStat).rename(
-                StatPoint::mid.name to base.y,
-            ).toMap()
-            geomBar(
-                data = statData,
-                fill = fill,
-                color = color,
-                width = width,
-                stat = Stat.identity,
-                position = position
-            ) {
-                fill = aes.fill
-                color = aes.color
-                width = aes.width
-            }
-        }
-    }
+enum class ggLineType {
+    LineAndDot,
+    Line,
+    Dot
 }
 
 /**
  *
  */
-class ggBarPlot(
+class ggLine(
+    val statFun: StatFun? = null,
+    val color: String? = null,
+    val linetype: String? = null,
+    val size: Double? = null,
+    val aesMapping: ggBaseAes.() -> Unit = {}
+) : WithFeature {
+    override fun getFeature(base: GGBase): Feature = run {
+        val aes = ggBaseAes().apply(aesMapping)
+        if (statFun == null) {
+            geomLine(
+                color = color,
+                linetype = linetype,
+            ) {
+                color = aes.color
+                linetype = aes.linetype
+                group = color ?: linetype
+            }
+        } else {
+            val statData = statFun.apply(base.descStat).rename(
+                StatPoint::mid.name to base.y,
+            ).toMap()
+            geomLine(
+                data = statData,
+                color = color,
+                linetype = linetype
+            ) {
+                color = aes.color
+                linetype = aes.linetype
+                group = color ?: linetype
+            }
+        }
+    }
+}
+
+class GGLinePlot(
     data: AnyFrame,
     x: String,
     y: String,
-    val stat: StatOptions = Stat.count(),
     val statFun: StatFun? = null,
-    val position: PosOptions = Pos.stack,
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNrow: Int? = null,
     color: String? = null,
-    fill: String? = null,
     orientation: Orientation = Orientation.Vertical,
     val size: Double? = null,
-    val width: Double? = null,
+    val linetype: String? = null,
     aesMapping: ggBaseAes.() -> Unit = {}
-) : ggBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, null, orientation, aesMapping) {
 
-    override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
+    override val groupBy: String? = distinctGroupBy(aes.linetype ?: aes.color)
 
-    override var plot = super.plot + ggBarPlotFeature(
-        stat = stat,
+    override var plot = super.plot + ggLine(
         color = color,
         statFun = statFun,
-        fill = fill,
         size = size,
-        width = width,
-        position = position,
+        linetype = linetype,
         aesMapping = aesMapping
     ).getFeature(this)
 }

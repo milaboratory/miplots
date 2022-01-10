@@ -1,8 +1,12 @@
+@file:Suppress("ClassName")
+
 package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.util.RefGroup
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.TestData
+import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
+import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.positionJitter
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -10,54 +14,62 @@ import java.nio.file.Paths
 /**
  *
  */
-internal class ggLinePlotTest {
+internal class GGBarPlotTest {
 
-    private fun base() = ggLinePlot(
+    private fun base() = GGBarPlot(
         TestData.toothGrowth,
         x = "dose", y = "len",
         statFun = StatFun.MeanStdErr,
         color = "black"
-    ) + addSummary(
+    ) {
+        fill = "dose"
+    } + addSummary(
         color = "black",
         statFun = StatFun.MeanStdErr,
         errorPlotType = ErrorPlotType.PointRange
     )
 
+    private fun withCompareMeans() =
+        base() + statCompareMeans(allComparisons = true) + statCompareMeans()
+
     private fun withCompareMeansRef() =
         base() + statCompareMeans(refGroup = RefGroup.all, labelPosFit = true) + statCompareMeans()
 
     private fun withFacet() =
-        ggLinePlot(
+        GGBarPlot(
             TestData.myeloma,
             x = "molecular_group",
             y = "IRF4",
             facetBy = "chr1q21_status",
             facetNCol = 2,
             statFun = StatFun.MeanStdErr,
-        ) + addSummary(
+        ) {
+            fill = "molecular_group"
+        } + addSummary(
             statFun = StatFun.MeanStdErr, errorPlotType = ErrorPlotType.PointRange
         )
 
     private fun withFacetWithCompareMeans() =
-        withFacet() + statCompareMeans(refGroup = RefGroup.all, pAdjustMethod = null) + statCompareMeans()
+        withFacet() + statCompareMeans(allComparisons = true) + statCompareMeans()
 
     private fun withFacetWithCompareMeansWithStripChart() =
-        withFacet() + ggStripChartFeature(
+        withFacet() + ggStrip(
             color = "black",
             position = positionJitter(0.1),
             size = 3.0
         ) + statCompareMeans(
-            refGroup = RefGroup.all,
+            allComparisons = true,
             pAdjustMethod = null
         ) + statCompareMeans()
 
-    private fun withGroup() = ggLinePlot(
+    private fun withGroup() = GGBarPlot(
         TestData.toothGrowth,
         x = "dose", y = "len",
         statFun = StatFun.MeanStdErr,
+        position = Pos.dodge,
+        color = "black"
     ) {
-        linetype = "supp"
-        color = "supp"
+        fill = "supp"
     } + addSummary(
         color = "black",
         statFun = StatFun.MeanStdErr,
@@ -65,15 +77,14 @@ internal class ggLinePlotTest {
     )
 
     private fun withGroupWithCompareMeans() =
-        withGroup() + statCompareMeans(
-            labelPosFit = true,
-        )
+        withGroup() + statCompareMeans(labelPosFit = true, labelFormat = Formatted("p = {pValue}"))
 
     @Test
     fun test1() {
         writePDF(
             Paths.get("scratch/bp.pdf"),
             base(),
+            withCompareMeans() + ggStrip(color = "black", position = positionJitter(0.1)),
             withCompareMeansRef(),
             withFacet(),
             withFacetWithCompareMeans(),

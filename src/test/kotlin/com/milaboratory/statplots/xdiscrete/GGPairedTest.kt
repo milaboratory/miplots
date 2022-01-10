@@ -13,9 +13,9 @@ import java.nio.file.Paths
 /**
  *
  */
-internal class ggPairedTest {
+internal class GGPairedTest {
 
-    fun toothGrowthBase() = ggPaired(
+    fun toothGrowthBase() = GGPaired(
         data = TestData.toothGrowth.rowsReversed().toDataFrame(),
         x = "supp",
         y = "len",
@@ -28,7 +28,7 @@ internal class ggPairedTest {
         method = TestMethod.Wilcoxon
     )
 
-    fun toothGrowthFacetBase() = ggPaired(
+    fun toothGrowthFacetBase() = GGPaired(
         data = TestData.toothGrowth.rowsReversed().toDataFrame(),
         x = "supp",
         y = "len",
@@ -60,7 +60,7 @@ internal class ggPairedTest {
         val b = listOf(392.9, 393.2, 345.1, 393, 434, 427.9, 422, 383.9, 392.3, 352.2)
         val df = dataFrameOf(a.toColumn("A"), b.toColumn("B"))
 
-        val plt = ggPaired(df, color = "black", cond1 = "A", cond2 = "B") {
+        val plt = GGPaired(df, color = "black", cond1 = "A", cond2 = "B") {
             fill = "condition"
         }
 

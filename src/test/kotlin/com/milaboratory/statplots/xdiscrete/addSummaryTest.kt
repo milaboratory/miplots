@@ -1,3 +1,5 @@
+@file:Suppress("ClassName")
+
 package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.util.StatFun
@@ -13,7 +15,7 @@ internal class addSummaryTest {
 
     @Test
     fun test1() {
-        val plt = ggStripChart(
+        val plt = GGStripChart(
             TestData.toothGrowth,
             x = "supp", y = "len", size = 3.0,
             facetBy = "dose"
@@ -33,7 +35,7 @@ internal class addSummaryTest {
 
     @Test
     fun test2() {
-        val plt = ggPaired(
+        val plt = GGPaired(
             TestData.toothGrowth,
             x = "supp",
             y = "len",

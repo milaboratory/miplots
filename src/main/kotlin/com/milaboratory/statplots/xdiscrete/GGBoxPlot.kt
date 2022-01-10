@@ -6,7 +6,7 @@ import com.milaboratory.statplots.common.WithFeature
 import jetbrains.letsPlot.geom.geomBoxplot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
-class ggBoxPlotFeature(
+class ggBox(
     /** Outline color */
     val color: String? = null,
     /** Fill color */
@@ -15,7 +15,7 @@ class ggBoxPlotFeature(
     aesMapping: ggBaseAes.() -> Unit = {}
 ) : WithFeature {
     internal val aes = ggBaseAes().apply(aesMapping)
-    override fun getFeature(base: ggBase) =
+    override fun getFeature(base: GGBase) =
         geomBoxplot(color = color, fill = fill) {
             this.color = aes.color
             this.fill = aes.fill
@@ -23,7 +23,7 @@ class ggBoxPlotFeature(
 }
 
 /** Box plot */
-class ggBoxPlot(
+class GGBoxPlot(
     data: AnyFrame, x: String, y: String,
     /** Organize data in facets */
     facetBy: String? = null,
@@ -39,10 +39,10 @@ class ggBoxPlot(
     orientation: Orientation = Orientation.Vertical,
     /** Additional mapping */
     aesMapping: ggBaseAes.() -> Unit = {}
-) : ggBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
 
     /** base box plot */
-    override var plot = super.plot + ggBoxPlotFeature(color, fill, aesMapping).getFeature(this)
+    override var plot = super.plot + ggBox(color, fill, aesMapping).getFeature(this)
 }

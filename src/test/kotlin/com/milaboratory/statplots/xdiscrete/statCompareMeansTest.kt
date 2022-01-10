@@ -14,7 +14,7 @@ import java.nio.file.Paths
  *
  */
 internal class statCompareMeansTest {
-    fun myelomaBase() = ggBoxPlot(
+    fun myelomaBase() = GGBoxPlot(
         myeloma,
         x = "molecular_group",
         y = "IRF4",
@@ -35,7 +35,7 @@ internal class statCompareMeansTest {
         allComparisons = true
     )
 
-    fun myelomaGroupped1() = ggBoxPlot(
+    fun myelomaGroupped1() = GGBoxPlot(
         myeloma,
         x = "molecular_group",
         y = "IRF4"
@@ -55,7 +55,7 @@ internal class statCompareMeansTest {
         )
     }
 
-    fun toothEmpty() = ggBoxPlot(
+    fun toothEmpty() = GGBoxPlot(
         toothGrowth,
         x = "dose",
         y = "len"
@@ -63,7 +63,7 @@ internal class statCompareMeansTest {
         fill = "dose"
     }
 
-    fun toothOverall() = ggBoxPlot(
+    fun toothOverall() = GGBoxPlot(
         toothGrowth,
         x = "dose",
         y = "len"
@@ -86,7 +86,7 @@ internal class statCompareMeansTest {
         multipleGroupsMethod = TestMethod.KruskalWallis
     ) + statCompareMeans()
 
-    fun toothGrouped() = ggBoxPlot(
+    fun toothGrouped() = GGBoxPlot(
         toothGrowth,
         x = "dose",
         y = "len"
@@ -113,7 +113,7 @@ internal class statCompareMeansTest {
 
     @Test
     internal fun testFacetsMyeloma() {
-        val plt = ggBoxPlot(
+        val plt = GGBoxPlot(
             myeloma,
             x = "molecular_group",
             y = "IRF4",
@@ -134,7 +134,7 @@ internal class statCompareMeansTest {
 
     @Test
     internal fun testFacetsTooth() {
-        val plt = ggBoxPlot(
+        val plt = GGBoxPlot(
             toothGrowth,
             x = "supp",
             y = "len",
@@ -156,7 +156,7 @@ internal class statCompareMeansTest {
 
     @Test
     internal fun testFacetsTooth2() {
-        val plt = ggBoxPlot(
+        val plt = GGBoxPlot(
             toothGrowth,
             x = "supp",
             y = "len",

@@ -30,8 +30,8 @@ class addSummary(
     val aesMapping: ggBaseAes.() -> Unit = {}
 ) : WithFeature {
     @Suppress("UNCHECKED_CAST")
-    override fun getFeature(base: ggBase) = run {
-        val position = this.position ?: if (base is ggBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
+    override fun getFeature(base: GGBase) = run {
+        val position = this.position ?: if (base is GGBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
         val stat = statFun.apply(base.descStat).toMap()
         val aes = ggBaseAes().apply(aesMapping)
 

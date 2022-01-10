@@ -56,7 +56,7 @@ interface StatCompareMeansOptions : CompareMeansOptions {
 }
 
 private class StatCompareMeansFeature(
-    val plt: ggBase,
+    val plt: GGBase,
     val statData: StatCompareMeansData,
     val ops: StatCompareMeansOptions
 ) {
@@ -323,7 +323,7 @@ private class StatCompareMeansFeature(
 }
 
 private class StatCompareMeansData(
-    val plt: ggBase,
+    val plt: GGBase,
     val cmpOps: CompareMeansOptions,
 ) {
     /** Compare means stat */
@@ -405,7 +405,7 @@ data class statCompareMeans(
     override val labelPos: List<Double>? = null,
     override val labelPosFit: Boolean? = null
 ) : WithFeature, StatCompareMeansOptions {
-    override fun getFeature(base: ggBase): Feature = run {
+    override fun getFeature(base: GGBase): Feature = run {
         val cmpOps = CompareMeansOptionsCapsule(this)
         return (base.cache.computeIfAbsent(cmpOps) {
             StatCompareMeansData(base, cmpOps)

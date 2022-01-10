@@ -12,7 +12,7 @@ import org.jetbrains.kotlinx.dataframe.AnyFrame
 /**
  *
  */
-class ggStripChartFeature(
+class ggStrip(
     val color: String? = null,
     val fill: String? = null,
     val shape: Any? = null,
@@ -21,7 +21,7 @@ class ggStripChartFeature(
     aesMapping: ggBaseAes.() -> Unit = {}
 ) : WithFeature {
     internal val aes = ggBaseAes().apply(aesMapping)
-    override fun getFeature(base: ggBase) = geomPoint(
+    override fun getFeature(base: GGBase) = geomPoint(
         size = size,
         shape = shape,
         fill = fill,
@@ -38,7 +38,7 @@ class ggStripChartFeature(
 /**
  *
  */
-class ggStripChart(
+class GGStripChart(
     data: AnyFrame,
     x: String,
     y: String,
@@ -52,10 +52,10 @@ class ggStripChart(
     val size: Double? = null,
     val position: PosOptions = Pos.jitterdodge,
     aesMapping: ggBaseAes.() -> Unit = {}
-) : ggBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.shape ?: aes.color ?: aes.fill ?: aes.size)
 
-    override var plot = super.plot + ggStripChartFeature(color, fill, shape, size, position, aesMapping)
+    override var plot = super.plot + ggStrip(color, fill, shape, size, position, aesMapping)
         .getFeature(this)
 }
