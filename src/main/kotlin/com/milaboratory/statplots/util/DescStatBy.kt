@@ -8,15 +8,12 @@ import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.sqrt
 
+fun descStatBy(data: AnyFrame, y: String, vararg by: String) = descStatBy(data, y, by.toList())
 
 /**
  *
  */
-fun descStatBy(
-    data: AnyFrame,
-    y: String,
-    by: List<String>,
-) = run {
+fun descStatBy(data: AnyFrame, y: String, by: List<String>) = run {
     val map = mutableMapOf<String, MutableList<Any?>>(
         DescStatByRow::key.name to mutableListOf(),
         DescStatByRow::count.name to mutableListOf(),
@@ -76,28 +73,28 @@ data class DescStatByRow(
 private fun List<String>.dfKey() = this.joinToString("_")
 
 fun DataRow<DescStatByRow>.meanStdErr() = run {
-    ErrorPoint(this.mean, this.mean - this.err, this.mean + this.err)
+    StatPoint(this.mean, this.mean - this.err, this.mean + this.err)
 }
 
 fun DataRow<DescStatByRow>.meanStdDev() = run {
-    ErrorPoint(this.mean, this.mean - this.std, this.mean + this.std)
+    StatPoint(this.mean, this.mean - this.std, this.mean + this.std)
 }
 
 fun DataRow<DescStatByRow>.meanRange() = run {
-    ErrorPoint(this.mean, this.min, this.max)
+    StatPoint(this.mean, this.min, this.max)
 }
 
 fun DataRow<DescStatByRow>.medIRQ() = run {
-    ErrorPoint(this.median, this.q1, this.q3)
+    StatPoint(this.median, this.q1, this.q3)
 }
 
 @DataSchema
-data class ErrorPoint(val mid: Double, val lower: Double?, val upper: Double?)
+data class StatPoint(val mid: Double, val lower: Double?, val upper: Double?)
 
 /**
  *
  */
-enum class ErrorFun(val fn: DataRow<DescStatByRow>.() -> ErrorPoint) {
+enum class StatFun(val fn: DataRow<DescStatByRow>.() -> StatPoint) {
     MeanStdErr(DataRow<DescStatByRow>::meanStdErr),
     MeanStdDev(DataRow<DescStatByRow>::meanStdDev),
     MeanRange(DataRow<DescStatByRow>::meanRange),
@@ -105,23 +102,23 @@ enum class ErrorFun(val fn: DataRow<DescStatByRow>.() -> ErrorPoint) {
 
     fun apply(df: DataFrame<DescStatByRow>) = run {
         val m = mutableMapOf<String, MutableList<Any?>>(
-            ErrorPoint::mid.name to mutableListOf(),
-            ErrorPoint::lower.name to mutableListOf(),
-            ErrorPoint::upper.name to mutableListOf(),
+            StatPoint::mid.name to mutableListOf(),
+            StatPoint::lower.name to mutableListOf(),
+            StatPoint::upper.name to mutableListOf(),
         )
 
         df.rows().forEach { row ->
             val p = row.fn()
 
-            m[ErrorPoint::mid.name]!!.add(p.mid)
-            m[ErrorPoint::lower.name]!!.add(p.lower)
-            m[ErrorPoint::upper.name]!!.add(p.upper)
+            m[StatPoint::mid.name]!!.add(p.mid)
+            m[StatPoint::lower.name]!!.add(p.lower)
+            m[StatPoint::upper.name]!!.add(p.upper)
 
             for ((k, v) in row.toMap()) {
                 m.computeIfAbsent(k) { mutableListOf() }.add(v)
             }
         }
 
-        m.toDataFrame().cast<ErrorPoint>()
+        m.toDataFrame().cast<StatPoint>()
     }
 }

@@ -2,7 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
-import com.milaboratory.statplots.util.ErrorFun
+import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.TestData
 import com.milaboratory.statplots.util.writePDF
 import jetbrains.letsPlot.positionDodge
@@ -26,7 +26,7 @@ internal class ggStripChartTest {
         ) {
             shape = "supp"
             color = "supp"
-        } + statCompareMeans() + addSummary(ErrorFun.MeanStdDev, ErrorPlotType.PointRange)
+        } + statCompareMeans() + addSummary(StatFun.MeanStdDev, ErrorPlotType.PointRange)
 
         writePDF(
             Paths.get("scratch/bp.pdf"),

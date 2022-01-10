@@ -3,7 +3,9 @@
 package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.common.WithFeature
+import com.milaboratory.statplots.util.DescStatByRow
 import com.milaboratory.statplots.util.NA
+import com.milaboratory.statplots.util.descStatBy
 import jetbrains.datalore.plot.PlotSvgExport
 import jetbrains.letsPlot.facet.facetWrap
 import jetbrains.letsPlot.intern.Feature
@@ -12,7 +14,9 @@ import jetbrains.letsPlot.label.xlab
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.scale.scaleXContinuous
 import org.jetbrains.kotlinx.dataframe.AnyFrame
+import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
+import java.nio.file.Path
 import kotlin.math.abs
 
 open class ggBaseAes(
@@ -124,6 +128,13 @@ open class ggBase(
 
     /** general cache */
     internal val cache = mutableMapOf<Any, Any>()
+
+    @Suppress("UNCHECKED_CAST")
+    val descStat by lazy {
+        cache.computeIfAbsent("__descriptiveStatistics__") {
+            descStatBy(data, y, listOfNotNull(x, facetBy, groupBy)).add(xNumeric) { xnum[it[x]] }
+        } as DataFrame<DescStatByRow>
+    }
 }
 
 operator fun ggBase.plusAssign(feature: Feature) {
@@ -148,3 +159,6 @@ fun ggBase.toSpec() = this.plot.toSpec()
 fun ggBase.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
 fun ggBase.toPDF() = com.milaboratory.statplots.util.toPDF(toSvg())
 fun ggBase.toEPS() = com.milaboratory.statplots.util.toEPS(this.toSvg())
+fun writePDF(destination: Path, vararg plots: ggBase) {
+    com.milaboratory.statplots.util.writePDF(destination, plots.toList().map { it.toPDF() })
+}

@@ -96,7 +96,7 @@ class ggPaired internal constructor(
     aesMapping: ggBaseAes.() -> Unit = {}
 ) : ggBase(data, x, y, facetBy, facetNCol, facetNRow, color, fill, orientation, aesMapping) {
 
-    override val groupBy: String? = aes.fill ?: aes.color
+    override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
 
     private fun linesLayer(a: List<Any?>, b: List<Any?>, facet: Any?): Feature = run {
         val pathData = mutableMapOf<String, MutableList<Any?>>(

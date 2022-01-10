@@ -47,6 +47,12 @@ interface StatCompareMeansOptions : CompareMeansOptions {
 
     /** Format of p-value labels */
     val labelFormat: LabelFormat
+
+    /** Positions of p-value labels */
+    val labelPos: List<Double>?
+
+    /** Fit positions to max value */
+    val labelPosFit: Boolean?
 }
 
 private class StatCompareMeansFeature(
@@ -82,7 +88,8 @@ private class StatCompareMeansFeature(
         }
         return geomText(
             data = data,
-            size = 7
+            size = 7,
+            hjust = 1.0
         ) {
             label = "label"
         }
@@ -109,9 +116,32 @@ private class StatCompareMeansFeature(
             else -> throw RuntimeException()
         }
 
+        val yVals: List<Any> =
+            if (ops.labelPos != null) {
+                ops.labelPos!!
+            } else if (ops.labelPosFit == true) {
+                if (facet == null)
+                    stat.group2.toList()
+                        .map { group ->
+                            plt.data.filter { plt.x<Any>() == group }[plt.y]
+                                .convertToDouble()
+                                .max() * 1.0
+                        }
+                else {
+                    stat.group2.toList()
+                        .map { group ->
+                            plt.data.filter { plt.x<Any>() == group && plt.facetBy!!<Any>() == facet }[plt.y]
+                                .convertToDouble()
+                                .max() * 1.0
+                        }
+                }
+            } else {
+                List(labels.size) { yCoord }
+            }
+
         val data = mutableMapOf<String, List<Any>>(
             plt.xNumeric to stat.group2.toList().map { plt.xnum[it]!! },
-            plt.y to List(labels.size) { yCoord },
+            plt.y to yVals,
             "__label" to labels
         )
         if (facet != null)
@@ -208,10 +238,33 @@ private class StatCompareMeansFeature(
             }
         }
 
+        val yVals: List<Any> =
+            if (ops.labelPos != null) {
+                ops.labelPos!!
+            } else if (ops.labelPosFit == true) {
+                if (facet == null)
+                    stat.keys.toList()
+                        .map { group ->
+                            plt.data.filter { plt.x<Any>() == group }[plt.y]
+                                .convertToDouble()
+                                .max() * 1.0
+                        }
+                else {
+                    stat.keys.toList()
+                        .map { group ->
+                            plt.data.filter { plt.x<Any>() == group && plt.facetBy!!<Any>() == facet }[plt.y]
+                                .convertToDouble()
+                                .max() * 1.0
+                        }
+                }
+            } else {
+                List(labels.size) { yCoord }
+            }
+
         val data = mutableMapOf<String, List<Any>>(
             plt.xNumeric to stat.keys.toList().map { plt.xnum[it]!! },
             "labels" to labels,
-            plt.y to List(labels.size) { yCoord }
+            plt.y to yVals
         )
         if (facet != null)
             data += plt.facetBy!! to listOf(facet)
@@ -348,7 +401,9 @@ data class statCompareMeans(
     override val paired: Boolean = false,
     override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
     override val pAdjustMethod: PValueCorrection.Method? = PValueCorrection.Method.Bonferroni,
-    override val refGroup: RefGroup? = null
+    override val refGroup: RefGroup? = null,
+    override val labelPos: List<Double>? = null,
+    override val labelPosFit: Boolean? = null
 ) : WithFeature, StatCompareMeansOptions {
     override fun getFeature(base: ggBase): Feature = run {
         val cmpOps = CompareMeansOptionsCapsule(this)

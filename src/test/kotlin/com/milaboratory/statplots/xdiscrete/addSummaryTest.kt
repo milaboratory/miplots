@@ -1,6 +1,6 @@
 package com.milaboratory.statplots.xdiscrete
 
-import com.milaboratory.statplots.util.ErrorFun
+import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.TestData
 import com.milaboratory.statplots.util.writePDF
 import org.junit.jupiter.api.Test
@@ -20,7 +20,7 @@ internal class addSummaryTest {
         ) {
             shape = "supp"
         } + addSummary(
-            errorFun = ErrorFun.MeanRange,
+            statFun = StatFun.MeanRange,
             errorPlotType = ErrorPlotType.ErrorBar,
             width = 0.1
         )
@@ -35,13 +35,20 @@ internal class addSummaryTest {
     fun test2() {
         val plt = ggPaired(
             TestData.toothGrowth,
-            x = "supp", y = "len",
-            facetBy = "dose"
-        ) + addSummary(
-            errorFun = ErrorFun.MeanStdErr,
+            x = "supp",
+            y = "len",
+            facetBy = "dose",
+            facetNRow = 1,
+            lineColor = "#aaaaaa"
+        ) { color = "supp" }
+
+        plt += addSummary(
+            statFun = StatFun.MeanStdErr,
             errorPlotType = ErrorPlotType.PointRange,
-            width = 0.1
+            color = "black",
         )
+
+        plt += statCompareMeans()
 
         writePDF(
             Paths.get("scratch/bp.pdf"),

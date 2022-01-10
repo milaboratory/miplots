@@ -3,24 +3,23 @@
 package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.common.WithFeature
-import com.milaboratory.statplots.util.DescStatByRow
-import com.milaboratory.statplots.util.ErrorFun
-import com.milaboratory.statplots.util.ErrorPoint
-import com.milaboratory.statplots.util.descStatBy
+import com.milaboratory.statplots.util.StatFun
+import com.milaboratory.statplots.util.StatPoint
+import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.geom.geomCrossbar
 import jetbrains.letsPlot.geom.geomErrorBar
 import jetbrains.letsPlot.geom.geomLineRange
 import jetbrains.letsPlot.geom.geomPointRange
-import org.jetbrains.kotlinx.dataframe.DataFrame
-import org.jetbrains.kotlinx.dataframe.api.add
+import jetbrains.letsPlot.intern.layer.PosOptions
 import org.jetbrains.kotlinx.dataframe.api.toMap
 
 /**
  *
  */
 class addSummary(
-    val errorFun: ErrorFun,
+    val statFun: StatFun,
     val errorPlotType: ErrorPlotType,
+    val position: PosOptions = Pos.identity,
     val color: String? = null,
     val fill: String? = null,
     val shape: String? = null,
@@ -32,55 +31,83 @@ class addSummary(
 
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: ggBase) = run {
-        val descStat = base.cache.computeIfAbsent("__descriptiveStatistics__") {
-            descStatBy(base.data, base.y, listOfNotNull(base.x, base.facetBy, base.groupBy))
-        } as DataFrame<DescStatByRow>
-
-        val stat = errorFun.apply(descStat).add(base.xNumeric) { base.xnum[it[base.x]] }.toMap()
+        val stat = statFun.apply(base.descStat).toMap()
         val aes = ggBaseAes().apply(aesMapping)
 
         return@run when (errorPlotType) {
             ErrorPlotType.LineRange -> {
-                geomLineRange(stat, color = color, linetype = linetype, size = size) {
-                    ymin = ErrorPoint::lower.name
-                    ymax = ErrorPoint::upper.name
+                geomLineRange(
+                    stat,
+                    color = color,
+                    linetype = linetype,
+                    size = size,
+                    position = position
+                ) {
+                    ymin = StatPoint::lower.name
+                    ymax = StatPoint::upper.name
+                    size = aes.size
+                    group = base.groupBy
                     color = aes.color
                     linetype = aes.linetype
-                    size = aes.size
                 }
             }
             ErrorPlotType.PointRange -> {
-                geomPointRange(stat, color = color, linetype = linetype, size = size, shape = shape, fill = fill) {
-                    ymin = ErrorPoint::lower.name
-                    y = ErrorPoint::mid.name
-                    ymax = ErrorPoint::upper.name
-                    color = aes.color
-                    linetype = aes.linetype
+                geomPointRange(
+                    stat,
+                    color = color,
+                    linetype = linetype,
+                    size = size,
+                    shape = shape,
+                    fill = fill,
+                    position = position
+                ) {
+                    y = StatPoint::mid.name
+                    ymin = StatPoint::lower.name
+                    ymax = StatPoint::upper.name
                     size = aes.size
-                    shape = aes.shape
                     fill = aes.fill
+                    group = base.groupBy
+                    color = aes.color
+                    shape = aes.shape
+                    linetype = aes.linetype
                 }
             }
             ErrorPlotType.ErrorBar -> {
-                geomErrorBar(stat, color = color, linetype = linetype, size = size, width = width) {
-                    ymin = ErrorPoint::lower.name
-                    ymax = ErrorPoint::upper.name
-                    color = aes.color
-                    linetype = aes.linetype
+                geomErrorBar(
+                    stat, color = color,
+                    linetype = linetype,
+                    size = size,
+                    width = width,
+                    position = position
+                ) {
+                    ymin = StatPoint::lower.name
+                    ymax = StatPoint::upper.name
                     size = aes.size
+                    color = aes.color
+                    group = base.groupBy
                     width = aes.width
+                    linetype = aes.linetype
                 }
             }
             ErrorPlotType.Crossbar -> {
-                geomCrossbar(stat, color = color, linetype = linetype, size = size, width = width, fill = fill) {
-                    ymin = ErrorPoint::lower.name
-                    middle = ErrorPoint::mid.name
-                    ymax = ErrorPoint::upper.name
-                    color = aes.color
-                    linetype = aes.linetype
+                geomCrossbar(
+                    stat,
+                    color = color,
+                    linetype = linetype,
+                    size = size,
+                    width = width,
+                    fill = fill,
+                    position = position
+                ) {
+                    ymin = StatPoint::lower.name
+                    ymax = StatPoint::upper.name
                     size = aes.size
-                    width = aes.width
                     fill = aes.fill
+                    group = base.groupBy
+                    width = aes.width
+                    color = aes.color
+                    middle = StatPoint::mid.name
+                    linetype = aes.linetype
                 }
             }
         }

@@ -51,6 +51,10 @@ fun writePDF(destination: Path, vararg images: ByteArray) {
     writePDF(destination, images.toList())
 }
 
+fun writePDF(destination: Path, vararg plots: Figure) {
+    writePDF(destination, plots.toList().map { it.toPDF() })
+}
+
 fun writePDF(destination: Path, images: List<ByteArray>) {
     val merger = PDFMergerUtility()
     merger.destinationFileName = destination.absolutePathString()
