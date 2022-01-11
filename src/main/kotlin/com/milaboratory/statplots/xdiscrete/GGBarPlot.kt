@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.StatPoint
@@ -26,10 +27,10 @@ class ggBar(
     val fill: String? = null,
     val size: Double? = null,
     val width: Double? = null,
-    val aesMapping: ggBaseAes.() -> Unit = {}
+    val aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
     override fun getFeature(base: GGBase): Feature = run {
-        val aes = ggBaseAes().apply(aesMapping)
+        val aes = GGAes().apply(aesMapping)
         if (statFun == null) {
             geomBar(fill = fill, color = color, width = width, stat = stat, position = position) {
                 fill = aes.fill
@@ -74,7 +75,7 @@ class GGBarPlot(
     orientation: Orientation = Orientation.Vertical,
     val size: Double? = null,
     val width: Double? = null,
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)

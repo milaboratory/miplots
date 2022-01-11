@@ -29,7 +29,7 @@ internal class addSummaryTest {
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            plt.toPDF()
+            plt
         )
     }
 
@@ -54,7 +54,7 @@ internal class addSummaryTest {
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            plt.toPDF()
+            plt
         )
     }
 }

@@ -1,9 +1,11 @@
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.plusAssign
 import com.milaboratory.statplots.util.RefGroup
 import com.milaboratory.statplots.util.TestData.Companion.myeloma
 import com.milaboratory.statplots.util.TestData.Companion.toothGrowth
 import com.milaboratory.statplots.util.TestMethod
+import com.milaboratory.statplots.util.toPDF
 import com.milaboratory.statplots.util.writePDF
 import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
 import jetbrains.letsPlot.ggsize

@@ -5,6 +5,7 @@ package com.milaboratory.statplots.xdiscrete
 import com.milaboratory.statplots.util.RefGroup
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.TestData
+import com.milaboratory.statplots.util.writePDF
 import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
 import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.positionJitter

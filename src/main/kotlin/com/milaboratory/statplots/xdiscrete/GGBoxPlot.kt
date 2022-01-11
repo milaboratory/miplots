@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
 import com.milaboratory.statplots.common.WithFeature
 import jetbrains.letsPlot.geom.geomBoxplot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
@@ -12,9 +13,9 @@ class ggBox(
     /** Fill color */
     val fill: String? = null,
     /** Additional mapping */
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
-    internal val aes = ggBaseAes().apply(aesMapping)
+    internal val aes = GGAes().apply(aesMapping)
     override fun getFeature(base: GGBase) =
         geomBoxplot(color = color, fill = fill) {
             this.color = aes.color
@@ -38,7 +39,7 @@ class GGBoxPlot(
     /** Orientation */
     orientation: Orientation = Orientation.Vertical,
     /** Additional mapping */
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)

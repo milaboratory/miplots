@@ -3,6 +3,7 @@ package com.milaboratory.statplots.xdiscrete
 import com.milaboratory.statplots.util.RefGroup
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.TestData
+import com.milaboratory.statplots.util.writePDF
 import jetbrains.letsPlot.positionJitter
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths

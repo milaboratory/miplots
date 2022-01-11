@@ -47,10 +47,10 @@ internal class GGPairedTest {
     internal fun toothGrowthAll() {
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            toothGrowthBase().toPDF(),
-            toothGrowthWithPValue().toPDF(),
-            toothGrowthFacetBase().toPDF(),
-            toothGrowthFacetWithPValue().toPDF()
+            toothGrowthBase(),
+            toothGrowthWithPValue(),
+            toothGrowthFacetBase(),
+            toothGrowthFacetWithPValue()
         )
     }
 
@@ -68,7 +68,7 @@ internal class GGPairedTest {
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            plt.toPDF()
+            plt
         )
     }
 }

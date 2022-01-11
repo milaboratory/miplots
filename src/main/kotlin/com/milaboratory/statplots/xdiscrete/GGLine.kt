@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.StatPoint
@@ -25,10 +26,10 @@ class ggLine(
     val color: String? = null,
     val linetype: String? = null,
     val size: Double? = null,
-    val aesMapping: ggBaseAes.() -> Unit = {}
+    val aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
     override fun getFeature(base: GGBase): Feature = run {
-        val aes = ggBaseAes().apply(aesMapping)
+        val aes = GGAes().apply(aesMapping)
         if (statFun == null) {
             geomLine(
                 color = color,
@@ -67,7 +68,7 @@ class GGLinePlot(
     orientation: Orientation = Orientation.Vertical,
     val size: Double? = null,
     val linetype: String? = null,
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, null, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.linetype ?: aes.color)

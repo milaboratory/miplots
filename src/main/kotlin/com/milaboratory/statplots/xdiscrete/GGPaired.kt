@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
 import jetbrains.letsPlot.geom.geomBoxplot
 import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomPoint
@@ -25,7 +26,7 @@ fun GGPaired(
     lineColor: Any? = "black",
     linetype: Any? = "solid",
     orientation: Orientation = Orientation.Vertical,
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) = run {
     val _data: AnyFrame
     val _x: String
@@ -93,7 +94,7 @@ class GGPaired internal constructor(
     val lineColor: Any?,
     val linetype: Any?,
     orientation: Orientation,
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(data, x, y, facetBy, facetNCol, facetNRow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)

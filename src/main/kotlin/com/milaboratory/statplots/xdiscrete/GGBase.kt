@@ -2,31 +2,21 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
+import com.milaboratory.statplots.common.PlotWrapper
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.DescStatByRow
 import com.milaboratory.statplots.util.NA
 import com.milaboratory.statplots.util.descStatBy
-import jetbrains.datalore.plot.PlotSvgExport
 import jetbrains.letsPlot.facet.facetWrap
-import jetbrains.letsPlot.intern.Feature
-import jetbrains.letsPlot.intern.toSpec
+import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.label.xlab
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.scale.scaleXContinuous
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
-import java.nio.file.Path
 import kotlin.math.abs
-
-open class ggBaseAes(
-    var color: String? = null,
-    var fill: String? = null,
-    var shape: String? = null,
-    var size: String? = null,
-    var linetype: String? = null,
-    var width: String? = null
-)
 
 enum class Orientation {
     Vertical,
@@ -56,14 +46,14 @@ open class GGBase(
     /** Plot orientation */
     val orientation: Orientation = Orientation.Vertical,
     /** Aesthetics mapping */
-    aesMapping: ggBaseAes.() -> Unit = {}
-) {
+    aesMapping: GGAes.() -> Unit = {}
+) : PlotWrapper {
     init {
         if (orientation == Orientation.Horizontal)
             throw UnsupportedOperationException("horizontal orientation is not supported yet")
     }
 
-    val aes = ggBaseAes().apply(aesMapping)
+    val aes = GGAes().apply(aesMapping)
 
     val data: AnyFrame
 
@@ -108,7 +98,7 @@ open class GGBase(
     }
 
     /** base plot */
-    open var plot = run {
+    override var plot: Plot = run {
         var plt = letsPlot(data.toMap()) {
             x = this@GGBase.xNumeric
             y = this@GGBase.y
@@ -137,28 +127,11 @@ open class GGBase(
     }
 }
 
-operator fun GGBase.plusAssign(feature: Feature) {
-    this.plot += feature
-}
-
 operator fun GGBase.plusAssign(feature: WithFeature) {
     this.plot += feature.getFeature(this)
-}
-
-operator fun GGBase.plus(feature: Feature) = run {
-    this.plot += feature
-    this
 }
 
 operator fun GGBase.plus(feature: WithFeature) = run {
     this.plot += feature.getFeature(this)
     this
-}
-
-fun GGBase.toSpec() = this.plot.toSpec()
-fun GGBase.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
-fun GGBase.toPDF() = com.milaboratory.statplots.util.toPDF(toSvg())
-fun GGBase.toEPS() = com.milaboratory.statplots.util.toEPS(this.toSvg())
-fun writePDF(destination: Path, vararg plots: GGBase) {
-    com.milaboratory.statplots.util.writePDF(destination, plots.toList().map { it.toPDF() })
 }

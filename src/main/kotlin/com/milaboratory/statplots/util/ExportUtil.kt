@@ -1,5 +1,6 @@
 package com.milaboratory.statplots.util
 
+import com.milaboratory.statplots.common.PlotWrapper
 import jetbrains.datalore.plot.PlotSvgExport
 import jetbrains.letsPlot.Figure
 import jetbrains.letsPlot.GGBunch
@@ -64,4 +65,12 @@ fun writePDF(destination: Path, images: List<ByteArray>) {
     }
 
     merger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly())
+}
+
+fun PlotWrapper.toSpec() = this.plot.toSpec()
+fun PlotWrapper.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
+fun PlotWrapper.toPDF() = com.milaboratory.statplots.util.toPDF(toSvg())
+fun PlotWrapper.toEPS() = com.milaboratory.statplots.util.toEPS(this.toSvg())
+fun writePDF(destination: Path, vararg plots: PlotWrapper) {
+    com.milaboratory.statplots.util.writePDF(destination, plots.toList().map { it.toPDF() })
 }

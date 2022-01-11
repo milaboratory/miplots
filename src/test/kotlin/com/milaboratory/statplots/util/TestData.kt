@@ -14,13 +14,19 @@ class TestData {
     companion object {
         val myeloma by lazy {
             DataFrame.readTSV(
-                File(javaClass.getResource("/Myeloma.tsv")!!.toURI())
+                File(TestData::class.java.getResource("/Myeloma.tsv")!!.toURI())
             )
         }
 
         val toothGrowth by lazy {
-            DataFrame.readCSV(javaClass.getResource("/ToothGrowth.csv")!!)
+            DataFrame.readCSV(TestData::class.java.getResource("/ToothGrowth.csv")!!)
                 .convert { column<Double>("dose") }.to<String>()
+        }
+
+        val mtcars by lazy {
+            DataFrame.readCSV(
+                File(TestData::class.java.getResource("/Mtcars.csv")!!.toURI())
+            )
         }
     }
 }

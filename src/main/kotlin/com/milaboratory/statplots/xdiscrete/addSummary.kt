@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.StatFun
 import com.milaboratory.statplots.util.StatPoint
@@ -27,13 +28,13 @@ class addSummary(
     val size: Double? = null,
     val width: Double? = null,
     val linetype: String? = null,
-    val aesMapping: ggBaseAes.() -> Unit = {}
+    val aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: GGBase) = run {
         val position = this.position ?: if (base is GGBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
         val stat = statFun.apply(base.descStat).toMap()
-        val aes = ggBaseAes().apply(aesMapping)
+        val aes = GGAes().apply(aesMapping)
 
         return@run when (errorPlotType) {
             ErrorPlotType.LineRange -> {

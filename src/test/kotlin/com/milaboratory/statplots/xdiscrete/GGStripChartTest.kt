@@ -30,8 +30,8 @@ internal class GGStripChartTest {
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            plt1.toPDF(),
-            plt2.toPDF(),
+            plt1,
+            plt2,
         )
     }
 }

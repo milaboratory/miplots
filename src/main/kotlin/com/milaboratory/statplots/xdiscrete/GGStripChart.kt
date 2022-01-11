@@ -2,6 +2,7 @@
 
 package com.milaboratory.statplots.xdiscrete
 
+import com.milaboratory.statplots.common.GGAes
 import com.milaboratory.statplots.common.WithFeature
 import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.geom.geomPoint
@@ -18,9 +19,9 @@ class ggStrip(
     val shape: Any? = null,
     val size: Double? = null,
     val position: PosOptions = Pos.jitterdodge,
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
-    internal val aes = ggBaseAes().apply(aesMapping)
+    internal val aes = GGAes().apply(aesMapping)
     override fun getFeature(base: GGBase) = geomPoint(
         size = size,
         shape = shape,
@@ -51,7 +52,7 @@ class GGStripChart(
     val shape: Any? = null,
     val size: Double? = null,
     val position: PosOptions = Pos.jitterdodge,
-    aesMapping: ggBaseAes.() -> Unit = {}
+    aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
     override val groupBy: String? = distinctGroupBy(aes.shape ?: aes.color ?: aes.fill ?: aes.size)
