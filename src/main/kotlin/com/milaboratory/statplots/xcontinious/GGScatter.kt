@@ -1,55 +1,66 @@
 package com.milaboratory.statplots.xcontinious
 
 import com.milaboratory.statplots.common.GGAes
-import com.milaboratory.statplots.common.PlotWrapper
+import com.milaboratory.statplots.common.GGBase
+import com.milaboratory.statplots.xdiscrete.Orientation
+import jetbrains.letsPlot.facet.facetWrap
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.letsPlot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
+import org.jetbrains.kotlinx.dataframe.api.convertToDouble
+import org.jetbrains.kotlinx.dataframe.api.max
+import org.jetbrains.kotlinx.dataframe.api.min
 import org.jetbrains.kotlinx.dataframe.api.toMap
-
-enum class RegressionType {
-    /** Linear Model*/
-    Linear,
-
-    /** Locally Estimated Scatterplot Smoothing */
-    Loess
-}
-
 
 /**
  *
  */
 class GGScatter(
-    val data: AnyFrame,
-    val x: String,
-    val y: String,
-
-    val color: String? = null,
-    val fill: String? = null,
+    _data: AnyFrame,
+    x: String,
+    y: String,
+    facetBy: String? = null,
+    facetNCol: Int? = null,
+    facetNrow: Int? = null,
+    color: String? = null,
+    fill: String? = null,
     val shape: Any? = null,
     val size: Number? = null,
     val alpha: Double? = null,
-    val aesMapping: GGAes.() -> Unit = {}
-) : PlotWrapper {
+    orientation: Orientation = Orientation.Vertical,
+    aesMapping: GGAes.() -> Unit = {}
+) : GGBase(x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
-    val gtoupBy = color ?: shape
-    val aes = GGAes().apply(aesMapping)
+    override val data = _data
+    override val groupBy = filterGroupBy(aes.color, aes.shape)
+    internal val xData = data[x].convertToDouble()
+    internal val xMinMax = xData.min() to xData.max()
+    internal val yData = data[y].convertToDouble()
+    internal val yMinMax = yData.min() to yData.max()
 
     override var plot = run {
-
         var plt = letsPlot(data.toMap()) {
-            x = this@GGScatter.x
-            y = this@GGScatter.y
+            this.x = this@GGScatter.x
+            this.y = this@GGScatter.y
         }
 
-        plt += geomPoint(color = color, fill = fill, shape = shape, size = size, alpha = alpha) {
-            color = aes.color
-            fill = aes.color
-            shape = aes.color
-            size = aes.color
-            color = aes.color
-            alpha = aes.alpha
+        plt += geomPoint(
+            color = color,
+            fill = fill,
+            shape = shape,
+            size = size,
+            alpha = alpha
+        ) {
+            this.color = aes.color
+            this.fill = aes.color
+            this.shape = aes.color
+            this.size = aes.color
+            this.color = aes.color
+            this.alpha = aes.alpha
         }
+
+        if (facetBy != null)
+            plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNrow)
 
         plt
     }

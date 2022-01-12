@@ -29,7 +29,7 @@ class ggBar(
     val width: Double? = null,
     val aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
-    override fun getFeature(base: GGBase): Feature = run {
+    override fun getFeature(base: GGXDiscrete): Feature = run {
         val aes = GGAes().apply(aesMapping)
         if (statFun == null) {
             geomBar(fill = fill, color = color, width = width, stat = stat, position = position) {
@@ -76,9 +76,9 @@ class GGBarPlot(
     val size: Double? = null,
     val width: Double? = null,
     aesMapping: GGAes.() -> Unit = {}
-) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
-    override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
+    override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     override var plot = super.plot + ggBar(
         stat = stat,

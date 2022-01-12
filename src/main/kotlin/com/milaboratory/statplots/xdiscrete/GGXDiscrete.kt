@@ -3,7 +3,7 @@
 package com.milaboratory.statplots.xdiscrete
 
 import com.milaboratory.statplots.common.GGAes
-import com.milaboratory.statplots.common.PlotWrapper
+import com.milaboratory.statplots.common.GGBase
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.DescStatByRow
 import com.milaboratory.statplots.util.NA
@@ -26,40 +26,36 @@ enum class Orientation {
 /**
  *
  */
-open class GGBase(
+open class GGXDiscrete(
     _data: AnyFrame,
     /** x series (discrete) */
-    val x: String,
+    x: String,
     /** y series (continuous) */
-    val y: String,
+    y: String,
 
     /** Organize data in facets */
-    val facetBy: String? = null,
+    facetBy: String? = null,
     /** Number of columns in facet view */
-    val facetNCol: Int? = null,
+    facetNCol: Int? = null,
     /** Number of rows in facet view */
-    val facetNrow: Int? = null,
+    facetNrow: Int? = null,
     /** Outline color */
-    val color: String? = null,
+    color: String? = null,
     /** Fill color */
-    val fill: String? = null,
+    fill: String? = null,
     /** Plot orientation */
-    val orientation: Orientation = Orientation.Vertical,
+    orientation: Orientation = Orientation.Vertical,
     /** Aesthetics mapping */
     aesMapping: GGAes.() -> Unit = {}
-) : PlotWrapper {
+) : GGBase(x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
     init {
         if (orientation == Orientation.Horizontal)
             throw UnsupportedOperationException("horizontal orientation is not supported yet")
     }
 
-    val aes = GGAes().apply(aesMapping)
+    final override val data: AnyFrame
 
-    val data: AnyFrame
-
-    /** whether grouping was applied */
-    open val groupBy: String? = null
-    protected fun distinctGroupBy(g: String?) = if (g == x) null else g
+    override val groupBy: String? = null
 
     // numeric x axis name
     internal val xNumeric = x + "__Numeric"
@@ -77,7 +73,7 @@ open class GGBase(
         val xdist = _data[x].distinct().toList()
         xord = xdist.mapIndexed { i, v -> v to i }.toMap()
         xnum = xord.mapValues { (_, v) -> v.toDouble() }
-        data = _data
+        this.data = _data
             .fillNA { cols(x, *listOfNotNull(facetBy).toTypedArray()) }
             .with { NA }
             .add(xNumeric) { xnum[it[x]]!! }
@@ -100,8 +96,8 @@ open class GGBase(
     /** base plot */
     override var plot: Plot = run {
         var plt = letsPlot(data.toMap()) {
-            x = this@GGBase.xNumeric
-            y = this@GGBase.y
+            this.x = this@GGXDiscrete.xNumeric
+            this.y = this@GGXDiscrete.y
         }
 
         plt += xlab(x)
@@ -116,9 +112,6 @@ open class GGBase(
         plt
     }
 
-    /** general cache */
-    internal val cache = mutableMapOf<Any, Any>()
-
     @Suppress("UNCHECKED_CAST")
     val descStat by lazy {
         cache.computeIfAbsent("__descriptiveStatistics__") {
@@ -127,11 +120,11 @@ open class GGBase(
     }
 }
 
-operator fun GGBase.plusAssign(feature: WithFeature) {
+operator fun GGXDiscrete.plusAssign(feature: WithFeature) {
     this.plot += feature.getFeature(this)
 }
 
-operator fun GGBase.plus(feature: WithFeature) = run {
+operator fun GGXDiscrete.plus(feature: WithFeature) = run {
     this.plot += feature.getFeature(this)
     this
 }

@@ -16,7 +16,7 @@ class ggBox(
     aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
     internal val aes = GGAes().apply(aesMapping)
-    override fun getFeature(base: GGBase) =
+    override fun getFeature(base: GGXDiscrete) =
         geomBoxplot(color = color, fill = fill) {
             this.color = aes.color
             this.fill = aes.fill
@@ -40,9 +40,9 @@ class GGBoxPlot(
     orientation: Orientation = Orientation.Vertical,
     /** Additional mapping */
     aesMapping: GGAes.() -> Unit = {}
-) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
-    override val groupBy: String? = distinctGroupBy(aes.fill ?: aes.color)
+    override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     /** base box plot */
     override var plot = super.plot + ggBox(color, fill, aesMapping).getFeature(this)

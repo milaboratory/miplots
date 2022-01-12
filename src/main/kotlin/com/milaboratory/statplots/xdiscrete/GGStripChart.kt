@@ -22,7 +22,7 @@ class ggStrip(
     aesMapping: GGAes.() -> Unit = {}
 ) : WithFeature {
     internal val aes = GGAes().apply(aesMapping)
-    override fun getFeature(base: GGBase) = geomPoint(
+    override fun getFeature(base: GGXDiscrete) = geomPoint(
         size = size,
         shape = shape,
         fill = fill,
@@ -53,9 +53,9 @@ class GGStripChart(
     val size: Double? = null,
     val position: PosOptions = Pos.jitterdodge,
     aesMapping: GGAes.() -> Unit = {}
-) : GGBase(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
 
-    override val groupBy: String? = distinctGroupBy(aes.shape ?: aes.color ?: aes.fill ?: aes.size)
+    override val groupBy = filterGroupBy(aes.shape, aes.color, aes.fill, aes.size)
 
     override var plot = super.plot + ggStrip(color, fill, shape, size, position, aesMapping)
         .getFeature(this)

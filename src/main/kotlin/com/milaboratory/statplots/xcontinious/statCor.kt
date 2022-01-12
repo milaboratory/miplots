@@ -1,15 +1,17 @@
 package com.milaboratory.statplots.xcontinious
 
 import com.milaboratory.statplots.util.KendallsCorrelation
+import com.milaboratory.statplots.util.formatPValue
+import jetbrains.letsPlot.geom.geomSmooth
 import jetbrains.letsPlot.geom.geomText
-import jetbrains.letsPlot.intern.Feature
 import org.apache.commons.math3.distribution.NormalDistribution
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
-import org.jetbrains.kotlinx.dataframe.api.castNotNull
-import org.jetbrains.kotlinx.dataframe.api.convertToDouble
-import org.jetbrains.kotlinx.dataframe.api.toDoubleArray
+import org.jetbrains.kotlinx.dataframe.AnyFrame
+import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.abs
+import kotlin.math.ln
+import kotlin.math.sqrt
 
 
 data class CorrelationResult(val rValue: Double, val pValue: Double)
@@ -41,12 +43,12 @@ enum class CorrelationMethod {
         override operator fun invoke(x: DoubleArray, y: DoubleArray): CorrelationResult {
             val r = SpearmansCorrelation().correlation(x, y)
             val n = x.distinct().size.toDouble()
-            val f = 0.5 * Math.log((1 + r) / (1 - r))
+            val f = 0.5 * ln((1 + r) / (1 - r))
 
 //            val z1 = r*Math.sqrt((n-2)/(1-r*r))
 //            val p1 = 2*(1- TDistribution(n-2).cumulativeProbability(Math.abs(z1)))
 
-            val z2 = f * Math.sqrt((n - 3) / 1.06)
+            val z2 = f * sqrt((n - 3) / 1.06)
             val p2 = 2 * NormalDistribution().cumulativeProbability(-abs(z2))
 
             return CorrelationResult(r, p2)
@@ -64,18 +66,88 @@ class statCor(
     val xLabelPos: Number? = null,
     val yLabelPos: Number? = null,
 ) {
-    fun apply(base: GGScatter) {
-        val x = base.data[base.x].convertToDouble().castNotNull().toDoubleArray()
-        val y = base.data[base.y].convertToDouble().castNotNull().toDoubleArray()
+    fun getFeature(base: GGScatter) = run {
+        val xpos = xLabelPos ?: base.xMinMax.first
+        val ypos = (yLabelPos ?: base.yMinMax.second).toDouble()
+        val data = mutableMapOf<String, MutableList<Any?>>(
+            base.x to mutableListOf(),
+            base.y to mutableListOf(),
+            "label" to mutableListOf()
+        )
+        if (base.groupBy != null)
+            data += base.groupBy to mutableListOf()
+        if (base.facetBy != null)
+            data += base.facetBy to mutableListOf()
 
-        val corr = method(x, y)
 
-        val xpos = xLabelPos ?: 0.0
-        val ypos = yLabelPos ?: y.maxOrNull() ?: 0.0
+        val yDeltaBase = abs(base.yMinMax.second - base.yMinMax.first) * 0.1
+        if (base.groupBy == null && base.facetBy == null) {
+            val corr = corr(base, base.data)
+            if (corr != null) {
+                data[base.x]!!.add(xpos)
+                data[base.y]!!.add(ypos)
+                data["label"]!!.add("R = ${formatPValue(corr.rValue)}, p = ${formatPValue(corr.pValue)}")
+            }
+        } else {
+            if ((base.groupBy != null) != (base.facetBy != null)) {
+                val groupBy = (base.groupBy ?: base.facetBy)!!
 
-        geomText(x = xpos, y = yLabelPos){
-
+                val yDelta = if (base.facetBy != null) 0.0 else yDeltaBase
+                val groups = base.data.groupBy(groupBy).groups
+                groups.forEachIndexed { idx, g ->
+                    val group = g.first()[groupBy]
+                    val corr = corr(base, g)
+                    if (corr != null) {
+                        data[base.x]!!.add(xpos)
+                        data[base.y]!!.add(ypos + (groups.size() - idx - 1) * yDelta)
+                        data[groupBy]!!.add(group)
+                        data["label"]!!.add("R = ${formatPValue(corr.rValue)}, p = ${formatPValue(corr.pValue)}")
+                    }
+                }
+            } else {
+                base.data.groupBy(base.facetBy!!).groups.forEach { facetDf ->
+                    val facet = facetDf.first()[base.facetBy]
+                    val yDelta = yDeltaBase
+                    val groups = facetDf.groupBy(base.groupBy!!).groups
+                    groups.forEachIndexed { idx, g ->
+                        val group = g.first()[base.groupBy]
+                        val corr = corr(base, g)
+                        if (corr != null) {
+                            data[base.x]!!.add(xpos)
+                            data[base.y]!!.add(ypos + (groups.size() - idx - 1) * yDelta)
+                            data[base.facetBy]!!.add(facet)
+                            data[base.groupBy]!!.add(group)
+                            data["label"]!!.add("R = ${formatPValue(corr.rValue)}, p = ${formatPValue(corr.pValue)}")
+                        }
+                    }
+                }
+            }
         }
 
+        geomSmooth(method = "lm") {
+            color = base.aes.color
+            linetype = base.aes.linetype
+        } + geomText(data, hjust = 1.0, vjust = 1.0, showLegend = false) {
+            label = "label"
+            color = base.aes.color
+        }
     }
+
+    private fun corr(base: GGScatter, data: AnyFrame) = run {
+        val xd = data[base.x].convertToDouble().castNotNull().toDoubleArray()
+        val yd = data[base.y].convertToDouble().castNotNull().toDoubleArray()
+        if (xd.size <= 2 || yd.size <= 2)
+            null
+        else
+            method(xd, yd)
+    }
+}
+
+operator fun GGScatter.plus(s: statCor) = run {
+    this.plot += s.getFeature(this)
+    this
+}
+
+operator fun GGScatter.plusAssign(s: statCor) {
+    this.plot += s.getFeature(this)
 }
