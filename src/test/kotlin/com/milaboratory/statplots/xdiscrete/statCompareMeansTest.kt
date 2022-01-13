@@ -177,4 +177,40 @@ internal class statCompareMeansTest {
             plt.toPDF(),
         )
     }
+
+    @Test
+    internal fun testComparisonsLabel() {
+        val plt = GGBoxPlot(
+            myeloma,
+            x = "molecular_group",
+            y = "IRF4",
+        ) {
+            fill = "molecular_group"
+        } + statCompareMeans(
+            allComparisons = true,
+            labelFormat = Formatted()
+        )
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt.toPDF(),
+        )
+    }
+
+    @Test
+    internal fun testComparisonsFilter() {
+        val plt = GGBoxPlot(
+            toothGrowth,
+            x = "dose",
+            y = "len",
+        ) + statCompareMeans(
+            comparisons = listOf("0.5" to "1.0", "0.5" to "2.0"),
+            labelFormat = Formatted()
+        )
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt.toPDF(),
+        )
+    }
 }

@@ -65,7 +65,7 @@ class GGBarPlot(
     x: String,
     y: String,
     val stat: StatOptions = Stat.count(),
-    val statFun: StatFun? = null,
+    val statFun: StatFun? = StatFun.MeanStdErr,
     val position: PosOptions = Pos.stack,
     facetBy: String? = null,
     facetNCol: Int? = null,

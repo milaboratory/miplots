@@ -5,6 +5,7 @@ package com.milaboratory.statplots.xdiscrete
 import com.milaboratory.statplots.common.WithFeature
 import com.milaboratory.statplots.util.*
 import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Formatted
+import com.milaboratory.statplots.xdiscrete.LabelFormat.Companion.Significance
 import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.intern.Feature
@@ -46,7 +47,7 @@ interface StatCompareMeansOptions : CompareMeansOptions {
     val hideNS: Boolean
 
     /** Format of p-value labels */
-    val labelFormat: LabelFormat
+    val labelFormat: LabelFormat?
 
     /** Positions of p-value labels */
     val labelPos: List<Double>?
@@ -78,10 +79,16 @@ private class StatCompareMeansFeature(
 
     /** Add overall p-value to the plot */
     private fun overallPValueLayer(compareMeans: CompareMeans, facet: Any?, yCoord: Double): Feature {
+        val lf = ops.labelFormat ?: Formatted()
+        val label = when (lf) {
+            Significance -> compareMeans.overallPValueSign
+            is Formatted -> lf.format(compareMeans.overallPValueMethod, compareMeans.overallPValueFmt)
+            else -> throw RuntimeException()
+        }
         val data = mutableMapOf<String, List<Any>>(
             plt.xNumeric to listOf(0.0),
             plt.y to listOf(yCoord),
-            "label" to listOf("${compareMeans.overallPValueMethod}, p = ${compareMeans.overallPValueFmt}")
+            "label" to listOf(label)
         )
         if (facet != null) {
             data += plt.facetBy!! to listOf(facet)
@@ -91,7 +98,7 @@ private class StatCompareMeansFeature(
             size = 7,
             hjust = 1.0
         ) {
-            label = "label"
+            this.label = "label"
         }
     }
 
@@ -107,11 +114,12 @@ private class StatCompareMeansFeature(
     private fun pValuesLayer(compareMeans: CompareMeans, facet: Any?, yCoord: Double): Feature = run {
         val stat: DataFrame<CompareMeansRow> = compareMeans.stat
 
-        val labels = when (ops.labelFormat) {
-            LabelFormat.Significance -> stat.pSignif.map { if (ops.hideNS && it == SignificanceLevel.NS) "" else it.string }
+        val lf = ops.labelFormat ?: Significance
+        val labels = when (lf) {
+            Significance -> stat.pSignif.map { if (ops.hideNS && it == SignificanceLevel.NS) "" else it.string }
                 .toList()
             is Formatted -> stat.pValueFmt.map {
-                (ops.labelFormat as Formatted).format(ops.method, it)
+                lf.format(ops.method, it)
             }.toList()
             else -> throw RuntimeException()
         }
@@ -169,7 +177,7 @@ private class StatCompareMeansFeature(
         else {
             val set = ops.comparisons!!.toSet()
             compareMeans.stat
-                .filter { (group1 to group2) in set }
+                .filter { (group1 to group2) in set || (group2 to group1) in set }
         }.filter { pSignif != SignificanceLevel.NS }
 
         val mustach = plt.yDelta * 0.2
@@ -192,6 +200,7 @@ private class StatCompareMeansFeature(
             textData += plt.facetBy!! to mutableListOf()
 
         var yValue = yCoordBase
+        val lf = ops.labelFormat ?: Formatted("{pValue}")
         for ((group, row) in rows.withIndex()) {
             val gr1 = plt.xnum[row.group1!!]!!
             val gr2 = plt.xnum[row.group2]!!
@@ -204,7 +213,12 @@ private class StatCompareMeansFeature(
 
             textData[plt.xNumeric]!!.addAll(listOf((gr1 + gr2) / 2.0))
             textData[plt.y]!!.addAll(listOf(yValue + plt.yDelta / 2))
-            textData["__label"]!!.addAll(listOf(row.pValueFmt))
+            val label = when (lf) {
+                Significance -> row.pSignif
+                is Formatted -> lf.format(compareMeans.method, row.pValueFmt)
+                else -> throw RuntimeException()
+            }
+            textData["__label"]!!.addAll(listOf(label))
             if (facet != null)
                 textData[plt.facetBy]!!.addAll(listOf(facet))
 
@@ -232,7 +246,7 @@ private class StatCompareMeansFeature(
     private fun pValuesGroupByLayer(stat: Map<Any, CompareMeans>, facet: Any?, yCoord: Double): Feature = run {
         val labels = stat.values.map {
             when (ops.labelFormat) {
-                LabelFormat.Significance -> it.overallPValueSign.string
+                Significance -> it.overallPValueSign.string
                 is Formatted -> (ops.labelFormat as Formatted).format(ops.method, it.overallPValueFmt)
                 else -> throw RuntimeException()
             }
@@ -396,7 +410,7 @@ data class statCompareMeans(
     override val comparisons: List<Pair<String, String>>? = null,
     override val allComparisons: Boolean? = null,
     override val hideNS: Boolean = false,
-    override val labelFormat: LabelFormat = LabelFormat.Significance,
+    override val labelFormat: LabelFormat? = null,
     override val method: TestMethod = TestMethod.Wilcoxon,
     override val paired: Boolean = false,
     override val multipleGroupsMethod: TestMethod = TestMethod.KruskalWallis,
