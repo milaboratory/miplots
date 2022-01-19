@@ -1,5 +1,7 @@
 package com.milaboratory.statplots.util
 
+import jetbrains.letsPlot.elementBlank
+import jetbrains.letsPlot.theme
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
@@ -30,3 +32,16 @@ fun <K, V> Map<K?, V?>.filterNotNull(): Map<K, V> = this.mapNotNull {
         }
     }
 }.toMap()
+
+
+fun themeBlank() = theme(
+    axisLineY = elementBlank(),
+    axisLineX = elementBlank(),
+    axisTextX = elementBlank(),
+    axisTextY = elementBlank(),
+    panelGrid = elementBlank(),
+    axisTicksX = elementBlank(),
+    axisTicksY = elementBlank(),
+    axisTitleX = elementBlank(),
+    axisTitleY = elementBlank()
+).legendPositionNone()

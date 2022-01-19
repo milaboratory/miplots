@@ -244,10 +244,11 @@ private class StatCompareMeansFeature(
 
     /** Add p-value for each group in grouped boxplot (no facets) */
     private fun pValuesGroupByLayer(stat: Map<Any, CompareMeans>, facet: Any?, yCoord: Double): Feature = run {
+        val lf = ops.labelFormat ?: Significance
         val labels = stat.values.map {
-            when (ops.labelFormat) {
+            when (lf) {
                 Significance -> it.overallPValueSign.string
-                is Formatted -> (ops.labelFormat as Formatted).format(ops.method, it.overallPValueFmt)
+                is Formatted -> lf.format(ops.method, it.overallPValueFmt)
                 else -> throw RuntimeException()
             }
         }

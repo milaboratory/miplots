@@ -1,4 +1,4 @@
-val letsPlotLibraryVersion = "2.1.0"
+val letsPlotLibraryVersion = "2.2.1"
 val letsPlotKotlinApiVersion = "3.1.1"
 val dataframeVersion = "0.8.0-dev-808"
 
