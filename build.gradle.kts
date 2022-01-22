@@ -24,8 +24,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 
     api("org.apache.commons:commons-math3:3.6.1")
 
@@ -33,7 +33,7 @@ dependencies {
     implementation(kotlin("stdlib"))
 
     implementation("org.apache.xmlgraphics:fop-transcoder:2.6")
-    implementation("org.apache.pdfbox:pdfbox:2.0.21")
+    implementation("org.apache.pdfbox:pdfbox:2.0.24")
 
     implementation("org.apache.commons:commons-csv:1.9.0")
     implementation("org.jetbrains.kotlinx:dataframe:$dataframeVersion")
