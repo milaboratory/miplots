@@ -8,13 +8,13 @@ internal data class XYNode(
     val depth: Int,
     val children: List<XYNode>
 ) {
-    val leftmost = children.firstOrNull()
-    val rightmost = children.lastOrNull()
-
-    fun isLeaf() = children.isEmpty()
+    val leftmost get() = children.firstOrNull()
+    val rightmost get() = children.lastOrNull()
+    val isLeaf get() = children.isEmpty()
 }
 
 internal fun XYNode.flipY(): XYNode = copy(y = -y, children = children.map { it.flipY() })
+internal fun XYNode.flipX(): XYNode = copy(x = -x, children = children.map { it.flipX() })
 
 /**
  * Algorithms to build dendro layout

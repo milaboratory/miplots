@@ -52,7 +52,12 @@ fun writePDF(destination: Path, vararg images: ByteArray) {
 }
 
 fun writePDF(destination: Path, vararg plots: Figure) {
-    writePDF(destination, plots.toList().map { it.toPDF() })
+    writePDF(destination, plots.toList())
+}
+
+@JvmName("writePDFFigure")
+fun writePDF(destination: Path, plots: List<Figure>) {
+    writePDF(destination, plots.map { it.toPDF() })
 }
 
 fun writePDF(destination: Path, images: List<ByteArray>) {

@@ -1,8 +1,9 @@
 package com.milaboratory.miplots.dendro
 
+import com.milaboratory.miplots.dendro.ConnectionType.Triangle
 import com.milaboratory.miplots.dendro.RootPosition.*
 import com.milaboratory.miplots.writePDF
-import jetbrains.letsPlot.letsPlot
+import jetbrains.letsPlot.Figure
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
 
@@ -23,11 +24,9 @@ internal class DrawTest {
 
     @Test
     internal fun test1() {
-        var plot = letsPlot()
-
-        plot += geomDendro(
+        val plot = ggDendro(
             tree,
-            ctype = ConnectionType.Triangle,
+            ctype = Triangle,
             einh = EdgeMetaInheritance.Up
         ) {
             color = "age"
@@ -41,17 +40,18 @@ internal class DrawTest {
 
     @Test
     internal fun testRootPos() {
-        val top = letsPlot() + geomDendro(tree, rpos = Top)
-        val rht = letsPlot() + geomDendro(tree, rpos = Right)
-        val btm = letsPlot() + geomDendro(tree, rpos = Bottom)
-        val lft = letsPlot() + geomDendro(tree, rpos = Left)
+        val plots = ConnectionType.values().flatMap { ct ->
+            listOf<Figure>(
+                ggDendro(tree, ctype = ct, rpos = Top),
+                ggDendro(tree, ctype = ct, rpos = Right),
+                ggDendro(tree, ctype = ct, rpos = Bottom),
+                ggDendro(tree, ctype = ct, rpos = Left)
+            )
+        }
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            top,
-            rht,
-            btm,
-            lft
+            plots
         )
     }
 }
