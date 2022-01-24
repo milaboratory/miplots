@@ -1,13 +1,14 @@
 package com.milaboratory.miplots.dendro
 
+import com.milaboratory.miplots.FeatureWrapper
+import com.milaboratory.miplots.Position
+import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.dendro.Alignment.Horizontal
 import com.milaboratory.miplots.dendro.Alignment.Vertical
-import com.milaboratory.miplots.dendro.RootPosition.Right
-import com.milaboratory.miplots.dendro.RootPosition.Top
+import com.milaboratory.miplots.plus
 import com.milaboratory.miplots.stat.util.themeBlank
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomSegment
-import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.letsPlot
 
 internal class DataBuilder {
@@ -51,11 +52,6 @@ private object DendroVar {
     const val y1 = "y1"
     const val y2 = "y2"
 }
-
-//sealed interface Rotate {
-//    fun apply(x1: Double, x2: Double, y1: Double, y2: Double): Quadru
-//}
-
 
 data class Point(val x: Any, val y: Any)
 data class Line(val x1: Any, val y1: Any, val x2: Any, val y2: Any)
@@ -174,48 +170,46 @@ class GeomDendroLayer(
     val aes: DendroAes,
     val edgesData: Map<String, List<Any?>>,
     val pointsData: Map<String, List<Any?>>
-)
-
-operator fun Plot.plus(dendro: GeomDendroLayer) = run {
-    var plt = this
-
-    plt += geomSegment(dendro.edgesData) {
+) : FeatureWrapper {
+    val segmentLayer = geomSegment(edgesData) {
         x = DendroVar.x1
         y = DendroVar.y1
         xend = DendroVar.x2
         yend = DendroVar.y2
-        linetype = dendro.aes.linetype
-        color = dendro.aes.color
+        linetype = aes.linetype
+        color = aes.color
     }
 
-    plt += geomPoint(
-        dendro.pointsData, shape = 19
+    val pointLayer = geomPoint(
+        pointsData, shape = 19
     ) {
         x = DendroVar.x
         y = DendroVar.y
-        fill = dendro.aes.color
-        color = dendro.aes.color
-        shape = dendro.aes.shape
+        fill = aes.color
+        color = aes.color
+        shape = aes.shape
     }
 
-    plt
+    override val feature = segmentLayer + pointLayer
 }
-
 
 enum class ConnectionType { Triangle, Rectangle }
 enum class EdgeMetaInheritance { Up, Down }
-enum class RootPosition(internal val alignment: Alignment) {
-    Top(Vertical),
-    Right(Horizontal),
-    Bottom(Vertical),
-    Left(Horizontal);
-}
 
-fun ggDendro(
-    tree: Node,
+internal val Position.alignment
+    get() = when (this) {
+        Top, Bottom -> Vertical
+        else -> Horizontal
+    }
+
+fun geomDendro(
+    tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
-    rpos: RootPosition = Top,
+    rpos: Position = Top,
+    balanced: Boolean = false,
+    coord: List<Double>? = null,
+    height: Double? = null,
     aesMapping: DendroAes.() -> Unit = {}
 ) = run {
     val aes = DendroAes()
@@ -227,14 +221,30 @@ fun ggDendro(
     var xy = Layout.Knuth(tree.xy())
     if (rpos == Top || rpos == Right)
         xy = xy.flipY()
+    if (coord != null)
+        xy = xy.imposeX(coord)
+    if (height != null)
+        xy = xy.scaleHeight(height)
 
     xy.addNodesData(dbNodes, rpos.alignment)
     xy.addEdgesData(dbEdges, ctype, einh, rpos.alignment)
 
-    var plt = letsPlot()
-    plt += GeomDendroLayer(aes, dbEdges.result, dbNodes.result)
-    plt += themeBlank()
+    GeomDendroLayer(aes, dbEdges.result, dbNodes.result)
+}
 
+fun ggDendro(
+    tree: Node<*>,
+    ctype: ConnectionType = ConnectionType.Rectangle,
+    einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+    rpos: Position = Top,
+    balanced: Boolean = false,
+    coord: List<Double>? = null,
+    height: Double? = null,
+    aesMapping: DendroAes.() -> Unit = {}
+) = run {
+    var plt = letsPlot()
+    plt += geomDendro(tree, ctype, einh, rpos, balanced, coord, height, aesMapping)
+    plt += themeBlank()
     plt
 }
 

@@ -1,8 +1,15 @@
 package com.milaboratory.miplots.heatmap
 
 import com.milaboratory.miplots.PlotWrapper
-import com.milaboratory.miplots.clustering.*
-import com.milaboratory.miplots.heatmap.Position.*
+import com.milaboratory.miplots.Position
+import com.milaboratory.miplots.Position.*
+import com.milaboratory.miplots.clustering.HierarchicalClustering
+import com.milaboratory.miplots.clustering.asTree
+import com.milaboratory.miplots.dendro.Node
+import com.milaboratory.miplots.dendro.geomDendro
+import com.milaboratory.miplots.dendro.leaves
+import com.milaboratory.miplots.dendro.mapId
+import com.milaboratory.miplots.isTopBottom
 import com.milaboratory.miplots.stat.util.themeBlank
 import jetbrains.letsPlot.coordFixed
 import jetbrains.letsPlot.geom.geomPoint
@@ -35,7 +42,7 @@ data class WithComparator(val comparator: Comparator<DataRow<*>>) : Order()
 
 enum class HierarchyType { X, Y }
 
-class Hierarchical(val type: HierarchyType, val alt: Double = 0.0) : Order()
+class Hierarchical(val alt: Double = 0.0) : Order()
 
 internal object HeatmapVar {
     const val xnum = "__xnum__"
@@ -61,14 +68,14 @@ class Heatmap(
 
         private data class AxData(
             val ax: List<Any>,
-            val clust: TreeNode<Any?>?
+            val clust: Node<Any?>?
         )
 
         private fun ax(
             data: AnyFrame, order: Order?,
             x: String, y: String, z: String
         ): AxData = run {
-            var clust: TreeNode<Any?>? = null
+            var clust: Node<Any?>? = null
 
             val ax = when (order) {
                 null -> data[x].distinct().toList().filterNotNull()
@@ -103,10 +110,10 @@ class Heatmap(
                         HierarchicalClustering::EuclideanDistance
                     )
                         .asTree()
-                        .map { if (it < 0) null else forClustering[it].first }
+                        .mapId { if ((it ?: -1) < 0) null else forClustering[it!!].first }
 
                     // resulting xax
-                    clust.leafsOrdered()
+                    clust.leaves()
                 }
             }
 
@@ -116,8 +123,8 @@ class Heatmap(
 
     val data: AnyFrame
 
-    internal val xclust: TreeNode<Any?>?
-    internal val yclust: TreeNode<Any?>?
+    internal val xclust: Node<Any?>?
+    internal val yclust: Node<Any?>?
     internal val xmap: Map<Any, Double>
     internal val ymap: Map<Any, Double>
     internal val xax: List<Any>
@@ -188,11 +195,6 @@ class Heatmap(
         }
 }
 
-
-enum class Position { Top, Right, Bottom, Left }
-
-val Position.isTopBottom get() = (this == Top) || (this == Bottom)
-val Position.isLeftRight get() = !isTopBottom
 
 /**
  *
@@ -502,15 +504,43 @@ internal fun Heatmap.withColorKey(
     this
 }
 
-internal fun Heatmap.withDendrogram(pos: Position) {
+internal fun Heatmap.withDendrogram(pos: Position) = run {
     if ((pos == Left || pos == Right) && yclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
     if ((pos == Top || pos == Bottom) && xclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
 
-    xclust!!
+    val clust: Node<Any?>
+    val l_height: Double
+    val l_xmin: Double
+    val l_xmax: Double
+    val l_ymin: Double
+    val l_ymax: Double
+    val ax: List<Any>
+    val axmap: Map<Any, Double>
+    when (pos) {
+        Top -> {
+            clust = xclust!!
+            l_height = heigh / 5
+            l_xmin = xminBase
+            l_xmax = xmaxBase
+            l_ymin = ymax
+            l_ymax = l_ymin + heigh
+            ax = xax
+            axmap = xmap
+        }
+        else -> TODO()
+    }
 
-    // root height
-    val height = xclust.height
+    val feature = geomDendro(
+        clust,
+        rpos = pos,
+        coord = ax.map { axmap[it]!! },
+        height = l_height
+    )
+
+    layers += HLayer(pos, l_xmin, l_xmax, l_ymin, l_ymax, feature.feature)
+
+    this
 }
 

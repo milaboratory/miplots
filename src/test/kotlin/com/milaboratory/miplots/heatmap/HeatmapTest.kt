@@ -1,5 +1,7 @@
 package com.milaboratory.miplots.heatmap
 
+import com.milaboratory.miplots.Position
+import com.milaboratory.miplots.Position.Top
 import com.milaboratory.miplots.writePDF
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 import org.junit.jupiter.api.Test
@@ -24,60 +26,60 @@ internal class HeatmapTest {
     )
 
     fun simpleWithLables() = simple()
-        .withLabels(Position.Top)
+        .withLabels(Top)
         .withLabels(Position.Bottom)
         .withLabels(Position.Left)
         .withLabels(Position.Right)
 
     fun simpleWithLablesCustom1() = simple()
-        .withLabels(Position.Top, labels = List(3) { "long word" })
+        .withLabels(Top, labels = List(3) { "long word" })
         .withLabels(Position.Bottom, labels = List(3) { "long word" })
         .withLabels(Position.Left, labels = List(3) { "long word" })
         .withLabels(Position.Right, labels = List(3) { "long word" })
 
     fun simpleWithLablesCustom2() = simple()
-        .withLabels(Position.Top, angle = 90, height = 2.0, labels = List(3) { "long word" })
+        .withLabels(Top, angle = 90, height = 2.0, labels = List(3) { "long word" })
         .withLabels(Position.Bottom, angle = 90, height = 2.0, labels = List(3) { "long word" })
         .withLabels(Position.Left, width = 2.0, labels = List(3) { "long word" })
         .withLabels(Position.Right, width = 2.0, labels = List(3) { "long word" })
 
     fun simpleWithLablesCustom3() = simple()
-        .withLabels(Position.Top, angle = 45, height = 2.0, labels = List(3) { "long word" })
+        .withLabels(Top, angle = 45, height = 2.0, labels = List(3) { "long word" })
         .withLabels(Position.Right, angle = 45, width = 2.0, labels = List(3) { "long word" })
         .withLabels(Position.Bottom, angle = 45, height = 2.0, labels = List(3) { "long word" })
         .withLabels(Position.Left, angle = 45, width = 2.0, labels = List(3) { "long word" })
 
     fun simpleWithColorKey() = simple()
-        .withColorKey("s", Position.Top, label = "color key", labelPos = Position.Left)
-        .withColorKey("x", Position.Top)
+        .withColorKey("s", Top, label = "color key", labelPos = Position.Left)
+        .withColorKey("x", Top)
         .withColorKey("x", Position.Bottom, sep = 0.1)
 
     fun simpleWithColorKeyWithLabels() = simpleWithColorKey()
-        .withLabels(Position.Top)
+        .withLabels(Top)
         .withLabels(Position.Bottom)
         .withLabels(Position.Left)
         .withLabels(Position.Right)
 
     fun simpleWithColorKey2() = simple()
-        .withColorKey("s", Position.Top, label = "top color key", labelPos = Position.Left, sep = 0.1)
-        .withColorKey("x", Position.Right, label = "right color key", labelPos = Position.Top, sep = 0.1)
+        .withColorKey("s", Top, label = "top color key", labelPos = Position.Left, sep = 0.1)
+        .withColorKey("x", Position.Right, label = "right color key", labelPos = Top, sep = 0.1)
         .withColorKey("x", Position.Bottom, label = "bottom color key", labelPos = Position.Right, sep = 0.1)
         .withColorKey("s", Position.Left, label = "left color key", labelPos = Position.Bottom, sep = 0.1)
 
     fun simpleWithColorKeyWithLabels2() = simpleWithColorKey2()
-        .withLabels(Position.Top)
+        .withLabels(Top)
         .withLabels(Position.Bottom)
         .withLabels(Position.Left)
         .withLabels(Position.Right)
 
     fun simpleWithColorKey3() = simpleWithColorKey2()
-        .withColorKey("s", Position.Top, label = "top color key", labelPos = Position.Left)
-        .withColorKey("x", Position.Right, label = "right color key", labelPos = Position.Top)
+        .withColorKey("s", Top, label = "top color key", labelPos = Position.Left)
+        .withColorKey("x", Position.Right, label = "right color key", labelPos = Top)
         .withColorKey("x", Position.Bottom, label = "bottom color key", labelPos = Position.Right)
         .withColorKey("s", Position.Left, label = "left color key", labelPos = Position.Bottom)
 
     fun simpleWithColorKeyWithLabels3() = simpleWithColorKey3()
-        .withLabels(Position.Top)
+        .withLabels(Top)
         .withLabels(Position.Bottom)
         .withLabels(Position.Left)
         .withLabels(Position.Right)
@@ -97,6 +99,20 @@ internal class HeatmapTest {
             simpleWithColorKeyWithLabels2(),
             simpleWithColorKey3(),
             simpleWithColorKeyWithLabels3()
+        )
+    }
+
+    fun simpleDendro() = Heatmap(
+        simpleData, "x", "y", "z",
+        xOrder = Hierarchical(),
+        yOrder = Hierarchical()
+    ).withDendrogram(Top)
+
+    @Test
+    internal fun test2() {
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            simpleDendro()
         )
     }
 

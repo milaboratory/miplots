@@ -1,6 +1,10 @@
 package com.milaboratory.miplots.clustering
 
 import com.milaboratory.miplots.clustering.HierarchicalClustering.clusterize
+import com.milaboratory.miplots.dendro.Node
+import com.milaboratory.miplots.dendro.adjustHeight
+import com.milaboratory.miplots.dendro.mapId
+import com.milaboratory.miplots.dendro.normalize
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import kotlin.math.roundToInt
@@ -70,49 +74,29 @@ class HierarchicalClusteringTest {
         Assertions.assertEquals(5, r.size)
 
         val tree = r.asTree()
-            .map { if (it < 0) -1 else it }
+            .mapId { if ((it ?: 0) < 0) null else it }
             .adjustHeight { (100 * it).roundToInt() / 100.0 }
             .normalize()
 
         Assertions.assertEquals(4, tree.depth)
 
-        val expected = TreeNode(
-            -1,
-            listOf(
-                TreeNode(
-                    -1,
-                    listOf(
-                        TreeNode(
-                            -1,
-                            listOf(
-                                TreeNode(
-                                    -1,
-                                    listOf(
-                                        TreeNode(0, emptyList(), 0.0),
-                                        TreeNode(1, emptyList(), 0.0)
-                                    ),
-                                    2.12
-                                ),
-                                TreeNode(
-                                    -1,
-                                    listOf(
-                                        TreeNode(4, emptyList(), 0.0),
-                                        TreeNode(5, emptyList(), 0.0)
-                                    ),
-                                    1.5
-                                )
+        val expected = Node(4.12) {
+            Node(3.91) {
+                Node(2.69) {
+                    Node(2.12) {
+                        Node(0, 0.0)
+                        Node(1, 0.0)
+                    }
 
-                            ),
-                            2.69
-                        ),
-                        TreeNode(2, emptyList(), 0.0)
-                    ),
-                    3.91
-                ),
-                TreeNode(3, emptyList(), 0.0)
-            ),
-            4.12
-        ).normalize()
+                    Node(1.5) {
+                        Node(4, 0.0)
+                        Node(5, 0.0)
+                    }
+                }
+                Node(2, 0.0)
+            }
+            Node(3, 0.0)
+        }
 
         Assertions.assertEquals(expected, tree)
     }
