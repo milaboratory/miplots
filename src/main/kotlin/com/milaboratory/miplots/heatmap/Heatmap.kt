@@ -1,7 +1,8 @@
+@file:Suppress("LocalVariableName")
+
 package com.milaboratory.miplots.heatmap
 
-import com.milaboratory.miplots.PlotWrapper
-import com.milaboratory.miplots.Position
+import com.milaboratory.miplots.*
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.clustering.HierarchicalClustering
 import com.milaboratory.miplots.clustering.asTree
@@ -9,8 +10,6 @@ import com.milaboratory.miplots.dendro.Node
 import com.milaboratory.miplots.dendro.geomDendro
 import com.milaboratory.miplots.dendro.leaves
 import com.milaboratory.miplots.dendro.mapId
-import com.milaboratory.miplots.isTopBottom
-import com.milaboratory.miplots.themeBlank
 import jetbrains.letsPlot.coordFixed
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomText
@@ -22,6 +21,7 @@ import org.jetbrains.kotlinx.dataframe.DataRow
 import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.rows
 import org.jetbrains.kotlinx.dataframe.api.toMap
+import kotlin.Double.Companion.NaN
 import kotlin.math.max
 import kotlin.math.min
 
@@ -57,7 +57,7 @@ class Heatmap(
     val yOrder: Order? = null,
 ) : PlotWrapper {
     companion object {
-        private fun toDouble(v: Any?, alt: Double = Double.NaN): Double = run {
+        private fun toDouble(v: Any?, alt: Double = NaN): Double = run {
             if (v == null)
                 alt
             else
@@ -133,7 +133,6 @@ class Heatmap(
     internal var xminBase: Double = tileWidth / 2
     internal var yminBase: Double = tileHeight / 2
 
-
     init {
         var data = _data
         val xdata = ax(data, xOrder, x, y, z)
@@ -155,6 +154,9 @@ class Heatmap(
     }
 
     val layers = mutableListOf<HLayer>()
+
+    val xcoord = xax.map { xmap[it]!! }
+    val ycoord = yax.map { ymap[it]!! }
     val xmin: Double get() = min(xminBase, layers.minOfOrNull { it.xmin } ?: xminBase)
     val xmax: Double get() = max(xmaxBase, layers.maxOfOrNull { it.xmax } ?: xminBase)
     val ymin: Double get() = min(yminBase, layers.minOfOrNull { it.ymin } ?: yminBase)
@@ -220,6 +222,116 @@ data class HLayer(
     val height = ymax - ymin
 }
 
+private enum class Ax { x, y }
+
+private val Ax.complement: Ax
+    get() = when (this) {
+        Ax.x -> Ax.y
+        Ax.y -> Ax.x
+    }
+
+private val Position.ax: Ax
+    get() = when (this) {
+        Top, Bottom -> Ax.x
+        Left, Right -> Ax.y
+    }
+
+private fun Heatmap.axCol(ax: Ax): String = when (ax) {
+    Ax.x -> x
+    Ax.y -> y
+}
+
+private fun Heatmap.ax(ax: Ax): List<Any> = when (ax) {
+    Ax.x -> xax
+    Ax.y -> yax
+}
+
+private fun Heatmap.axmap(ax: Ax): Map<Any, Double> = when (ax) {
+    Ax.x -> xmap
+    Ax.y -> ymap
+}
+
+private fun Heatmap.axcoord(ax: Ax): List<Double> = when (ax) {
+    Ax.x -> xcoord
+    Ax.y -> ycoord
+}
+
+private fun Heatmap.minmax(ax: Ax): Pair<Double, Double> = when (ax) {
+    Ax.x -> xmin to xmax
+    Ax.y -> ymin to ymax
+}
+
+private fun Heatmap.minmaxBase(ax: Ax): Pair<Double, Double> = when (ax) {
+    Ax.x -> xminBase to xmaxBase
+    Ax.y -> yminBase to ymaxBase
+}
+
+private fun Heatmap.clust(ax: Ax): Node<Any?>? = when (ax) {
+    Ax.x -> xclust
+    Ax.y -> yclust
+}
+
+private data class LayerPosData(
+    val lx: Double,
+    val ly: Double,
+    val lxmin: Double,
+    val lxmax: Double,
+    val lymin: Double,
+    val lymax: Double,
+    val vjust: Double?,
+    val hjust: Double?,
+    val lxpos: List<Double>,
+    val lypos: List<Double>,
+)
+
+private fun Heatmap.posData(
+    pos: Position,
+    height: Double,
+    width: Double,
+    sep: Double
+) = run {
+    val (lxmin, lxmax) =
+        if (pos.isTopBottom)
+            minmaxBase(Ax.x)
+        else if (pos == Left)
+            xmin - sep - width to xmin - sep
+        else
+            xmax + sep to xmax + sep + width
+
+    val (lymin, lymax) =
+        if (pos.isLeftRight)
+            minmaxBase(Ax.y)
+        else if (pos == Top)
+            ymax + sep to ymax + sep + height
+        else
+            ymin - sep - height to ymin - sep
+
+    val (lx, ly) = when (pos) {
+        Top -> NaN to ymax + sep
+        Right -> xmax + sep to NaN
+        Bottom -> NaN to ymin - sep
+        Left -> xmin - sep to NaN
+    }
+
+    val (hjust, vjust) = when (pos) {
+        Top -> 1.0 to 0.5
+        Right -> 1.0 to 0.5
+        Bottom -> 0.0 to 0.5
+        Left -> 0.0 to 0.5
+    }
+
+    val pax = pos.ax
+    val ax = ax(pax)
+    val coord = axcoord(pax)
+
+    val (lxpos, lypos) = when (pos) {
+        Top, Bottom -> coord to List(ax.size) { ly }
+        Left, Right -> List(ax.size) { lx } to coord
+    }
+
+    LayerPosData(lx, ly, lxmin, lxmax, lymin, lymax, vjust, hjust, lxpos, lypos)
+}
+
 internal fun Heatmap.withLabels(
     pos: Position,
     labels: List<String>? = null,
@@ -228,159 +340,26 @@ internal fun Heatmap.withLabels(
     width: Double? = null,
     height: Double? = null
 ) = run {
-    val l_height = height ?: (tileHeight / 2)
-    val l_width = width ?: (tileWidth / 2)
-    val l_xpos: List<Any?>
-    val l_ypos: List<Any?>
-    val l_labs: List<Any?>
-    val l_xmin: Double
-    val l_xmax: Double
-    val l_ymin: Double
-    val l_ymax: Double
-    val vjust: Double?
-    val hjust: Double?
-
-    when (pos) {
-        Top -> {
-            l_xmin = xminBase
-            l_xmax = xmaxBase
-            val l_y = ymax + sep// + tileHeight / 2
-            l_ymin = l_y
-            l_ymax = l_y + l_height
-            l_xpos = xax.map { xmap[it] }
-            l_ypos = List(xax.size) { l_y }
-            l_labs = labels ?: xax
-            vjust = 0.0
-            hjust = 1.0
-        }
-        Bottom -> {
-            l_xmin = xminBase
-            l_xmax = xmaxBase
-            val l_y = ymin - sep// - tileHeight / 2
-            l_ymax = l_y
-            l_ymin = l_ymax - l_height
-            l_xpos = xax.map { xmap[it] }
-            l_ypos = List(xax.size) { l_y }
-            l_labs = labels ?: xax
-            vjust = 1.0
-            hjust = 0.0
-        }
-        Left -> {
-            l_ymin = yminBase
-            l_ymax = ymaxBase
-            val l_x = xmin - sep //- tileWidth / 2
-            l_xmax = l_x
-            l_xmin = l_xmax - l_width
-            l_ypos = yax.map { ymap[it] }
-            l_xpos = List(yax.size) { l_x }
-            l_labs = labels ?: yax
-            hjust = 0.0
-            vjust = 1.0
-        }
-        Right -> {
-            l_ymin = yminBase
-            l_ymax = ymaxBase
-            val l_x = xmax + sep// + tileWidth / 2
-            l_xmin = l_x
-            l_xmax = l_xmin + l_width
-            l_ypos = yax.map { ymap[it] }
-            l_xpos = List(yax.size) { l_x }
-            l_labs = labels ?: yax
-            hjust = 1.0
-            vjust = 0.0
-        }
-    }
+    val pdata = posData(pos, height ?: (tileHeight / 2), width ?: (tileWidth / 2), sep)
 
     val layerData = mutableMapOf(
-        "x" to l_xpos,
-        "y" to l_ypos,
-        "l" to l_labs
+        "x" to pdata.lxpos,
+        "y" to pdata.lypos,
+        "l" to (labels ?: ax(pos.ax))
     )
 
     val feature = geomText(
         layerData,
         angle = angle,
-        vjust = vjust,
-        hjust = hjust
+        vjust = pdata.vjust,
+        hjust = pdata.hjust
     ) {
         this.x = "x"
         this.y = "y"
         this.label = "l"
     }
 
-    layers += HLayer(pos, l_xmin, l_xmax, l_ymin, l_ymax, feature)
-
-    this
-}
-
-internal fun Heatmap.withLabel(
-    x: Double,
-    y: Double,
-    label: String,
-    pos: Position,
-    width: Double? = null,
-    height: Double? = null,
-    sep: Double = 0.0,
-    angle: Double = 0.0
-) = run {
-    val l_height = height ?: (tileHeight / 2)
-    val l_width = width ?: (tileWidth / 2)
-    val l_xmin: Double
-    val l_xmax: Double
-    val l_ymin: Double
-    val l_ymax: Double
-    val vjust: Double?
-    val hjust: Double?
-
-    when (pos) {
-        Top -> {
-            l_xmin = x - tileWidth / 2
-            l_xmax = x + tileWidth / 2
-            val l_y = y
-            l_ymin = l_y
-            l_ymax = l_y + l_height
-            vjust = 0.0
-            hjust = 1.0
-        }
-        Bottom -> {
-            l_xmin = x - tileWidth / 2
-            l_xmax = x + tileWidth / 2
-            val l_y = y
-            l_ymax = l_y
-            l_ymin = l_ymax - l_height
-            vjust = 1.0
-            hjust = 0.0
-        }
-        Left -> {
-            l_ymin = y - tileHeight / 2
-            l_ymax = y + tileHeight / 2
-            val l_x = x
-            l_xmax = l_x
-            l_xmin = l_xmax - l_width
-            hjust = 0.0
-            vjust = 1.0
-        }
-        Right -> {
-            l_ymin = y - tileHeight / 2
-            l_ymax = y + tileHeight / 2
-            val l_x = x
-            l_xmin = l_x
-            l_xmax = l_xmin + l_width
-            hjust = 1.0
-            vjust = 0.0
-        }
-    }
-
-    val feature = geomText(
-        x = x,
-        y = y,
-        label = label,
-        angle = angle,
-        vjust = vjust,
-        hjust = hjust
-    )
-
-    layers += HLayer(pos, l_xmin, l_xmax, l_ymin, l_ymax, feature)
+    layers += HLayer(pos, pdata.lxmin, pdata.lxmax, pdata.lymin, pdata.lymax, feature)
 
     this
 }
@@ -391,78 +370,13 @@ internal fun Heatmap.withColorKey(
     sep: Double = 0.0,
     label: String? = null,
     labelPos: Position? = null,
+    labelSep: Double = 0.0,
     labelWidth: Double? = 0.0,
     labelHeight: Double? = 0.0,
 ) = run {
+    val pdata = posData(pos, tileHeight, tileWidth, sep)
 
-    val axCol: String
-    val ax: List<Any>
-    val l_x: Double
-    val l_xmin: Double
-    val l_xmax: Double
-    val l_y: Double
-    val l_ymin: Double
-    val l_ymax: Double
-    val l_lx: Double
-    val l_ly: Double
-    val l_pos = labelPos ?: if (pos.isTopBottom) Right else Top
-
-    when (pos) {
-        Top -> {
-            axCol = x
-            ax = xax
-            l_x = Double.NaN
-            l_xmin = xminBase
-            l_xmax = xmaxBase
-            l_y = ymax + sep + tileHeight / 2
-            l_ymin = l_y - tileHeight / 2
-            l_ymax = l_y + tileHeight / 2
-
-            l_lx = if (l_pos == Left) xminBase else xmaxBase
-            l_ly = l_y
-        }
-        Bottom -> {
-            axCol = x
-            ax = xax
-            l_x = Double.NaN
-            l_xmin = xminBase
-            l_xmax = xmaxBase
-            l_y = ymin - sep - tileHeight / 2
-            l_ymin = l_y - tileHeight / 2
-            l_ymax = l_y + tileHeight / 2
-
-            l_lx = if (l_pos == Left) xminBase else xmaxBase
-            l_ly = l_y
-        }
-        Left -> {
-            axCol = y
-            ax = yax
-            l_y = Double.NaN
-            l_ymin = yminBase
-            l_ymax = ymaxBase
-            l_x = xmin - sep - tileWidth / 2
-            l_xmin = l_x - tileWidth / 2
-            l_xmax = l_x + tileWidth / 2
-
-            l_ly = if (l_pos == Top) ymaxBase else yminBase
-            l_lx = l_x
-        }
-        Right -> {
-            axCol = y
-            ax = yax
-            l_y = Double.NaN
-            l_ymin = yminBase
-            l_ymax = ymaxBase
-            l_x = xmax + sep + tileWidth / 2
-            l_xmin = l_x - tileWidth / 2
-            l_xmax = l_x + tileWidth / 2
-
-            l_ly = if (l_pos == Top) ymaxBase else yminBase
-            l_lx = l_x
-        }
-    }
-
-    val ck = data.rows().map { it[axCol] to it[key] }.distinct().toMap()
+    val ck = data.rows().map { it[axCol(pos.ax)] to it[key] }.distinct().toMap()
     val colorMap = data[key].distinct().toList().mapIndexed { i, e ->
         e to when (i % 3) {
             0 -> "red"
@@ -473,24 +387,24 @@ internal fun Heatmap.withColorKey(
     }.toMap()
 
     var feature: Feature? = null
+    val ax = ax(pos.ax)
+
+    val (xadj, yadj) = when (pos) {
+        Top -> 0.0 to tileHeight / 2
+        Bottom -> 0.0 to -tileHeight / 2
+        Left -> -tileWidth / 2 to 0.0
+        Right -> tileWidth / 2 to 0.0
+    }
     for (i in ax.indices) {
         val el = ax[i]
-        val f = when (pos) {
-            Top, Bottom -> geomTile(
-                x = xmap[el],
-                y = l_y,
-                fill = colorMap[ck[el]],
-                width = tileFillWidth,
-                height = tileFillHeight
-            )
-            else -> geomTile(
-                x = l_x,
-                y = ymap[el],
-                fill = colorMap[ck[el]],
-                width = tileFillWidth,
-                height = tileFillHeight
-            )
-        }
+        val f = geomTile(
+            x = pdata.lxpos[i] + xadj,
+            y = pdata.lypos[i] + yadj,
+            fill = colorMap[ck[el]],
+            width = tileFillWidth,
+            height = tileFillHeight
+        )
+
         if (feature == null)
             feature = f
         else
@@ -498,49 +412,54 @@ internal fun Heatmap.withColorKey(
     }
 
     labelPos?.apply {
-        this@withColorKey.withLabel(
-            l_lx,
-            l_ly,
-            label ?: key,
-            l_pos,
-            sep = sep,
-            width = labelWidth,
-            height = labelHeight,
-            angle = if (pos.isTopBottom) 0.0 else 90.0,
+        val (llx, lly) = when (pos) {
+            Top, Bottom -> (if (labelPos == Left) xminBase - labelSep else xmaxBase + labelSep) to pdata.ly
+            Left, Right -> pdata.lx to (if (labelPos == Top) ymaxBase + labelSep else yminBase - labelSep)
+        }
+
+        val (hjust, vjust) = when (labelPos) {
+            Top -> 1.0 to 0.5
+            Right -> 1.0 to 0.5
+            Bottom -> 0.0 to 0.5
+            Left -> 0.0 to 0.5
+        }
+
+        features.add(
+            geomText(
+                x = llx + xadj,
+                y = lly + yadj,
+                label = label ?: key,
+                angle = if (pos.isTopBottom) 0.0 else 90.0,
+                vjust = vjust,
+                hjust = hjust
+            )
         )
     }
 
-    layers += HLayer(pos, l_xmin, l_xmax, l_ymin, l_ymax, feature!!)
+    layers += HLayer(pos, pdata.lxmin, pdata.lxmax, pdata.lymin, pdata.lymax, feature!!)
 
     this
 }
 
-internal fun Heatmap.withDendrogram(pos: Position) = run {
+internal fun Heatmap.withDendrogram(
+    pos: Position,
+    sep: Double = 0.0
+) = run {
     if ((pos == Left || pos == Right) && yclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
     if ((pos == Top || pos == Bottom) && xclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
 
-    val clust: Node<Any?>
-    val l_height: Double
-    val l_xmin: Double
-    val l_xmax: Double
-    val l_ymin: Double
-    val l_ymax: Double
-    val ax: List<Any>
-    val axmap: Map<Any, Double>
-    when (pos) {
-        Top -> {
-            clust = xclust!!
-            l_height = heigh / 5
-            l_xmin = xminBase
-            l_xmax = xmaxBase
-            l_ymin = ymax
-            l_ymax = l_ymin + l_height
-            ax = xax
-            axmap = xmap
-        }
-        else -> TODO()
+    val h = heigh / 5
+    val w = width / 5
+    val pdata = posData(pos, h, w, sep)
+    val clust = clust(pos.ax)!!
+    val dheight = if (pos.isTopBottom) h else w
+    val rshift = when (pos) {
+        Top -> ymax + dheight
+        Right -> xmax + dheight
+        Bottom -> ymin - dheight
+        Left -> xmin - dheight
     }
 
     val feature = geomDendro(
@@ -548,19 +467,15 @@ internal fun Heatmap.withDendrogram(pos: Position) = run {
         rpos = pos,
         points = false,
         balanced = true,
-        rshift = ymax + l_height,
-        coord = ax.map { axmap[it]!! },
-        height = l_height,
+        rshift = rshift,
+        coord = axcoord(pos.ax),
+        height = dheight,
         color = "black",
         linetype = 1,
         fill = "black",
     )
 
-    layers += HLayer(
-        pos, l_xmin, l_xmax,
-        l_ymin, l_ymax,
-        feature.feature
-    )
+    layers += HLayer(pos, pdata.lxmin, pdata.lxmax, pdata.lymin, pdata.lymax, feature.feature)
 
     this
 }

@@ -28,7 +28,7 @@ internal class DrawTest {
 
     @Test
     internal fun test0() {
-        Assertions.assertEquals(3.6, tree.xy().height)
+        Assertions.assertEquals(7.6, tree.xy().height)
     }
 
     @Test

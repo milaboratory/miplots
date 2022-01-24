@@ -85,7 +85,7 @@ internal object Layout {
     fun Knuth(xy: XYNode) = Knuth(0, 0, xy).second
 
     /** for binary trees */
-    private fun Knuth(iSeed: Int, depth: Int, xy: XYNode): Pair<Int, XYNode> {
+    private fun Knuth2(iSeed: Int, depth: Int, xy: XYNode): Pair<Int, XYNode> {
         if (!xy.children.isEmpty() && xy.children.size != 2)
             throw IllegalStateException("not a binary tree")
 
@@ -111,6 +111,27 @@ internal object Layout {
         return i to xy.copy(
             x = x.toDouble(), depth = depth,
             children = if (left == null || right == null) emptyList() else listOf(left, right)
+        )
+    }
+
+    /** for any kind of trees */
+    private fun Knuth(iSeed: Int, depth: Int, xy: XYNode): Pair<Int, XYNode> {
+        var i = iSeed
+
+        val newChildren = mutableListOf<XYNode>()
+        val xdata = mutableListOf<Int>()
+        for (child in xy.children) {
+            val r = Knuth(i, depth + 1, child)
+            xdata += r.first
+            newChildren += r.second
+            i = r.first + 1
+        }
+        i -= 1
+
+        return i to xy.copy(
+            x = if (newChildren.isEmpty()) i.toDouble() else xdata[xdata.size / 2].toDouble(),
+            depth = depth,
+            children = newChildren
         )
     }
 }

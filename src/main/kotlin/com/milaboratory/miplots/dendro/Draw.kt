@@ -196,8 +196,14 @@ class DendroAes {
     /** Dot fill */
     var fill: Any? = null
 
+    /** Dot size */
+    var size: Any? = null
+
     /** Edge linetype */
     var linetype: Any? = null
+
+    /** Line width */
+    var linewidth: Any? = null
 }
 
 class GeomDendroLayer(
@@ -223,6 +229,7 @@ class GeomDendroLayer(
         yend = DendroVar.y2
         linetype = aes.linetype
         color = aes.color
+        size = aes.linewidth
     }
 
     val pointLayer = geomPoint(
@@ -236,6 +243,7 @@ class GeomDendroLayer(
         fill = aes.fill
         color = aes.color
         shape = aes.shape
+        size = aes.size
     }
 
     override val feature = run {
