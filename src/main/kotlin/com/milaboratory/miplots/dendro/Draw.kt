@@ -159,19 +159,31 @@ class DendroAes {
     /** Node shape */
     var shape: Any? = null
 
-    /** Edge color */
+    /** Edge/dot color */
     var color: Any? = null
+
+    /** Dot fill */
+    var fill: Any? = null
 
     /** Edge linetype */
     var linetype: Any? = null
 }
 
 class GeomDendroLayer(
+    val color: Any?,
+    val fill: Any?,
+    val linetype: Any?,
+    val shape: Any?,
     val aes: DendroAes,
     val edgesData: Map<String, List<Any?>>,
     val pointsData: Map<String, List<Any?>>
 ) : FeatureWrapper {
-    val segmentLayer = geomSegment(edgesData) {
+
+    val segmentLayer = geomSegment(
+        edgesData,
+        color = color,
+        linetype = linetype,
+    ) {
         x = DendroVar.x1
         y = DendroVar.y1
         xend = DendroVar.x2
@@ -181,11 +193,14 @@ class GeomDendroLayer(
     }
 
     val pointLayer = geomPoint(
-        pointsData, shape = 19
+        pointsData,
+        shape = shape,
+        color = color,
+        fill = fill
     ) {
         x = DendroVar.x
         y = DendroVar.y
-        fill = aes.color
+        fill = aes.fill
         color = aes.color
         shape = aes.shape
     }
@@ -206,6 +221,10 @@ fun geomDendro(
     tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+    color: Any? = null,
+    fill: Any? = null,
+    linetype: Any? = null,
+    shape: Any? = null,
     rpos: Position = Top,
     balanced: Boolean = false,
     coord: List<Double>? = null,
@@ -229,13 +248,25 @@ fun geomDendro(
     xy.addNodesData(dbNodes, rpos.alignment)
     xy.addEdgesData(dbEdges, ctype, einh, rpos.alignment)
 
-    GeomDendroLayer(aes, dbEdges.result, dbNodes.result)
+    GeomDendroLayer(
+        color = color,
+        fill = fill,
+        linetype = linetype,
+        shape = shape,
+        aes = aes,
+        edgesData = dbEdges.result,
+        pointsData = dbNodes.result
+    )
 }
 
 fun ggDendro(
     tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+    color: Any? = null,
+    fill: Any? = null,
+    linetype: Any? = null,
+    shape: Any? = null,
     rpos: Position = Top,
     balanced: Boolean = false,
     coord: List<Double>? = null,
@@ -243,7 +274,20 @@ fun ggDendro(
     aesMapping: DendroAes.() -> Unit = {}
 ) = run {
     var plt = letsPlot()
-    plt += geomDendro(tree, ctype, einh, rpos, balanced, coord, height, aesMapping)
+    plt += geomDendro(
+        tree = tree,
+        ctype = ctype,
+        einh = einh,
+        color = color,
+        fill = fill,
+        linetype = linetype,
+        shape = shape,
+        rpos = rpos,
+        balanced = balanced,
+        coord = coord,
+        height = height,
+        aesMapping = aesMapping,
+    )
     plt += themeBlank()
     plt
 }

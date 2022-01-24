@@ -536,7 +536,10 @@ internal fun Heatmap.withDendrogram(pos: Position) = run {
         clust,
         rpos = pos,
         coord = ax.map { axmap[it]!! },
-        height = l_height
+        height = l_height,
+        color = "black",
+        linetype = 3,
+        fill = "white"
     )
 
     layers += HLayer(pos, l_xmin, l_xmax, l_ymin, l_ymax, feature.feature)
