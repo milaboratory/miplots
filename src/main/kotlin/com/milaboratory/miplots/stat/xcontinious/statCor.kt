@@ -1,7 +1,7 @@
 package com.milaboratory.miplots.stat.xcontinious
 
+import com.milaboratory.miplots.formatPValue
 import com.milaboratory.miplots.stat.util.KendallsCorrelation
-import com.milaboratory.miplots.stat.util.formatPValue
 import jetbrains.letsPlot.geom.geomSmooth
 import jetbrains.letsPlot.geom.geomText
 import org.apache.commons.math3.distribution.NormalDistribution

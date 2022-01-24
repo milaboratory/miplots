@@ -10,7 +10,7 @@ import com.milaboratory.miplots.dendro.geomDendro
 import com.milaboratory.miplots.dendro.leaves
 import com.milaboratory.miplots.dendro.mapId
 import com.milaboratory.miplots.isTopBottom
-import com.milaboratory.miplots.stat.util.themeBlank
+import com.milaboratory.miplots.themeBlank
 import jetbrains.letsPlot.coordFixed
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomText
@@ -39,8 +39,6 @@ sealed class Order {
 }
 
 data class WithComparator(val comparator: Comparator<DataRow<*>>) : Order()
-
-enum class HierarchyType { X, Y }
 
 class Hierarchical(val alt: Double = 0.0) : Order()
 
@@ -93,7 +91,7 @@ class Heatmap(
                     for (row in data) {
                         xmap
                             .computeIfAbsent(row[x]) { mutableMapOf() }
-                            .computeIfAbsent(row[y]) { Companion.toDouble(row[z], order.alt) }
+                            .computeIfAbsent(row[y]) { toDouble(row[z], order.alt) }
                     }
 
                     val yvals = data[y].distinct().toList()
@@ -113,7 +111,7 @@ class Heatmap(
                         .mapId { if ((it ?: -1) < 0) null else forClustering[it!!].first }
 
                     // resulting xax
-                    clust.leaves()
+                    clust.leaves().map { it.id!! }
                 }
             }
 
@@ -156,7 +154,6 @@ class Heatmap(
         this.data = data
     }
 
-
     val layers = mutableListOf<HLayer>()
     val xmin: Double get() = min(xminBase, layers.minOfOrNull { it.xmin } ?: xminBase)
     val xmax: Double get() = max(xmaxBase, layers.maxOfOrNull { it.xmax } ?: xminBase)
@@ -164,6 +161,8 @@ class Heatmap(
     val ymax: Double get() = max(ymaxBase, layers.maxOfOrNull { it.ymax } ?: yminBase)
     val width: Double get() = xmax - xmin
     val heigh: Double get() = ymax - ymin
+
+    val features = mutableListOf<Feature>()
 
     override var plot
         get() = run {
@@ -188,6 +187,10 @@ class Heatmap(
             plt += geomPoint(x = xmin, y = ymin, size = 0.0)
             plt += geomPoint(x = xmax, y = ymax, size = 0.0)
 
+            for (feature in features) {
+                plt += feature
+            }
+
             plt
         }
         set(_) {
@@ -195,6 +198,14 @@ class Heatmap(
         }
 }
 
+operator fun Heatmap.plusAssign(f: Feature) {
+    features += f
+}
+
+operator fun Heatmap.plus(f: Feature) = run {
+    features += f
+    this
+}
 
 /**
  *
@@ -525,7 +536,7 @@ internal fun Heatmap.withDendrogram(pos: Position) = run {
             l_xmin = xminBase
             l_xmax = xmaxBase
             l_ymin = ymax
-            l_ymax = l_ymin + heigh
+            l_ymax = l_ymin + l_height
             ax = xax
             axmap = xmap
         }
@@ -535,14 +546,21 @@ internal fun Heatmap.withDendrogram(pos: Position) = run {
     val feature = geomDendro(
         clust,
         rpos = pos,
+        points = false,
+        balanced = true,
+        rshift = ymax + l_height,
         coord = ax.map { axmap[it]!! },
         height = l_height,
         color = "black",
-        linetype = 3,
-        fill = "white"
+        linetype = 1,
+        fill = "black",
     )
 
-    layers += HLayer(pos, l_xmin, l_xmax, l_ymin, l_ymax, feature.feature)
+    layers += HLayer(
+        pos, l_xmin, l_xmax,
+        l_ymin, l_ymax,
+        feature.feature
+    )
 
     this
 }

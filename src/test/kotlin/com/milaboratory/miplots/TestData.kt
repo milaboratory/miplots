@@ -28,6 +28,13 @@ object TestData {
         )
     }
 
+    val mtcarsMatrix by lazy {
+        mtcars.asMatrix(
+            "model", "z", "option",
+            "mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am", "gear", "carb"
+        )
+    }
+
     val spinrates by lazy {
         DataFrame.readCSV(
             File(TestData::class.java.getResource("/Spinrates.csv")!!.toURI())

@@ -1,8 +1,10 @@
 package com.milaboratory.miplots.heatmap
 
 import com.milaboratory.miplots.Position
-import com.milaboratory.miplots.Position.Top
+import com.milaboratory.miplots.Position.*
+import com.milaboratory.miplots.TestData
 import com.milaboratory.miplots.writePDF
+import jetbrains.letsPlot.ggsize
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -102,7 +104,7 @@ internal class HeatmapTest {
         )
     }
 
-    fun simpleDendro() = Heatmap(
+    fun dendro1() = Heatmap(
         simpleData, "x", "y", "z",
         xOrder = Hierarchical(),
         yOrder = Hierarchical()
@@ -112,7 +114,25 @@ internal class HeatmapTest {
     internal fun test2() {
         writePDF(
             Paths.get("scratch/bp.pdf"),
-            simpleDendro()
+            dendro1()
+        )
+    }
+
+    @Test
+    internal fun test3() {
+        val plt = Heatmap(
+            TestData.mtcarsMatrix, "model", "option", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+            .withDendrogram(Top)
+            .withLabels(Left)
+            .withLabels(Bottom, angle = 90, height = 3.0) +
+                ggsize(1000, 500)
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
         )
     }
 

@@ -6,9 +6,11 @@ import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.dendro.Alignment.Horizontal
 import com.milaboratory.miplots.dendro.Alignment.Vertical
 import com.milaboratory.miplots.plus
-import com.milaboratory.miplots.stat.util.themeBlank
+import com.milaboratory.miplots.themeBlank
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomSegment
+import jetbrains.letsPlot.intern.Feature
+import jetbrains.letsPlot.intern.FeatureList
 import jetbrains.letsPlot.letsPlot
 
 internal class DataBuilder {
@@ -70,22 +72,30 @@ internal enum class Alignment {
     open fun apply(l: Line): Line = l
 }
 
-internal fun XYNode.addNodesData(db: DataBuilder, al: Alignment) {
-    val (x, y) = al.apply(Point(this.x, this.y))
+private fun XYNode.yImposed(imposedLeafY: Double?) = if (isLeaf) imposedLeafY ?: y else y
+
+internal fun XYNode.addNodesData(
+    db: DataBuilder,
+    al: Alignment,
+    imposedLeafY: Double?
+) {
+
+    val (x, y) = al.apply(Point(this.x, this.yImposed(imposedLeafY)))
     db.add(
         DendroVar.x to x,
         DendroVar.y to y,
         DendroVar.depth to depth,
         *node.metadata.toList().toTypedArray()
     )
-    children.forEach { it.addNodesData(db, al) }
+    children.forEach { it.addNodesData(db, al, imposedLeafY) }
 }
 
 internal fun XYNode.addEdgesData(
     db: DataBuilder,
     ctype: ConnectionType,
     einh: EdgeMetaInheritance,
-    al: Alignment
+    al: Alignment,
+    imposedLeafY: Double?
 ) {
     children.forEachIndexed { childIndex, child ->
         val metadata = if (einh == EdgeMetaInheritance.Down) {
@@ -96,7 +106,7 @@ internal fun XYNode.addEdgesData(
 
         when (ctype) {
             ConnectionType.Triangle -> {
-                val (x1, y1, x2, y2) = al.apply(Line(this.x, this.y, child.x, child.y))
+                val (x1, y1, x2, y2) = al.apply(Line(this.x, this.y, child.x, child.yImposed(imposedLeafY)))
                 db.add(
                     DendroVar.x1 to x1,
                     DendroVar.y1 to y1,
@@ -107,7 +117,14 @@ internal fun XYNode.addEdgesData(
             }
             ConnectionType.Rectangle -> {
                 if (child.x == this.x) {
-                    val (x1, y1, x2, y2) = al.apply(Line(this.x, this.y, child.x, child.y))
+                    val (x1, y1, x2, y2) = al.apply(
+                        Line(
+                            this.x,
+                            this.yImposed(imposedLeafY),
+                            child.x,
+                            child.yImposed(imposedLeafY)
+                        )
+                    )
                     db
                         .add(
                             DendroVar.x1 to x1,
@@ -131,7 +148,14 @@ internal fun XYNode.addEdgesData(
                             x
                         }
 
-                    val (l1x1, l1y1, l1x2, l1y2) = al.apply(Line(child.x, this.y, child.x, child.y))
+                    val (l1x1, l1y1, l1x2, l1y2) = al.apply(
+                        Line(
+                            child.x,
+                            this.yImposed(imposedLeafY),
+                            child.x,
+                            child.yImposed(imposedLeafY)
+                        )
+                    )
                     db.add(
                         DendroVar.x1 to l1x1,
                         DendroVar.y1 to l1y1,
@@ -140,7 +164,14 @@ internal fun XYNode.addEdgesData(
                         *metadata
                     )
 
-                    val (l2x1, l2y1, l2x2, l2y2) = al.apply(Line(child.x, this.y, x2, y))
+                    val (l2x1, l2y1, l2x2, l2y2) = al.apply(
+                        Line(
+                            child.x,
+                            this.yImposed(imposedLeafY),
+                            x2,
+                            yImposed(imposedLeafY)
+                        )
+                    )
                     db.add(
                         DendroVar.x1 to l2x1,
                         DendroVar.y1 to l2y1,
@@ -151,7 +182,7 @@ internal fun XYNode.addEdgesData(
                 }
             }
         }
-        child.addEdgesData(db, ctype, einh, al)
+        child.addEdgesData(db, ctype, einh, al, imposedLeafY)
     }
 }
 
@@ -170,6 +201,8 @@ class DendroAes {
 }
 
 class GeomDendroLayer(
+    val points: Boolean,
+    val lines: Boolean,
     val color: Any?,
     val fill: Any?,
     val linetype: Any?,
@@ -205,7 +238,14 @@ class GeomDendroLayer(
         shape = aes.shape
     }
 
-    override val feature = segmentLayer + pointLayer
+    override val feature = run {
+        var f: Feature = FeatureList(emptyList())
+        if (lines)
+            f += segmentLayer
+        if (points)
+            f += pointLayer
+        f
+    }
 }
 
 enum class ConnectionType { Triangle, Rectangle }
@@ -221,6 +261,9 @@ fun geomDendro(
     tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+    points: Boolean = true,
+    lines: Boolean = true,
+    center: Boolean = true,
     color: Any? = null,
     fill: Any? = null,
     linetype: Any? = null,
@@ -228,6 +271,7 @@ fun geomDendro(
     rpos: Position = Top,
     balanced: Boolean = false,
     coord: List<Double>? = null,
+    rshift: Double? = null,
     height: Double? = null,
     aesMapping: DendroAes.() -> Unit = {}
 ) = run {
@@ -241,14 +285,20 @@ fun geomDendro(
     if (rpos == Top || rpos == Right)
         xy = xy.flipY()
     if (coord != null)
-        xy = xy.imposeX(coord)
+        xy = xy.imposeX(coord, center)
     if (height != null)
         xy = xy.scaleHeight(height)
+    if (rshift != null)
+        xy = xy.shiftY(rshift)
 
-    xy.addNodesData(dbNodes, rpos.alignment)
-    xy.addEdgesData(dbEdges, ctype, einh, rpos.alignment)
+    val imposedLeafY = if (balanced) xy.leafY else null
+
+    xy.addNodesData(dbNodes, rpos.alignment, imposedLeafY)
+    xy.addEdgesData(dbEdges, ctype, einh, rpos.alignment, imposedLeafY)
 
     GeomDendroLayer(
+        points = points,
+        lines = lines,
         color = color,
         fill = fill,
         linetype = linetype,
@@ -263,6 +313,9 @@ fun ggDendro(
     tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+    points: Boolean = true,
+    lines: Boolean = true,
+    center: Boolean = true,
     color: Any? = null,
     fill: Any? = null,
     linetype: Any? = null,
@@ -270,6 +323,7 @@ fun ggDendro(
     rpos: Position = Top,
     balanced: Boolean = false,
     coord: List<Double>? = null,
+    rshift: Double? = null,
     height: Double? = null,
     aesMapping: DendroAes.() -> Unit = {}
 ) = run {
@@ -278,11 +332,15 @@ fun ggDendro(
         tree = tree,
         ctype = ctype,
         einh = einh,
+        points = points,
+        lines = lines,
+        center = center,
         color = color,
         fill = fill,
         linetype = linetype,
         shape = shape,
         rpos = rpos,
+        rshift = rshift,
         balanced = balanced,
         coord = coord,
         height = height,

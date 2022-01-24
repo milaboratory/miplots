@@ -5,7 +5,7 @@ package com.milaboratory.miplots.dendro
 private fun Node<*>.xy(y: Double, depth: Int): XYNode {
     return XYNode(this,
         -1.0,
-        y + height,
+        y,
         depth,
         children.map { it.xy(y + height, depth + 1) }
     )
@@ -26,28 +26,44 @@ internal data class XYNode(
     val height get() = node.totalHeight
 }
 
+internal val XYNode.leafY: Double
+    get() =
+        if (isLeaf)
+            y
+        else {
+            if (y < leftmost!!.y)
+                children.maxOf { it.leafY }
+            else {
+                children.minOf { it.leafY }
+            }
+        }
+
 internal fun XYNode.flipY(): XYNode = copy(y = -y, children = children.map { it.flipY() })
 internal fun XYNode.flipX(): XYNode = copy(x = -x, children = children.map { it.flipX() })
 
-internal fun XYNode.imposeX(coord: List<Double>) = imposeX(coord, 0).first
-internal fun XYNode.imposeX(coord: List<Double>, iLeaf: Int): Pair<XYNode, Int> =
+internal fun XYNode.imposeX(coord: List<Double>, center: Boolean) = imposeX(coord, center, 0).first
+internal fun XYNode.imposeX(coord: List<Double>, center: Boolean, iLeaf: Int): Pair<XYNode, Int> =
     if (isLeaf) {
         copy(x = coord[iLeaf]) to (iLeaf + 1)
     } else {
-        val oldLeft = children.first().x
-        val oldRight = children.last().x
 
         val newChildren = mutableListOf<XYNode>()
         var nextLeaf = iLeaf
         for (child in children) {
-            val (newChild, i) = child.imposeX(coord, nextLeaf)
+            val (newChild, i) = child.imposeX(coord, center, nextLeaf)
             newChildren.add(newChild)
             nextLeaf = i
         }
         val newLeft = newChildren.first().x
         val newRight = newChildren.last().x
 
-        val newX = newLeft + (x - oldLeft) * (newRight - newLeft) / (oldRight - oldLeft)
+        val newX = if (center) {
+            newLeft + (newRight - newLeft) / 2
+        } else {
+            val oldLeft = children.first().x
+            val oldRight = children.last().x
+            newLeft + (x - oldLeft) * (newRight - newLeft) / (oldRight - oldLeft)
+        }
 
         copy(x = newX, children = newChildren) to nextLeaf
     }
@@ -59,6 +75,7 @@ private fun XYNode.mulHeight(factor: Double): XYNode = copy(
     children = children.map { it.mulHeight(factor) }
 )
 
+internal fun XYNode.shiftY(amount: Double): XYNode = copy(y = y + amount, children = children.map { it.shiftY(amount) })
 
 /**
  * Algorithms to build dendro layout
@@ -69,8 +86,8 @@ internal object Layout {
 
     /** for binary trees */
     private fun Knuth(iSeed: Int, depth: Int, xy: XYNode): Pair<Int, XYNode> {
-//        if (!xy.children.isEmpty() && xy.children.size != 2)
-//            throw IllegalStateException("not a binary tree")
+        if (!xy.children.isEmpty() && xy.children.size != 2)
+            throw IllegalStateException("not a binary tree")
 
         var i = iSeed
 
