@@ -2,6 +2,7 @@ package com.milaboratory.miplots.heatmap
 
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.TestData
+import com.milaboratory.miplots.color.Palletes.Categorical
 import com.milaboratory.miplots.writePDF
 import jetbrains.letsPlot.ggsize
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
@@ -125,7 +126,7 @@ internal class HeatmapTest {
     @Test
     internal fun testDendro2() {
         val plt = Heatmap(
-            TestData.mtcarsMatrix, "model", "option", "z",
+            TestData.sampleMatrix(10, 10), "x", "y", "z",
             xOrder = Hierarchical(),
             yOrder = Hierarchical()
         )
@@ -134,6 +135,59 @@ internal class HeatmapTest {
         plt.withDendrogram(Bottom)
         plt.withDendrogram(Left)
         plt += ggsize(1000, 500)
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
+
+    @Test
+    internal fun testDendro3() {
+        val plt = Heatmap(
+            TestData.sampleMatrix(15, 15), "x", "y", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+            .withBorder()
+            .withColorKey(
+                "xcat", Top,
+                sep = 0.1, pallete = Categorical.Triadic9Bright,
+                label = "X Category", labelPos = Left, labelSep = 0.2, labelSize = 2.0
+            )
+            .withColorKey(
+                "ycat", Right,
+                sep = 0.1, pallete = Categorical.Triadic9Bright,
+                label = "Y Category", labelPos = Top, labelSep = 0.2, labelSize = 2.0, labelAngle = 90.0
+            )
+            .withDendrogram(Top)
+            .withDendrogram(Right)
+            .withLabels(Left, sep = 0.2)
+            .withLabels(Bottom, sep = 0.2, angle = 45)
+
+            .withFillLegend(Bottom, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+
+        plt += ggsize(1000 / 1, 500 / 1)
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
+
+    @Test
+    internal fun testLegendTile() {
+        val plt = Heatmap(
+            TestData.sampleMatrix(15, 15), "x", "y", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+            .withBorder()
+            .withFillLegend(Top, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withFillLegend(Right, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withFillLegend(Bottom, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withFillLegend(Left, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+
 
         writePDF(
             Paths.get("scratch/bp.pdf"),

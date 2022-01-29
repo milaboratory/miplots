@@ -1,3 +1,5 @@
+@file:Suppress("ClassName")
+
 package com.milaboratory.miplots.dendro
 
 import com.milaboratory.miplots.Position.*
@@ -5,6 +7,7 @@ import com.milaboratory.miplots.dendro.ConnectionType.Rectangle
 import com.milaboratory.miplots.dendro.ConnectionType.Triangle
 import com.milaboratory.miplots.writePDF
 import jetbrains.letsPlot.Figure
+import jetbrains.letsPlot.scale.scaleColorGradient2
 import jetbrains.letsPlot.themeClassic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -13,7 +16,7 @@ import java.nio.file.Paths
 /**
  *
  */
-internal class DrawTest {
+internal class ggDendroTest {
     val tree =
         Node(4.0, "age" to "12", "sex" to "m") {
             Node(1.5, "age" to "10", "sex" to "m") {
