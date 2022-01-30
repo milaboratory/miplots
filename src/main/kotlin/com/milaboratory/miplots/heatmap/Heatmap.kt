@@ -175,6 +175,9 @@ class Heatmap(
 
     val features = mutableListOf<Feature>()
 
+    private var debug = false
+    fun debug() = run { debug = true; this }
+
     override var plot
         get() = run {
             var plt = letsPlot(data.toMap()) {
@@ -194,6 +197,14 @@ class Heatmap(
 
             for (layer in layers) {
                 plt += layer.feature
+                if (debug)
+                    plt += borderLayer(
+                        xmin = layer.xmin,
+                        xmax = layer.xmax,
+                        ymin = layer.ymin,
+                        ymax = layer.ymax,
+                        color = "red"
+                    )
             }
             plt += themeBlank()
 

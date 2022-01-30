@@ -4,6 +4,7 @@ import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.dendro.Node
 import com.milaboratory.miplots.isLeftRight
 import com.milaboratory.miplots.isTopBottom
+import jetbrains.datalore.base.values.Color
 import jetbrains.letsPlot.intern.Feature
 
 operator fun Heatmap.plusAssign(f: Feature) {
@@ -24,7 +25,9 @@ data class HLayer(
     val xmax: Double, val xmaxadd: Double = 0.0,
     val ymin: Double, val yminadd: Double = 0.0,
     val ymax: Double, val ymaxadd: Double = 0.0,
-    val feature: Feature
+    val feature: Feature,
+    val colorMap: Map<Any?, Color>? = null,
+    val title: String? = null
 ) {
     val xminvis = xmin - xminadd
     val xmaxvis = xmax + xmaxadd

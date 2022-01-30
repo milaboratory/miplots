@@ -194,4 +194,41 @@ internal class HeatmapTest {
             plt
         )
     }
+
+    @Test
+    internal fun testLegendColorKey() {
+        val plt = Heatmap(
+            TestData.sampleMatrix(15, 15), "x", "y", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+//            .withDebug()
+            .withBorder()
+            .withColorKey(
+                "xcat", Top,
+                sep = 0.1, pallete = Categorical.Triadic9Bright,
+                label = "X Category", labelPos = Left, labelSep = 0.2, labelSize = 2.0
+            )
+            .withColorKey(
+                "ycat", Right,
+                sep = 0.1, pallete = Categorical.Triadic9Bright,
+                label = "Y Category", labelPos = Top, labelSep = 0.2, labelSize = 2.0, labelAngle = 90.0
+            )
+            .withFillLegend(Top, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withColorKeyLegend(Top)
+
+            .withColorKeyLegend(Right, sep = 1.0)
+            .withFillLegend(Right, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+
+            .withFillLegend(Bottom, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withColorKeyLegend(Bottom)
+
+            .withFillLegend(Left, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withColorKeyLegend(Left)
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
 }

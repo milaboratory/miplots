@@ -25,7 +25,7 @@ fun Heatmap.withFillLegend(
     color: Any? = defBorderColor
 ) = run {
 
-    val pdata = posData(pos, 2 * (tsep + tileHeight), 2 * (tsep + tileWidth), sep)
+    val pdata = posData(pos, 2 * (tsep + tileFillHeight), 2 * (tsep + tileFillWidth), sep)
 
     val zd = data[z].convertToDouble()
     val zmin = zd.minOrNull() ?: 0.0
@@ -34,10 +34,10 @@ fun Heatmap.withFillLegend(
     var feature: Feature = FeatureList(emptyList())
 
     val (xtitle, ytitle) = when (pos) {
-        Top -> xmaxBase to ymax + tsep + sep + tileHeight + tsep
+        Top -> xmaxBase to ymax + tsep + sep + tileFillHeight + tsep
         Right -> xmax + sep to ymaxBase
         Bottom -> xminBase to ymin - sep
-        Left -> xmin - sep - tileWidth - tsep to yminBase
+        Left -> xmin - sep - tsep - tileFillWidth - tsep to yminBase
     }
 
     val (hjust, vjust) = when (pos) {
