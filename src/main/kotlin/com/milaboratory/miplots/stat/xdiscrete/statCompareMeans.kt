@@ -13,12 +13,23 @@ import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.abs
 import kotlin.math.max
 
+/**
+ * Format p-value label for `statCompareMeans`
+ */
 sealed interface LabelFormat {
     companion object {
         private object significance : LabelFormat
 
+        /**
+         * Show significance level only
+         */
         val Significance: LabelFormat = significance
 
+        /**
+         * Format p-value with specified format.
+         *
+         * @param fmt format string, example: "{Method}, p = {pValue}"
+         */
         data class Formatted(val fmt: String = "{Method}, p = {pValue}") : LabelFormat {
             fun format(method: TestMethod, pValue: String) =
                 fmt.replace("{Method}", method.str)
@@ -53,6 +64,15 @@ interface StatCompareMeansOptions : CompareMeansOptions {
 
     /** Fit positions to max value */
     val labelPosFit: Boolean?
+
+    /** Text & lines color */
+    val color: String?
+
+    /** Text & lines color */
+    val textSize: Double?
+
+    /** Text size unit */
+    val sizeUnit: String?
 }
 
 private class StatCompareMeansFeature(
@@ -60,6 +80,8 @@ private class StatCompareMeansFeature(
     val statData: StatCompareMeansData,
     val ops: StatCompareMeansOptions
 ) {
+    val textSize = ops.textSize ?: (1.5 * plt.yDelta)
+
     private val mode: BoxPlotMode = run {
         if (plt.groupBy != null && plt.groupBy != plt.x) {
             return@run BoxPlotMode.WithGroupBy
@@ -94,7 +116,9 @@ private class StatCompareMeansFeature(
         }
         return geomText(
             data = data,
-            size = 7,
+            size = textSize,
+            color = ops.color,
+            sizeUnit = ops.sizeUnit,
             hjust = 1.0
         ) {
             this.label = "label"
@@ -154,7 +178,12 @@ private class StatCompareMeansFeature(
         if (facet != null)
             data += plt.facetBy!! to List(labels.size) { facet }
 
-        geomText(data) { label = "__label" }
+        geomText(
+            data,
+            size = textSize,
+            color = ops.color,
+            sizeUnit = ops.sizeUnit
+        ) { label = "__label" }
     }
 
     private fun pValuesLayer(): Feature {
@@ -224,9 +253,16 @@ private class StatCompareMeansFeature(
             yValue += plt.yDelta
         }
 
-        geomPath(pathData, color = "black") {
+        geomPath(
+            pathData,
+            color = ops.color
+        ) {
             this.group = "__group"
-        } + geomText(textData, size = 6) {
+        } + geomText(
+            textData, size = textSize,
+            color = ops.color,
+            sizeUnit = ops.sizeUnit
+        ) {
             label = "__label"
         } to yValue
     }
@@ -283,7 +319,12 @@ private class StatCompareMeansFeature(
         if (facet != null)
             data += plt.facetBy!! to listOf(facet)
 
-        geomText(data) { label = "labels" }
+        geomText(
+            data,
+            size = textSize,
+            color = ops.color,
+            sizeUnit = ops.sizeUnit
+        ) { label = "labels" }
     }
 
     private fun pValuesGroupByLayer(): Feature {
@@ -404,7 +445,26 @@ private class StatCompareMeansData(
     fun getFeature(ops: StatCompareMeansOptions) = StatCompareMeansFeature(plt, this, ops).getFeature()
 }
 
-/** */
+/**
+ * Add mean comparison p-values to a ggplot, such as box blots, dot plots and stripcharts.
+ *
+ * @param comparisons Pairs to show
+ * @param allComparisons Show all pairs
+ * @param hideNS Hide non significant p-value
+ * @param labelFormat Format of p-value labels
+ * @param labelPos Positions of p-value labels
+ * @param labelPosFit Fit positions to max value
+ * @param method The type of test. Default is Wilcox
+ * @param paired A logical indicating whether a paired test should be performed. Used only in T-test and in Wilcox
+ * @param multipleGroupsMethod The type of test for multiple groups. Default is Kruskal-Wallis
+ * @param pAdjustMethod Method for adjusting p values (null for no adjustment). Default is Bonferroni.
+ * @param refGroup The reference group. If specified, for a given grouping variable, each of the
+ *                  group levels will be compared to the reference group (i.e. control group).
+ *                  refGroup can be also “all”. In this case, each of the grouping variable levels
+ *                  is compared to all (i.e. base-mean).
+ * @see TestMethod
+ * @see PValueCorrection.Method
+ */
 @Suppress("ClassName")
 data class statCompareMeans(
     override val comparisons: List<Pair<String, String>>? = null,
@@ -417,7 +477,10 @@ data class statCompareMeans(
     override val pAdjustMethod: PValueCorrection.Method? = PValueCorrection.Method.Bonferroni,
     override val refGroup: RefGroup? = null,
     override val labelPos: List<Double>? = null,
-    override val labelPosFit: Boolean? = null
+    override val labelPosFit: Boolean? = null,
+    override val color: String? = "#000000",
+    override val textSize: Double? = null,
+    override val sizeUnit: String? = "y"
 ) : GGXDiscreteFeature, StatCompareMeansOptions {
     override fun getFeature(base: GGXDiscrete): Feature = run {
         val cmpOps = CompareMeansOptionsCapsule(this)

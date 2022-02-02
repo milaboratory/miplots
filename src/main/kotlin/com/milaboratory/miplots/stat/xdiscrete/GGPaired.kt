@@ -2,6 +2,8 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.color.DiscreteColorMapping
+import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import jetbrains.letsPlot.geom.geomBoxplot
 import jetbrains.letsPlot.geom.geomPath
@@ -26,6 +28,8 @@ fun GGPaired(
     lineColor: Any? = "black",
     linetype: Any? = "solid",
     orientation: Orientation = Orientation.Vertical,
+    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     aesMapping: GGAes.() -> Unit = {}
 ) = run {
     val _data: AnyFrame
@@ -74,6 +78,8 @@ fun GGPaired(
         lineColor,
         linetype,
         orientation,
+        colorScale,
+        fillScale,
         aesMapping
     )
 }
@@ -92,10 +98,25 @@ class GGPaired internal constructor(
     val pointSize: Double?,
     val lineSize: Double?,
     val lineColor: Any?,
-    val linetype: Any?,
+    linetype: Any?,
     orientation: Orientation,
+    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNRow, color, fill, orientation, aesMapping) {
+) : GGXDiscrete(
+    _data = data,
+    x = x,
+    y = y,
+    facetBy = facetBy,
+    facetNCol = facetNCol,
+    facetNRow = facetNRow,
+    color = color,
+    fill = fill,
+    orientation = orientation,
+    colorScale = colorScale,
+    fillScale = fillScale,
+    aesMapping = aesMapping
+) {
 
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
@@ -120,7 +141,7 @@ class GGPaired internal constructor(
             }
         }
 
-        geomPath(pathData, color = lineColor, linetype = linetype, size = lineSize) {
+        geomPath(pathData, color = lineColor, linetype = this.linetype, size = lineSize) {
             group = "__group"
         }
     }
@@ -129,12 +150,12 @@ class GGPaired internal constructor(
     override var plot = run {
         var plt = super.plot
 
-        plt += geomBoxplot(color = color, fill = fill) {
+        plt += geomBoxplot(color = this.color, fill = this.fill) {
             this.color = aes.color
             this.fill = aes.fill
         }
 
-        plt += geomPoint(color = color, fill = fill, size = pointSize) {
+        plt += geomPoint(color = this.color, fill = this.fill, size = pointSize) {
             this.color = aes.color
             this.fill = aes.fill
         }

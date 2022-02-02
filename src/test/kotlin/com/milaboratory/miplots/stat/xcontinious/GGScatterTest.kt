@@ -37,7 +37,7 @@ internal class GGScatterTest {
         shape = 21,
         size = 3,
         facetBy = "cyl",
-        facetNrow = 1
+        facetNRow = 1
     ) + statCor(xLabelPos = 4)
 
     fun facetByGroupBy() = GGScatter(
@@ -49,7 +49,7 @@ internal class GGScatterTest {
         shape = 21,
         size = 3,
         facetBy = "cyl",
-        facetNrow = 1
+        facetNRow = 1
     ) {
         color = "carb"
     } + statCor(xLabelPos = 4)

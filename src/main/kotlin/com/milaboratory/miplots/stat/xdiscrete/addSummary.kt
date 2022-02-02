@@ -3,6 +3,7 @@
 package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.stat.GGAes
+import com.milaboratory.miplots.stat.WithAes
 import com.milaboratory.miplots.stat.util.StatFun
 import com.milaboratory.miplots.stat.util.StatPoint
 import jetbrains.letsPlot.Pos
@@ -21,27 +22,35 @@ class addSummary(
     val statFun: StatFun,
     val errorPlotType: ErrorPlotType,
     val position: PosOptions? = null,
-    val color: String? = null,
-    val fill: String? = null,
-    val shape: String? = null,
-    val size: Double? = null,
-    val width: Double? = null,
-    val linetype: String? = null,
-    val aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscreteFeature {
+    color: String? = "#000000",
+    fill: String? = null,
+    shape: String? = null,
+    size: Double? = null,
+    width: Double? = null,
+    linetype: String? = null,
+    aesMapping: GGAes.() -> Unit = {}
+) : WithAes(
+    color = color,
+    fill = fill,
+    shape = shape,
+    size = size,
+    width = width,
+    linetype = linetype,
+    aesMapping = aesMapping,
+), GGXDiscreteFeature {
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: GGXDiscrete) = run {
-        val position = this.position ?: if (base is GGBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
+        val position =
+            this.position ?: if (base is GGBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
         val stat = statFun.apply(base.descStat).toMap()
-        val aes = GGAes().apply(aesMapping)
 
         return@run when (errorPlotType) {
             ErrorPlotType.LineRange -> {
                 geomLineRange(
                     stat,
-                    color = color,
-                    linetype = linetype,
-                    size = size,
+                    color = this.color,
+                    linetype = this.linetype,
+                    size = this.size,
                     position = position
                 ) {
                     ymin = StatPoint::lower.name
@@ -55,11 +64,11 @@ class addSummary(
             ErrorPlotType.PointRange -> {
                 geomPointRange(
                     stat,
-                    color = color,
-                    linetype = linetype,
-                    size = size,
-                    shape = shape,
-                    fill = fill,
+                    color = this.color,
+                    linetype = this.linetype,
+                    size = this.size,
+                    shape = this.shape,
+                    fill = this.fill,
                     position = position
                 ) {
                     y = StatPoint::mid.name
@@ -75,10 +84,10 @@ class addSummary(
             }
             ErrorPlotType.ErrorBar -> {
                 geomErrorBar(
-                    stat, color = color,
-                    linetype = linetype,
-                    size = size,
-                    width = width,
+                    stat, color = this.color,
+                    linetype = this.linetype,
+                    size = this.size,
+                    width = this.width,
                     position = position
                 ) {
                     ymin = StatPoint::lower.name
@@ -93,11 +102,11 @@ class addSummary(
             ErrorPlotType.Crossbar -> {
                 geomCrossbar(
                     stat,
-                    color = color,
-                    linetype = linetype,
-                    size = size,
-                    width = width,
-                    fill = fill,
+                    color = this.color,
+                    linetype = this.linetype,
+                    size = this.size,
+                    width = this.width,
+                    fill = this.fill,
                     position = position
                 ) {
                     ymin = StatPoint::lower.name

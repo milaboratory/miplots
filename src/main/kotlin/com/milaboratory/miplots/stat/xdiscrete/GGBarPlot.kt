@@ -2,7 +2,10 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.color.DiscreteColorMapping
+import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
+import com.milaboratory.miplots.stat.WithAes
 import com.milaboratory.miplots.stat.util.StatFun
 import com.milaboratory.miplots.stat.util.StatPoint
 import jetbrains.letsPlot.Pos
@@ -22,16 +25,21 @@ class ggBar(
     val stat: StatOptions = Stat.count(),
     val statFun: StatFun? = null,
     val position: PosOptions = Pos.stack,
-    val color: String? = null,
-    val fill: String? = null,
-    val size: Double? = null,
-    val width: Double? = null,
-    val aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscreteFeature {
+    color: String? = null,
+    fill: String? = null,
+    size: Number? = null,
+    width: Double? = null,
+    aesMapping: GGAes.() -> Unit = {}
+) : WithAes(
+    color = color,
+    fill = fill,
+    size = size,
+    width = width,
+    aesMapping = aesMapping
+), GGXDiscreteFeature {
     override fun getFeature(base: GGXDiscrete): Feature = run {
-        val aes = GGAes().apply(aesMapping)
         if (statFun == null) {
-            geomBar(fill = fill, color = color, width = width, stat = stat, position = position) {
+            geomBar(fill = this.fill, color = this.color, width = this.width, stat = stat, position = position) {
                 fill = aes.fill
                 color = aes.color
                 width = aes.width
@@ -42,9 +50,9 @@ class ggBar(
             ).toMap()
             geomBar(
                 data = statData,
-                fill = fill,
-                color = color,
-                width = width,
+                fill = this.fill,
+                color = this.color,
+                width = this.width,
                 stat = Stat.identity,
                 position = position
             ) {
@@ -68,24 +76,40 @@ class GGBarPlot(
     val position: PosOptions = Pos.stack,
     facetBy: String? = null,
     facetNCol: Int? = null,
-    facetNrow: Int? = null,
+    facetNRow: Int? = null,
     color: String? = null,
     fill: String? = null,
+    size: Number? = null,
+    width: Double? = null,
     orientation: Orientation = Orientation.Vertical,
-    val size: Double? = null,
-    val width: Double? = null,
+    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
-
+) : GGXDiscrete(
+    _data = data,
+    x = x,
+    y = y,
+    facetBy = facetBy,
+    facetNCol = facetNCol,
+    facetNRow = facetNRow,
+    color = color,
+    fill = fill,
+    size = size,
+    width = width,
+    orientation = orientation,
+    colorScale = colorScale,
+    fillScale = fillScale,
+    aesMapping = aesMapping
+) {
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     override var plot = super.plot + ggBar(
         stat = stat,
-        color = color,
+        color = this.color,
         statFun = statFun,
-        fill = fill,
-        size = size,
-        width = width,
+        fill = this.fill,
+        size = this.size,
+        width = this.width,
         position = position,
         aesMapping = aesMapping
     ).getFeature(this)

@@ -2,7 +2,10 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.color.DiscreteColorMapping
+import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
+import com.milaboratory.miplots.stat.WithAes
 import com.milaboratory.miplots.stat.util.StatFun
 import com.milaboratory.miplots.stat.util.StatPoint
 import jetbrains.letsPlot.geom.geomLine
@@ -11,32 +14,25 @@ import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.toMap
 
-enum class ggLineType {
-    LineAndDot,
-    Line,
-    Dot
-}
-
 /**
  *
  */
 class ggLine(
     val statFun: StatFun? = null,
-    val color: String? = null,
-    val linetype: String? = null,
-    val size: Double? = null,
-    val aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscreteFeature {
+    color: String? = null,
+    linetype: String? = null,
+    size: Number? = null,
+    aesMapping: GGAes.() -> Unit = {}
+) : WithAes(color = color, linetype = linetype, size = size, aesMapping = aesMapping), GGXDiscreteFeature {
     override fun getFeature(base: GGXDiscrete): Feature = run {
-        val aes = GGAes().apply(aesMapping)
         if (statFun == null) {
             geomLine(
-                color = color,
-                linetype = linetype,
+                color = this.color,
+                linetype = this.linetype,
             ) {
                 color = aes.color
                 linetype = aes.linetype
-                group = color ?: linetype
+                group = this.color ?: this.linetype
             }
         } else {
             val statData = statFun.apply(base.descStat).rename(
@@ -44,17 +40,19 @@ class ggLine(
             ).toMap()
             geomLine(
                 data = statData,
-                color = color,
-                linetype = linetype
+                color = this.color,
+                linetype = this.linetype
             ) {
                 color = aes.color
                 linetype = aes.linetype
-                group = color ?: linetype
+                group = this.color ?: this.linetype
             }
         }
     }
 }
 
+//* @param colorScale Color scale
+//* @param fillScale Fill scale
 class GGLinePlot(
     data: AnyFrame,
     x: String,
@@ -62,21 +60,36 @@ class GGLinePlot(
     val statFun: StatFun? = null,
     facetBy: String? = null,
     facetNCol: Int? = null,
-    facetNrow: Int? = null,
+    facetNRow: Int? = null,
     color: String? = null,
+    size: Double? = null,
+    linetype: String? = null,
     orientation: Orientation = Orientation.Vertical,
-    val size: Double? = null,
-    val linetype: String? = null,
+    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNrow, color, null, orientation, aesMapping) {
-
+) : GGXDiscrete(
+    _data = data,
+    x = x,
+    y = y,
+    facetBy = facetBy,
+    facetNCol = facetNCol,
+    facetNRow = facetNRow,
+    color = color,
+    size = size,
+    linetype = linetype,
+    orientation = orientation,
+    colorScale = colorScale,
+    fillScale = fillScale,
+    aesMapping = aesMapping
+) {
     override val groupBy = filterGroupBy(aes.linetype, aes.color)
 
     override var plot = super.plot + ggLine(
-        color = color,
+        color = this.color,
         statFun = statFun,
-        size = size,
-        linetype = linetype,
+        size = this.size,
+        linetype = this.linetype,
         aesMapping = aesMapping
     ).getFeature(this)
 }

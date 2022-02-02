@@ -2,30 +2,39 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.color.DiscreteColorMapping
+import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
+import com.milaboratory.miplots.stat.WithAes
 import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.intern.layer.PosOptions
+import jetbrains.letsPlot.positionJitterDodge
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
 
 /**
- *
+ * Add stripchart to the plot.
  */
 class ggStrip(
-    val color: String? = null,
-    val fill: String? = null,
-    val shape: Any? = null,
-    val size: Double? = null,
+    color: String? = "#000000",
+    fill: String? = null,
+    shape: Any? = null,
+    size: Number? = null,
     val position: PosOptions = Pos.jitterdodge,
     aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscreteFeature {
-    internal val aes = GGAes().apply(aesMapping)
+) : WithAes(
+    color = color,
+    fill = fill,
+    shape = shape,
+    size = size,
+    aesMapping = aesMapping
+), GGXDiscreteFeature {
     override fun getFeature(base: GGXDiscrete) = geomPoint(
-        size = size,
-        shape = shape,
-        fill = fill,
-        color = color,
+        size = this.size,
+        shape = this.shape,
+        fill = this.fill,
+        color = this.color,
         position = position
     ) {
         this.fill = aes.fill
@@ -37,6 +46,21 @@ class ggStrip(
 
 /**
  *
+ * Create a stripchart, also known as one dimensional scatter plots. These plots are suitable compared to box plots when sample sizes are small.
+ *
+ * @param data data frame
+ * @param x x series (discrete)
+ * @param y y series (continuous)
+ * @param facetBy Organize data in facets
+ * @param facetNCol Number of columns in facet view
+ * @param facetNRow Number of rows in facet view
+ * @param color Outline color
+ * @param fill Fill color
+ * @param shape Shape of points
+ * @param orientation Plot orientation
+ * @param colorScale Color scale
+ * @param fillScale Fill scale
+ * @param aesMapping Aesthetics mapping
  */
 class GGStripChart(
     data: AnyFrame,
@@ -44,18 +68,34 @@ class GGStripChart(
     y: String,
     facetBy: String? = null,
     facetNCol: Int? = null,
-    facetNrow: Int? = null,
-    color: String? = null,
+    facetNRow: Int? = null,
+    color: String? = "#000000",
     fill: String? = null,
+    shape: String? = null,
+    size: Double? = null,
+    val position: PosOptions = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2),
     orientation: Orientation = Orientation.Vertical,
-    val shape: Any? = null,
-    val size: Double? = null,
-    val position: PosOptions = Pos.jitterdodge,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
     aesMapping: GGAes.() -> Unit = {}
-) : GGXDiscrete(data, x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
-
+) : GGXDiscrete(
+    _data = data,
+    x = x,
+    y = y,
+    facetBy = facetBy,
+    facetNCol = facetNCol,
+    facetNRow = facetNRow,
+    color = color,
+    fill = fill,
+    shape = shape,
+    size = size,
+    orientation = orientation,
+    colorScale = colorScale,
+    fillScale = fillScale,
+    aesMapping = aesMapping
+) {
     override val groupBy = filterGroupBy(aes.shape, aes.color, aes.fill, aes.size)
 
-    override var plot = super.plot + ggStrip(color, fill, shape, size, position, aesMapping)
+    override var plot = super.plot + ggStrip(this.color, this.fill, this.shape, this.size, this.position, aesMapping)
         .getFeature(this)
 }

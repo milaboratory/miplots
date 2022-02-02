@@ -4,7 +4,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public final class PValueCorrection {
-    private PValueCorrection() {}
+    private PValueCorrection() {
+    }
 
     private static int[] seqLen(int start, int end) {
         int[] result;
@@ -270,26 +271,44 @@ public final class PValueCorrection {
     }
 
 
+    /**
+     * P-value correction method
+     */
     public enum Method {
+        /**
+         * False discovery rate: Yoav Benjamini, Yosef Hochberg "Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing", Journal of the Royal Statistical Society. Series B, Vol. 57, No. 1 (1995), pp. 289-300, JSTOR:2346101
+         */
         BenjaminiHochberg,
-        FDR,
+        /**
+         * Yoav Benjamini, Daniel Yekutieli, "The control of the false discovery rate in multiple testing under dependency", Ann. Statist., Vol. 29, No. 4 (2001), pp. 1165-1188, DOI:10.1214/aos/1013699998 JSTOR:2674075
+         */
         BenjaminiYekutieli,
+        /**
+         * https://en.wikipedia.org/wiki/Holm%E2%80%93Bonferroni_method
+         */
         Bonferroni,
+        /**
+         * Yosef Hochberg, "A sharper Bonferroni procedure for multiple tests of significance", Biometrika, Vol. 75, No. 4 (1988), pp 800–802, DOI:10.1093/biomet/75.4.800 JSTOR:2336325
+         */
         Hochberg,
+        /**
+         * Sture Holm, "A Simple Sequentially Rejective Multiple Test Procedure", Scandinavian Journal of Statistics, Vol. 6, No. 2 (1979), pp. 65-70, JSTOR:4615733
+         */
         Holm,
+        /**
+         * Gerhard Hommel, "A stagewise rejective multiple test procedure based on a modified Bonferroni test", Biometrika, Vol. 75, No. 2 (1988), pp 383–386, DOI:10.1093/biomet/75.2.383 JSTOR:2336190
+         */
         Hommel,
     }
 
     public static double[] adjustPValues(double[] pValues, Method method) {
-        switch (method) {
-            case FDR:
-            case BenjaminiHochberg: return BenjaminiHochberg(pValues);
-            case BenjaminiYekutieli: return BenjaminiYekutieli(pValues);
-            case Bonferroni: return Bonferoni(pValues);
-            case Hochberg: return Hochberg(pValues);
-            case Holm: return Holm(pValues);
-            case Hommel: return Hommel(pValues);
-            default: throw new RuntimeException("not supported");
-        }
+        return switch (method) {
+            case BenjaminiHochberg -> BenjaminiHochberg(pValues);
+            case BenjaminiYekutieli -> BenjaminiYekutieli(pValues);
+            case Bonferroni -> Bonferoni(pValues);
+            case Hochberg -> Hochberg(pValues);
+            case Holm -> Holm(pValues);
+            case Hommel -> Hommel(pValues);
+        };
     }
 }

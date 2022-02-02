@@ -21,15 +21,30 @@ class GGScatter(
     y: String,
     facetBy: String? = null,
     facetNCol: Int? = null,
-    facetNrow: Int? = null,
+    facetNRow: Int? = null,
     color: String? = null,
     fill: String? = null,
-    val shape: Any? = null,
-    val size: Number? = null,
-    val alpha: Double? = null,
+    shape: Any? = null,
+    size: Number? = null,
+    alpha: Double? = null,
     orientation: Orientation = Orientation.Vertical,
     aesMapping: GGAes.() -> Unit = {}
-) : GGBase(x, y, facetBy, facetNCol, facetNrow, color, fill, orientation, aesMapping) {
+) : GGBase(
+    x = x,
+    y = y,
+    facetBy = facetBy,
+    facetNCol = facetNCol,
+    facetNRow = facetNRow,
+    color = color,
+    fill = fill,
+    alpha = alpha,
+    size = size,
+    shape = shape,
+    width = null,
+    linetype = null,
+    orientation = orientation,
+    aesMapping = aesMapping
+) {
 
     override val data = _data
     override val groupBy = filterGroupBy(aes.color, aes.shape)
@@ -45,11 +60,11 @@ class GGScatter(
         }
 
         plt += geomPoint(
-            color = color,
-            fill = fill,
-            shape = shape,
-            size = size,
-            alpha = alpha
+            color = this.color,
+            fill = this.fill,
+            shape = this.shape,
+            size = this.size,
+            alpha = this.alpha
         ) {
             this.color = aes.color
             this.fill = aes.color
@@ -60,7 +75,7 @@ class GGScatter(
         }
 
         if (facetBy != null)
-            plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNrow)
+            plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNRow)
 
         plt
     }
