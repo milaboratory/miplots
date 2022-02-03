@@ -8,6 +8,7 @@ enum class ErrorPlotType {
     LineRange,
     Crossbar,
     ErrorBar,
+    BoxPlot
 //    UpperErrorbar,
 //    LowerErrorbar,
 //    UpperPointrange,

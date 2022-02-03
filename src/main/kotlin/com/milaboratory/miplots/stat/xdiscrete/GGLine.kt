@@ -36,7 +36,7 @@ class ggLine(
             }
         } else {
             val statData = statFun.apply(base.descStat).rename(
-                StatPoint::mid.name to base.y,
+                StatPoint::middle.name to base.y,
             ).toMap()
             geomLine(
                 data = statData,

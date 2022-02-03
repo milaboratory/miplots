@@ -69,7 +69,6 @@ data class DescStatByRow(
     val err: Double,
 )
 
-
 private fun List<String>.dfKey() = this.joinToString("_")
 
 fun DataRow<DescStatByRow>.meanStdErr() = run {
@@ -88,8 +87,18 @@ fun DataRow<DescStatByRow>.medIRQ() = run {
     StatPoint(this.median, this.q1, this.q3)
 }
 
+fun DataRow<DescStatByRow>.box() = run {
+    StatPoint(this.median, this.q1, this.q3, this.min, this.max)
+}
+
 @DataSchema
-data class StatPoint(val mid: Double, val lower: Double?, val upper: Double?)
+data class StatPoint(
+    val middle: Double,
+    val lower: Double?,
+    val upper: Double?,
+    val ymax: Double? = null,
+    val ymin: Double? = null
+)
 
 /**
  *
@@ -98,21 +107,26 @@ enum class StatFun(val fn: DataRow<DescStatByRow>.() -> StatPoint) {
     MeanStdErr(DataRow<DescStatByRow>::meanStdErr),
     MeanStdDev(DataRow<DescStatByRow>::meanStdDev),
     MeanRange(DataRow<DescStatByRow>::meanRange),
-    MedIRQ(DataRow<DescStatByRow>::medIRQ);
+    MedIRQ(DataRow<DescStatByRow>::medIRQ),
+    BoxPlot(DataRow<DescStatByRow>::box);
 
     fun apply(df: DataFrame<DescStatByRow>) = run {
         val m = mutableMapOf<String, MutableList<Any?>>(
-            StatPoint::mid.name to mutableListOf(),
+            StatPoint::middle.name to mutableListOf(),
             StatPoint::lower.name to mutableListOf(),
             StatPoint::upper.name to mutableListOf(),
+            StatPoint::ymin.name to mutableListOf(),
+            StatPoint::ymax.name to mutableListOf(),
         )
 
         df.rows().forEach { row ->
             val p = row.fn()
 
-            m[StatPoint::mid.name]!!.add(p.mid)
+            m[StatPoint::middle.name]!!.add(p.middle)
             m[StatPoint::lower.name]!!.add(p.lower)
             m[StatPoint::upper.name]!!.add(p.upper)
+            m[StatPoint::ymin.name]!!.add(p.ymin)
+            m[StatPoint::ymax.name]!!.add(p.ymax)
 
             for ((k, v) in row.toMap()) {
                 m.computeIfAbsent(k) { mutableListOf() }.add(v)

@@ -46,7 +46,7 @@ class ggBar(
             }
         } else {
             val statData = statFun.apply(base.descStat).rename(
-                StatPoint::mid.name to base.y,
+                StatPoint::middle.name to base.y,
             ).toMap()
             geomBar(
                 data = statData,
@@ -73,7 +73,7 @@ class GGBarPlot(
     y: String,
     val stat: StatOptions = Stat.count(),
     val statFun: StatFun? = StatFun.MeanStdErr,
-    val position: PosOptions = Pos.stack,
+    position: PosOptions = Pos.stack,
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
@@ -96,6 +96,7 @@ class GGBarPlot(
     fill = fill,
     size = size,
     width = width,
+    position = position,
     orientation = orientation,
     colorScale = colorScale,
     fillScale = fillScale,

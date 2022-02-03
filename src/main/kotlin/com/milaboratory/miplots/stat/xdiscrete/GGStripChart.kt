@@ -73,7 +73,7 @@ class GGStripChart(
     fill: String? = null,
     shape: String? = null,
     size: Double? = null,
-    val position: PosOptions = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2),
+    position: PosOptions = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2),
     orientation: Orientation = Orientation.Vertical,
     colorScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
     fillScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
@@ -89,6 +89,7 @@ class GGStripChart(
     fill = fill,
     shape = shape,
     size = size,
+    position = position,
     orientation = orientation,
     colorScale = colorScale,
     fillScale = fillScale,
@@ -96,6 +97,7 @@ class GGStripChart(
 ) {
     override val groupBy = filterGroupBy(aes.shape, aes.color, aes.fill, aes.size)
 
-    override var plot = super.plot + ggStrip(this.color, this.fill, this.shape, this.size, this.position, aesMapping)
-        .getFeature(this)
+    override var plot =
+        super.plot + ggStrip(this.color, this.fill, this.shape, this.size, this.position!!, aesMapping)
+            .getFeature(this)
 }

@@ -6,11 +6,10 @@ import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
 import com.milaboratory.miplots.stat.util.StatFun
 import com.milaboratory.miplots.stat.util.StatPoint
+import com.milaboratory.miplots.stat.xdiscrete.ErrorPlotType.*
 import jetbrains.letsPlot.Pos
-import jetbrains.letsPlot.geom.geomCrossbar
-import jetbrains.letsPlot.geom.geomErrorBar
-import jetbrains.letsPlot.geom.geomLineRange
-import jetbrains.letsPlot.geom.geomPointRange
+import jetbrains.letsPlot.Stat
+import jetbrains.letsPlot.geom.*
 import jetbrains.letsPlot.intern.layer.PosOptions
 import jetbrains.letsPlot.positionDodge
 import org.jetbrains.kotlinx.dataframe.api.toMap
@@ -19,10 +18,11 @@ import org.jetbrains.kotlinx.dataframe.api.toMap
  *
  */
 class addSummary(
-    val statFun: StatFun,
-    val errorPlotType: ErrorPlotType,
+    var statFun: StatFun = StatFun.MeanStdDev,
+    val errorPlotType: ErrorPlotType = LineRange,
     val position: PosOptions? = null,
-    color: String? = "#000000",
+    val inheritAes: Boolean = true,
+    color: String? = null,
     fill: String? = null,
     shape: String? = null,
     size: Double? = null,
@@ -40,12 +40,42 @@ class addSummary(
 ), GGXDiscreteFeature {
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: GGXDiscrete) = run {
+        if (inheritAes) {
+            this.inheritColors(base)
+        }
+
+        if (errorPlotType == BoxPlot)
+            statFun = StatFun.BoxPlot
+
         val position =
-            this.position ?: if (base is GGBarPlot && base.groupBy != null) positionDodge(1.0) else Pos.identity
+            this.position ?: if (base is GGBarPlot && base.groupBy != null)
+                positionDodge(1.0)
+            else if (base is GGStripChart && base.position != null) {
+                if (base.position.parameters.has("width"))
+                    positionDodge(base.position.parameters.get("width") as Number)
+                else if (base.position.parameters.has("dodge_width"))
+                    positionDodge(base.position.parameters.get("dodge_width") as Number)
+                else
+                    base.position
+            } else
+                base.position ?: Pos.identity
         val stat = statFun.apply(base.descStat).toMap()
 
         return@run when (errorPlotType) {
-            ErrorPlotType.LineRange -> {
+            BoxPlot -> {
+                geomBoxplot(
+                    color = this.color,
+                    linetype = this.linetype,
+                    size = this.size,
+                    position = position
+                ) {
+                    size = aes.size
+//                    group = base.groupBy
+                    color = aes.color
+                    linetype = aes.linetype
+                }
+            }
+            LineRange -> {
                 geomLineRange(
                     stat,
                     color = this.color,
@@ -61,7 +91,7 @@ class addSummary(
                     linetype = aes.linetype
                 }
             }
-            ErrorPlotType.PointRange -> {
+            PointRange -> {
                 geomPointRange(
                     stat,
                     color = this.color,
@@ -71,7 +101,7 @@ class addSummary(
                     fill = this.fill,
                     position = position
                 ) {
-                    y = StatPoint::mid.name
+                    y = StatPoint::middle.name
                     ymin = StatPoint::lower.name
                     ymax = StatPoint::upper.name
                     size = aes.size
@@ -82,12 +112,12 @@ class addSummary(
                     linetype = aes.linetype
                 }
             }
-            ErrorPlotType.ErrorBar -> {
+            ErrorBar -> {
                 geomErrorBar(
                     stat, color = this.color,
                     linetype = this.linetype,
                     size = this.size,
-                    width = this.width,
+                    width = this.width ?: 0.1,
                     position = position
                 ) {
                     ymin = StatPoint::lower.name
@@ -99,7 +129,7 @@ class addSummary(
                     linetype = aes.linetype
                 }
             }
-            ErrorPlotType.Crossbar -> {
+            Crossbar -> {
                 geomCrossbar(
                     stat,
                     color = this.color,
@@ -116,7 +146,7 @@ class addSummary(
                     group = base.groupBy
                     width = aes.width
                     color = aes.color
-                    middle = StatPoint::mid.name
+                    middle = StatPoint::middle.name
                     linetype = aes.linetype
                 }
             }

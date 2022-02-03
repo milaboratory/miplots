@@ -11,6 +11,7 @@ import com.milaboratory.miplots.stat.util.descStatBy
 import jetbrains.letsPlot.elementLine
 import jetbrains.letsPlot.facet.facetWrap
 import jetbrains.letsPlot.intern.Plot
+import jetbrains.letsPlot.intern.layer.PosOptions
 import jetbrains.letsPlot.label.xlab
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.scale.scaleXContinuous
@@ -19,6 +20,7 @@ import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 import org.jetbrains.kotlinx.dataframe.impl.asList
+import javax.swing.text.Position
 import kotlin.math.abs
 
 enum class Orientation {
@@ -52,6 +54,8 @@ open class GGXDiscrete(
     width: Double? = null,
     /** Alpha */
     alpha: Double? = null,
+    /** Position */
+    position: PosOptions? = null,
     /** Plot orientation */
     orientation: Orientation = Orientation.Vertical,
     /** Color scale */
@@ -73,6 +77,7 @@ open class GGXDiscrete(
     size,
     width,
     alpha,
+    position,
     orientation,
     aesMapping
 ) {
@@ -149,7 +154,7 @@ open class GGXDiscrete(
             plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
 
         plt += theme(axisLineY = elementLine())
-        
+
         plt
     }
 
