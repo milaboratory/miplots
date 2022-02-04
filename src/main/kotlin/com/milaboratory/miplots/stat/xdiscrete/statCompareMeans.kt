@@ -482,6 +482,9 @@ data class statCompareMeans(
     override val textSize: Double? = null,
     override val sizeUnit: String? = "y"
 ) : GGXDiscreteFeature, StatCompareMeansOptions {
+
+    override val prepend = false
+
     override fun getFeature(base: GGXDiscrete): Feature = run {
         val cmpOps = CompareMeansOptionsCapsule(this)
         return (base.cache.computeIfAbsent(cmpOps) {

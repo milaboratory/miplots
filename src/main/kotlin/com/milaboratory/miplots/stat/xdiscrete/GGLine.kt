@@ -22,8 +22,17 @@ class ggLine(
     color: String? = null,
     linetype: String? = null,
     size: Number? = null,
-    aesMapping: GGAes.() -> Unit = {}
-) : WithAes(color = color, linetype = linetype, size = size, aesMapping = aesMapping), GGXDiscreteFeature {
+    aes: GGAes
+) : WithAes(color = color, linetype = linetype, size = size, aes = aes), GGXDiscreteFeature {
+    constructor(
+        statFun: StatFun? = null,
+        color: String? = null,
+        linetype: String? = null,
+        size: Number? = null,
+        aesMapping: GGAes.() -> Unit
+    ) : this(statFun, color, linetype, size, GGAes().apply(aesMapping))
+
+    override val prepend = true
     override fun getFeature(base: GGXDiscrete): Feature = run {
         if (statFun == null) {
             geomLine(
@@ -85,11 +94,11 @@ class GGLinePlot(
 ) {
     override val groupBy = filterGroupBy(aes.linetype, aes.color)
 
-    override var plot = super.plot + ggLine(
-        color = this.color,
+    override fun basePlot() = super.basePlot() + ggLine(
         statFun = statFun,
+        color = this.color,
         size = this.size,
         linetype = this.linetype,
-        aesMapping = aesMapping
+        aes = aes
     ).getFeature(this)
 }

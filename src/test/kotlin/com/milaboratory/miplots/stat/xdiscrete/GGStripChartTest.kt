@@ -2,14 +2,10 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
-import com.milaboratory.miplots.stat.util.StatFun
 import com.milaboratory.miplots.TestData
-import com.milaboratory.miplots.stat.util.NA
 import com.milaboratory.miplots.stat.util.StatFun.MeanStdDev
 import com.milaboratory.miplots.stat.xdiscrete.ErrorPlotType.*
 import com.milaboratory.miplots.writePDF
-import jetbrains.letsPlot.Stat
-import jetbrains.letsPlot.positionDodge
 import jetbrains.letsPlot.positionJitterDodge
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -80,6 +76,14 @@ internal class GGStripChartTest {
             color = "supp"
         } + addSummary(errorPlotType = BoxPlot, color = "black")
 
+        val plt7 = GGStripChart(
+            TestData.myeloma,
+            x = "molecular_group",
+            y = "IRF4",
+        ) {
+            color = "molecular_group"
+        } + addSummary(errorPlotType = BoxPlot, color = "black")
+
         writePDF(
             Paths.get("scratch/bp.pdf"),
             plt1,
@@ -87,7 +91,8 @@ internal class GGStripChartTest {
             plt3,
             plt4,
             plt5,
-            plt6
+            plt6,
+            plt7
         )
     }
 

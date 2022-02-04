@@ -38,6 +38,8 @@ class addSummary(
     linetype = linetype,
     aesMapping = aesMapping,
 ), GGXDiscreteFeature {
+    override val prepend = true
+
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: GGXDiscrete) = run {
         if (inheritAes) {

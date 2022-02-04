@@ -1,6 +1,7 @@
 package com.milaboratory.miplots.stat
 
 import jetbrains.datalore.plot.base.Aes
+import javax.xml.crypto.dsig.SignedInfo
 
 /**
  * @param fill fill color
@@ -37,7 +38,7 @@ open class GGAes(
     }
 }
 
-abstract class WithAes(
+abstract class WithAes internal constructor(
     color: String? = null,
     fill: String? = null,
     shape: Any? = null,
@@ -45,9 +46,20 @@ abstract class WithAes(
     size: Number? = null,
     width: Double? = null,
     alpha: Double? = null,
-    aesMapping: GGAes.() -> Unit
+    val aes: GGAes
 ) {
-    val aes = GGAes().apply(aesMapping)
+    constructor(
+        color: String? = null,
+        fill: String? = null,
+        shape: Any? = null,
+        linetype: String? = null,
+        size: Number? = null,
+        width: Double? = null,
+        alpha: Double? = null,
+        aesMapping: GGAes.() -> Unit = {}
+    ) : this(color, fill, shape, linetype, size, width, alpha, GGAes().apply(aesMapping))
+
+
     var color = if (aes.color != null) null else color
     var fill = if (aes.fill != null) null else fill
     var shape = if (aes.shape != null) null else shape

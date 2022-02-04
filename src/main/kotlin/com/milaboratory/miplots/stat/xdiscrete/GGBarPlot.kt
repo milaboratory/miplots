@@ -12,6 +12,7 @@ import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.Stat
 import jetbrains.letsPlot.geom.geomBar
 import jetbrains.letsPlot.intern.Feature
+import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.intern.layer.PosOptions
 import jetbrains.letsPlot.intern.layer.StatOptions
 import org.jetbrains.kotlinx.dataframe.AnyFrame
@@ -29,14 +30,26 @@ class ggBar(
     fill: String? = null,
     size: Number? = null,
     width: Double? = null,
-    aesMapping: GGAes.() -> Unit = {}
+    aes: GGAes
 ) : WithAes(
     color = color,
     fill = fill,
     size = size,
     width = width,
-    aesMapping = aesMapping
+    aes = aes
 ), GGXDiscreteFeature {
+    constructor(
+        stat: StatOptions = Stat.count(),
+        statFun: StatFun? = null,
+        position: PosOptions = Pos.stack,
+        color: String? = null,
+        fill: String? = null,
+        size: Number? = null,
+        width: Double? = null,
+        aesMapping: GGAes.() -> Unit = {}
+    ) : this(stat, statFun, position, color, fill, size, width, GGAes().apply(aesMapping))
+
+    override val prepend = true
     override fun getFeature(base: GGXDiscrete): Feature = run {
         if (statFun == null) {
             geomBar(fill = this.fill, color = this.color, width = this.width, stat = stat, position = position) {
@@ -104,14 +117,14 @@ class GGBarPlot(
 ) {
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
-    override var plot = super.plot + ggBar(
+    override fun basePlot() = super.basePlot() + ggBar(
         stat = stat,
         color = this.color,
         statFun = statFun,
         fill = this.fill,
         size = this.size,
         width = this.width,
-        position = position,
-        aesMapping = aesMapping
+        position = this.position!!,
+        aes = aes
     ).getFeature(this)
 }

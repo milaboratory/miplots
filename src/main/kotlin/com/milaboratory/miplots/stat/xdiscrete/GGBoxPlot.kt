@@ -7,6 +7,7 @@ import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
 import jetbrains.letsPlot.geom.geomBoxplot
+import jetbrains.letsPlot.intern.Plot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
 /**
@@ -22,8 +23,15 @@ class ggBox(
     /** Fill color */
     fill: String? = null,
     /** Additional mapping */
-    aesMapping: GGAes.() -> Unit = {}
-) : WithAes(color = color, fill = fill, aesMapping = aesMapping), GGXDiscreteFeature {
+    aes: GGAes
+) : WithAes(color = color, fill = fill, aes = aes), GGXDiscreteFeature {
+    constructor(
+        color: String? = null,
+        fill: String? = null,
+        aesMapping: GGAes.() -> Unit = {}
+    ) : this(color, fill, GGAes().apply(aesMapping))
+
+    override val prepend = true
     override fun getFeature(base: GGXDiscrete) =
         geomBoxplot(color = this.color, fill = this.fill) {
             this.color = aes.color
@@ -58,7 +66,7 @@ class GGBoxPlot(
     orientation: Orientation = Orientation.Vertical,
     colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
-    aesMapping: GGAes.() -> Unit = {}
+    val aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,
     x = x,
@@ -76,5 +84,5 @@ class GGBoxPlot(
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     /** base box plot */
-    override var plot = super.plot + ggBox(this.color, this.fill, aesMapping).getFeature(this)
+    override fun basePlot() = super.basePlot() + ggBox(this.color, this.fill, aes).getFeature(this)
 }

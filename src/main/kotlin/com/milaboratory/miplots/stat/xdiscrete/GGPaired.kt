@@ -9,6 +9,7 @@ import jetbrains.letsPlot.geom.geomBoxplot
 import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.intern.Feature
+import jetbrains.letsPlot.intern.Plot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 
@@ -147,8 +148,8 @@ class GGPaired internal constructor(
     }
 
     /** base box plot */
-    override var plot = run {
-        var plt = super.plot
+    override fun basePlot() = run {
+        var plt = super.basePlot()
 
         plt += geomBoxplot(color = this.color, fill = this.fill) {
             this.color = aes.color

@@ -10,6 +10,7 @@ import com.milaboratory.miplots.stat.util.NA
 import com.milaboratory.miplots.stat.util.descStatBy
 import jetbrains.letsPlot.elementLine
 import jetbrains.letsPlot.facet.facetWrap
+import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.intern.layer.PosOptions
 import jetbrains.letsPlot.label.xlab
@@ -19,8 +20,6 @@ import jetbrains.letsPlot.theme
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
-import org.jetbrains.kotlinx.dataframe.impl.asList
-import javax.swing.text.Position
 import kotlin.math.abs
 
 enum class Orientation {
@@ -130,33 +129,52 @@ open class GGXDiscrete(
         yMax
     }
 
-    /** base plot */
-    override var plot: Plot = run {
-        var plt = letsPlot(data.toMap()) {
-            this.x = this@GGXDiscrete.xNumeric
-            this.y = this@GGXDiscrete.y
+    internal val prependFeatures: MutableList<Feature> = mutableListOf()
+    internal val appendFeatures: MutableList<Feature> = mutableListOf()
+
+    protected open fun basePlot(): Plot = run {
+            var plt = letsPlot(data.toMap()) {
+                this.x = this@GGXDiscrete.xNumeric
+                this.y = this@GGXDiscrete.y
+            }
+
+            plt += xlab(x)
+
+            plt += scaleXContinuous(
+                breaks = xnum.values.toList(),
+                labels = xnum.keys.toList().map { it.toString() }
+            )
+
+            if (facetBy != null)
+                plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNRow)
+
+            if (aes.color != null)
+                plt += colorScale.colorScale(data[aes.color!!].distinct().toList())
+
+            if (aes.fill != null)
+                plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
+
+            plt += theme(axisLineY = elementLine())
+
+            for (f in prependFeatures) {
+                plt += f
+            }
+
+            plt
         }
 
-        plt += xlab(x)
-
-        plt += scaleXContinuous(
-            breaks = xnum.values.toList(),
-            labels = xnum.keys.toList().map { it.toString() }
-        )
-
-        if (facetBy != null)
-            plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNRow)
-
-        if (aes.color != null)
-            plt += colorScale.colorScale(data[aes.color!!].distinct().toList())
-
-        if (aes.fill != null)
-            plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
-
-        plt += theme(axisLineY = elementLine())
-
-        plt
-    }
+    /** base plot */
+    final override var plot: Plot
+        get() = run {
+            var p = basePlot()
+            for (f in appendFeatures) {
+                p += f
+            }
+            p
+        }
+        set(_) {
+            throw UnsupportedOperationException()
+        }
 
     @Suppress("UNCHECKED_CAST")
     val descStat by lazy {
@@ -167,10 +185,16 @@ open class GGXDiscrete(
 }
 
 operator fun GGXDiscrete.plusAssign(feature: GGXDiscreteFeature) {
-    this.plot += feature.getFeature(this)
+    (if (feature.prepend)
+        this.prependFeatures
+    else
+        this.appendFeatures).add(feature.getFeature(this))
 }
 
 operator fun GGXDiscrete.plus(feature: GGXDiscreteFeature) = run {
-    this.plot += feature.getFeature(this)
+    (if (feature.prepend)
+        this.prependFeatures
+    else
+        this.appendFeatures).add(feature.getFeature(this))
     this
 }
