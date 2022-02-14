@@ -17,17 +17,14 @@ jobs:
       build-project: ''
       notify-telegram: true
       publish-dev-tasks: |
-        publishAllPublicationsToGitHubRepository
+        publishAllPublicationsToMiPrivateRepository
       publish-release-tasks: |
-        publishAllPublicationsToGitHubRepository
+        publishAllPublicationsToMiPrivateRepository
 
     secrets:
       GRADLE_PROPERTIES: |
         miRepoAccessKeyId=${{ secrets.AWS_CI_ACCESS_KEY_ID }}
         miRepoSecretAccessKey= ${{ secrets.AWS_CI_SECRET_ACCESS_KEY }}
-
-        miGitHubMavenUser=${{ github.actor }}
-        miGitHubMavenToken=${{ secrets.GITHUB_TOKEN }}
 
       AWS_KEY_ID: ${{ secrets.AWS_CI_ACCESS_KEY_ID }}
       AWS_KEY_SECRET: ${{ secrets.AWS_CI_SECRET_ACCESS_KEY }}
