@@ -133,35 +133,35 @@ open class GGXDiscrete(
     internal val appendFeatures: MutableList<Feature> = mutableListOf()
 
     protected open fun basePlot(): Plot = run {
-            var plt = letsPlot(data.toMap()) {
-                this.x = this@GGXDiscrete.xNumeric
-                this.y = this@GGXDiscrete.y
-            }
-
-            plt += xlab(x)
-
-            plt += scaleXContinuous(
-                breaks = xnum.values.toList(),
-                labels = xnum.keys.toList().map { it.toString() }
-            )
-
-            if (facetBy != null)
-                plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNRow)
-
-            if (aes.color != null)
-                plt += colorScale.colorScale(data[aes.color!!].distinct().toList())
-
-            if (aes.fill != null)
-                plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
-
-            plt += theme(axisLineY = elementLine())
-
-            for (f in prependFeatures) {
-                plt += f
-            }
-
-            plt
+        var plt = letsPlot(data.toMap()) {
+            this.x = this@GGXDiscrete.xNumeric
+            this.y = this@GGXDiscrete.y
         }
+
+        plt += xlab(x)
+
+        plt += scaleXContinuous(
+            breaks = xnum.values.toList(),
+            labels = xnum.keys.toList().map { it.toString() }
+        )
+
+        if (facetBy != null)
+            plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNRow)
+
+        if (aes.color != null)
+            plt += colorScale.colorScale(data[aes.color!!].distinct().toList())
+
+        if (aes.fill != null)
+            plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
+
+        plt += theme(axisLineY = elementLine())
+
+        for (f in prependFeatures) {
+            plt += f
+        }
+
+        plt
+    }
 
     /** base plot */
     final override var plot: Plot
@@ -197,4 +197,13 @@ operator fun GGXDiscrete.plus(feature: GGXDiscreteFeature) = run {
     else
         this.appendFeatures).add(feature.getFeature(this))
     this
+}
+
+operator fun GGXDiscrete.plus(feature: Feature) = run {
+    this.appendFeatures.add(feature)
+    this
+}
+
+operator fun GGXDiscrete.plusAssign(feature: Feature) {
+    this.appendFeatures.add(feature)
 }

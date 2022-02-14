@@ -3,10 +3,9 @@
 package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.TestData
-import com.milaboratory.miplots.stat.util.StatFun.MeanStdDev
 import com.milaboratory.miplots.stat.xdiscrete.ErrorPlotType.*
 import com.milaboratory.miplots.writePDF
-import jetbrains.letsPlot.positionJitterDodge
+import jetbrains.letsPlot.ggsize
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
 
@@ -77,6 +76,17 @@ internal class GGStripChartTest {
         } + addSummary(errorPlotType = BoxPlot, color = "black")
 
         val plt7 = GGStripChart(
+            TestData.toothGrowth,
+            x = "supp",
+            y = "len",
+            facetBy = "dose",
+            facetNRow = 1,
+            size = 3.0
+        ) {
+            color = "supp"
+        } + addSummary(errorPlotType = BoxPlot, color = "black") + ggsize(500, 500)
+
+        val plt8 = GGStripChart(
             TestData.myeloma,
             x = "molecular_group",
             y = "IRF4",
@@ -92,35 +102,8 @@ internal class GGStripChartTest {
             plt4,
             plt5,
             plt6,
-            plt7
-        )
-    }
-
-    @Test
-    internal fun testTooth() {
-        val plt1 = GGStripChart(
-            TestData.toothGrowth,
-            x = "dose",
-            y = "len",
-            size = 3.0,
-            position = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2)
-        ) {
-            shape = "dose"
-        }
-
-        val plt2 = GGStripChart(
-            TestData.toothGrowth, x = "dose", y = "len",
-            size = 3.0,
-            position = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2)
-        ) {
-            shape = "supp"
-            color = "supp"
-        } + statCompareMeans() + addSummary(MeanStdDev, PointRange)
-
-        writePDF(
-            Paths.get("scratch/bp.pdf"),
-            plt1,
-            plt2,
+            plt7,
+            plt8
         )
     }
 }

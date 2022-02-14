@@ -2,7 +2,7 @@ package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.TestData.myeloma
 import com.milaboratory.miplots.TestData.toothGrowth
-import com.milaboratory.miplots.plusAssign
+import com.milaboratory.miplots.stat.xdiscrete.plusAssign
 import com.milaboratory.miplots.stat.util.RefGroup
 import com.milaboratory.miplots.stat.util.TestMethod
 import com.milaboratory.miplots.stat.xdiscrete.LabelFormat.Companion.Formatted
@@ -16,6 +16,12 @@ import java.nio.file.Paths
  *
  */
 internal class statCompareMeansTest {
+
+    @Test
+    internal fun examples() {
+        TODO("Not yet implemented")
+    }
+
     fun myelomaBase() = GGBoxPlot(
         myeloma,
         x = "molecular_group",

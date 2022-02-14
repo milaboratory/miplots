@@ -12,7 +12,6 @@ import jetbrains.letsPlot.Pos
 import jetbrains.letsPlot.Stat
 import jetbrains.letsPlot.geom.geomBar
 import jetbrains.letsPlot.intern.Feature
-import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.intern.layer.PosOptions
 import jetbrains.letsPlot.intern.layer.StatOptions
 import org.jetbrains.kotlinx.dataframe.AnyFrame
@@ -90,13 +89,13 @@ class GGBarPlot(
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
-    color: String? = null,
+    color: String? = "black",
     fill: String? = null,
     size: Number? = null,
     width: Double? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
-    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

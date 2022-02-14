@@ -202,7 +202,7 @@ internal class HeatmapTest {
             xOrder = Hierarchical(),
             yOrder = Hierarchical()
         )
-//            .withDebug()
+            .debug()
             .withBorder()
             .withColorKey(
                 "xcat", Top,

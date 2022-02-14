@@ -86,8 +86,8 @@ class GGStripChart(
     size: Double? = null,
     position: PosOptions = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2),
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
-    fillScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

@@ -38,7 +38,7 @@ class addSummary(
     linetype = linetype,
     aesMapping = aesMapping,
 ), GGXDiscreteFeature {
-    override val prepend = true
+    override val prepend = false
 
     @Suppress("UNCHECKED_CAST")
     override fun getFeature(base: GGXDiscrete) = run {

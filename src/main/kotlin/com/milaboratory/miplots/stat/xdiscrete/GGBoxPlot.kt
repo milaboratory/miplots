@@ -64,8 +64,8 @@ class GGBoxPlot(
     color: String? = "#000000",
     fill: String? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
-    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Light,
     val aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,
