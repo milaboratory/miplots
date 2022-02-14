@@ -107,3 +107,15 @@ publishing {
         }
     }
 }
+
+tasks.register("createScratch") {
+    doLast {
+        mkdir("scratch")
+    }
+}
+
+tasks.forEach {
+    if (it.name != "createScratch" && it.name != "clean") {
+        it.dependsOn("createScratch")
+    }
+}
