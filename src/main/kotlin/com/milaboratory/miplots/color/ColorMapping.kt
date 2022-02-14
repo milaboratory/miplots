@@ -19,11 +19,11 @@ interface DiscreteColorMapping {
 
     fun mkMapping(nColors: Int): (Int) -> Color = mkMapping((0 until nColors).toList())
 
-    private fun <T> scale(objects: List<T>, scale: (values: List<String>, limits: List<Any>) -> Scale): Scale = run {
+    private fun <T> scale(objects: List<T>, scale: (values: List<String>, limits: List<Any>?) -> Scale): Scale = run {
         val map = mkMap(objects)
         scale(
             objects.map { map[it]!!.toHexColor() },
-            objects.map { it as Any },
+            objects.map { if (it == null) "" else it as Any },
         )
     }
 

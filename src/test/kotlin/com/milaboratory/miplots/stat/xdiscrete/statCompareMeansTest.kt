@@ -16,12 +16,6 @@ import java.nio.file.Paths
  *
  */
 internal class statCompareMeansTest {
-
-    @Test
-    internal fun examples() {
-        TODO("Not yet implemented")
-    }
-
     fun myelomaBase() = GGBoxPlot(
         myeloma,
         x = "molecular_group",

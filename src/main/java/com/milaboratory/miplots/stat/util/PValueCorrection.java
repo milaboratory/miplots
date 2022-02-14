@@ -302,13 +302,27 @@ public final class PValueCorrection {
     }
 
     public static double[] adjustPValues(double[] pValues, Method method) {
-        return switch (method) {
-            case BenjaminiHochberg -> BenjaminiHochberg(pValues);
-            case BenjaminiYekutieli -> BenjaminiYekutieli(pValues);
-            case Bonferroni -> Bonferoni(pValues);
-            case Hochberg -> Hochberg(pValues);
-            case Holm -> Holm(pValues);
-            case Hommel -> Hommel(pValues);
-        };
+        switch (method) {
+            case BenjaminiHochberg: {
+                return BenjaminiHochberg(pValues);
+            }
+            case BenjaminiYekutieli: {
+                return BenjaminiYekutieli(pValues);
+            }
+            case Bonferroni: {
+                return Bonferoni(pValues);
+            }
+            case Hochberg: {
+                return Hochberg(pValues);
+            }
+            case Holm: {
+                return Holm(pValues);
+            }
+            case Hommel: {
+                return Hommel(pValues);
+            }
+            default:
+                throw new RuntimeException();
+        }
     }
 }
