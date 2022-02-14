@@ -53,7 +53,6 @@ description = "MiPlots"
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
