@@ -7,7 +7,6 @@ import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
 import jetbrains.letsPlot.geom.geomBoxplot
-import jetbrains.letsPlot.intern.Plot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
 /**
@@ -23,7 +22,11 @@ class ggBox(
     /** Fill color */
     fill: String? = null,
     /** Additional mapping */
-    aes: GGAes
+    aes: GGAes,
+    val outlierColor: Any? = null,
+    val outlierFill: Any? = null,
+    val outlierShape: Any? = 8,
+    val outlierSize: Number? = null,
 ) : WithAes(color = color, fill = fill, aes = aes), GGXDiscreteFeature {
     constructor(
         color: String? = null,
@@ -33,7 +36,14 @@ class ggBox(
 
     override val prepend = true
     override fun getFeature(base: GGXDiscrete) =
-        geomBoxplot(color = this.color, fill = this.fill) {
+        geomBoxplot(
+            color = this.color,
+            fill = this.fill,
+            outlierColor = outlierColor,
+            outlierFill = outlierFill,
+            outlierShape = outlierShape,
+            outlierSize = outlierSize,
+        ) {
             this.color = aes.color
             this.fill = aes.fill
         }
@@ -64,8 +74,12 @@ class GGBoxPlot(
     color: String? = "#000000",
     fill: String? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Bright,
-    fillScale: DiscreteColorMapping = Palletes.Categorical.Triadic9Light,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    val outlierColor: Any? = null,
+    val outlierFill: Any? = null,
+    val outlierShape: Any? = 8,
+    val outlierSize: Number? = null,
     val aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,
@@ -84,5 +98,13 @@ class GGBoxPlot(
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     /** base box plot */
-    override fun basePlot() = super.basePlot() + ggBox(this.color, this.fill, aes).getFeature(this)
+    override fun basePlot() = super.basePlot() + ggBox(
+        color = this.color,
+        fill = this.fill,
+        aes = aes,
+        outlierColor = outlierColor,
+        outlierFill = outlierFill,
+        outlierShape = outlierShape,
+        outlierSize = outlierSize,
+    ).getFeature(this)
 }

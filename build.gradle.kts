@@ -2,7 +2,7 @@ import com.palantir.gradle.gitversion.VersionDetails
 
 val letsPlotLibraryVersion = "2.2.1"
 val letsPlotKotlinApiVersion = "3.1.1"
-val dataframeVersion = "0.8.0-dev-808"
+val dataframeVersion = "0.8.0-dev-903"
 
 plugins {
     `java-library`
@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
 
     kotlin("jvm") version "1.6.10"
-    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-dev-808"
+    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-dev-903"
     id("com.palantir.git-version") version "0.13.0"
 }
 
@@ -74,9 +74,9 @@ dependencies {
     implementation("org.apache.pdfbox:pdfbox:2.0.24")
 
     implementation("org.apache.commons:commons-csv:1.9.0")
-    implementation("org.jetbrains.kotlinx:dataframe:$dataframeVersion")
-    implementation("org.jetbrains.lets-plot:lets-plot-common:$letsPlotLibraryVersion")
-    implementation("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:$letsPlotKotlinApiVersion")
+    api("org.jetbrains.kotlinx:dataframe:$dataframeVersion")
+    api("org.jetbrains.lets-plot:lets-plot-common:$letsPlotLibraryVersion")
+    api("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:$letsPlotKotlinApiVersion")
 }
 
 tasks.getByName<Test>("test") {
