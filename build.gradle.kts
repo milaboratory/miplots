@@ -17,8 +17,8 @@ plugins {
 // Make IDE aware of the generated code:
 kotlin.sourceSets.getByName("main").kotlin.srcDir("build/generated/ksp/main/kotlin/")
 
-val miRepoAccessKeyId: String by project
-val miRepoSecretAccessKey: String by project
+val miRepoAccessKeyId: String? by project
+val miRepoSecretAccessKey: String? by project
 
 val miGitHubMavenUser: String? by project
 val miGitHubMavenToken: String? by project
@@ -94,6 +94,18 @@ compileTestKotlin.kotlinOptions {
 
 publishing {
     repositories {
+        repositories {
+            maven {
+                name = "MiPrivate"
+                url = uri("s3://milaboratory-artefacts-private-files.s3.eu-central-1.amazonaws.com/maven")
+                authentication {
+                    credentials(AwsCredentials::class) {
+                        accessKey = miRepoAccessKeyId
+                        secretKey = miRepoSecretAccessKey
+                    }
+                }
+            }
+        }
         if (miGitHubMavenUser != null && miGitHubMavenUser != "") {
             maven {
                 name = "GitHub"
