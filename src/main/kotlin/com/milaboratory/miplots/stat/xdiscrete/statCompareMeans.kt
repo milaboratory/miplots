@@ -8,6 +8,7 @@ import com.milaboratory.miplots.stat.xdiscrete.LabelFormat.Companion.Significanc
 import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.intern.Feature
+import jetbrains.letsPlot.intern.FeatureList
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.abs
@@ -210,61 +211,65 @@ private class StatCompareMeansFeature(
 
         val mustach = plt.yDelta * 0.2
         val rows = stat.rows().sortedBy { abs(plt.xord[it.group1!!]!! - plt.xord[it.group2]!!) }
-
-        val pathData = mutableMapOf<String, MutableList<Any?>>(
-            plt.xNumeric to mutableListOf(),
-            plt.y to mutableListOf(),
-            "__group" to mutableListOf()
-        )
-        if (facet != null)
-            pathData += plt.facetBy!! to mutableListOf()
-
-        val textData: MutableMap<String, MutableList<Any?>> = mutableMapOf(
-            plt.xNumeric to mutableListOf(),
-            plt.y to mutableListOf(),
-            "__label" to mutableListOf()
-        )
-        if (facet != null)
-            textData += plt.facetBy!! to mutableListOf()
-
-        var yValue = yCoordBase
-        val lf = ops.labelFormat ?: Formatted("{pValue}")
-        for ((group, row) in rows.withIndex()) {
-            val gr1 = plt.xnum[row.group1!!]!!
-            val gr2 = plt.xnum[row.group2]!!
-
-            pathData[plt.xNumeric]!!.addAll(listOf(gr1, gr1, gr2, gr2))
-            pathData[plt.y]!!.addAll(listOf(yValue - mustach, yValue, yValue, yValue - mustach))
-            pathData["__group"]!!.addAll(List(4) { group })
+        if (rows.isEmpty())
+            FeatureList(emptyList()) to yCoordBase
+        else {
+            val pathData = mutableMapOf<String, MutableList<Any?>>(
+                plt.xNumeric to mutableListOf(),
+                plt.y to mutableListOf(),
+                "__group" to mutableListOf()
+            )
             if (facet != null)
-                pathData[plt.facetBy!!]!!.addAll(List(4) { facet })
+                pathData += plt.facetBy!! to mutableListOf()
 
-            textData[plt.xNumeric]!!.addAll(listOf((gr1 + gr2) / 2.0))
-            textData[plt.y]!!.addAll(listOf(yValue + plt.yDelta / 2))
-            val label = when (lf) {
-                Significance -> row.pSignif
-                is Formatted -> lf.format(compareMeans.method, row.pValueFmt)
-                else -> throw RuntimeException()
+            val textData: MutableMap<String, MutableList<Any?>> = mutableMapOf(
+                plt.xNumeric to mutableListOf(),
+                plt.y to mutableListOf(),
+                "__label" to mutableListOf()
+            )
+            if (facet != null)
+                textData += plt.facetBy!! to mutableListOf()
+
+            var yValue = yCoordBase
+            val lf = ops.labelFormat ?: Formatted("{pValue}")
+            for ((group, row) in rows.withIndex()) {
+                val gr1 = plt.xnum[row.group1!!]!!
+                val gr2 = plt.xnum[row.group2]!!
+
+                pathData[plt.xNumeric]!!.addAll(listOf(gr1, gr1, gr2, gr2))
+                pathData[plt.y]!!.addAll(listOf(yValue - mustach, yValue, yValue, yValue - mustach))
+                pathData["__group"]!!.addAll(List(4) { group })
+                if (facet != null)
+                    pathData[plt.facetBy!!]!!.addAll(List(4) { facet })
+
+                textData[plt.xNumeric]!!.addAll(listOf((gr1 + gr2) / 2.0))
+                textData[plt.y]!!.addAll(listOf(yValue + plt.yDelta / 2))
+                val label = when (lf) {
+                    Significance -> row.pSignif
+                    is Formatted -> lf.format(compareMeans.method, row.pValueFmt)
+                    else -> throw RuntimeException()
+                }
+                textData["__label"]!!.addAll(listOf(label))
+                if (facet != null)
+                    textData[plt.facetBy]!!.addAll(listOf(facet))
+
+                yValue += plt.yDelta
             }
-            textData["__label"]!!.addAll(listOf(label))
-            if (facet != null)
-                textData[plt.facetBy]!!.addAll(listOf(facet))
 
-            yValue += plt.yDelta
+            geomPath(
+                pathData,
+                color = ops.color
+            ) {
+                this.group = "__group"
+            } + geomText(
+                textData,
+                size = textSize,
+                color = ops.color,
+                sizeUnit = ops.sizeUnit
+            ) {
+                label = "__label"
+            } to yValue
         }
-
-        geomPath(
-            pathData,
-            color = ops.color
-        ) {
-            this.group = "__group"
-        } + geomText(
-            textData, size = textSize,
-            color = ops.color,
-            sizeUnit = ops.sizeUnit
-        ) {
-            label = "__label"
-        } to yValue
     }
 
     private fun comparisonsLayer(): Feature = run {

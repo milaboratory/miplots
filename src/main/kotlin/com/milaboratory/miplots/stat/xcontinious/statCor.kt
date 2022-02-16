@@ -1,3 +1,5 @@
+@file:Suppress("ClassName")
+
 package com.milaboratory.miplots.stat.xcontinious
 
 import com.milaboratory.miplots.formatPValue
@@ -12,7 +14,6 @@ import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.sqrt
-
 
 data class CorrelationResult(val rValue: Double, val pValue: Double)
 

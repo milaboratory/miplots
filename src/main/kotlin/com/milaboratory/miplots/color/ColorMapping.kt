@@ -23,7 +23,7 @@ interface DiscreteColorMapping {
         val map = mkMap(objects)
         scale(
             objects.map { map[it]!!.toHexColor() },
-            objects.map { if (it == null) "" else it as Any },
+            objects.map { if (it == null) "" else it },
         )
     }
 

@@ -58,9 +58,9 @@ open class GGXDiscrete(
     /** Plot orientation */
     orientation: Orientation = Orientation.Vertical,
     /** Color scale */
-    val colorScale: DiscreteColorMapping,
+    colorScale: DiscreteColorMapping,
     /** Fill scale */
-    val fillScale: DiscreteColorMapping,
+    fillScale: DiscreteColorMapping,
     /** Aesthetics mapping */
     aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(
@@ -78,6 +78,8 @@ open class GGXDiscrete(
     alpha,
     position,
     orientation,
+    colorScale,
+    fillScale,
     aesMapping
 ) {
     init {

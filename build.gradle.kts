@@ -2,7 +2,7 @@ import com.palantir.gradle.gitversion.VersionDetails
 
 val letsPlotLibraryVersion = "2.2.1"
 val letsPlotKotlinApiVersion = "3.1.1"
-val dataframeVersion = "0.8.0-dev-903"
+val dataframeVersion = "0.8.0-dev-912"
 
 plugins {
     `java-library`
@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
 
     kotlin("jvm") version "1.6.10"
-    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-dev-903"
+    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-dev-912"
     id("com.palantir.git-version") version "0.13.0"
 }
 

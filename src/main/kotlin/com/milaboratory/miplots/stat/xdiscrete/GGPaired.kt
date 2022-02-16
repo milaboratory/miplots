@@ -9,7 +9,6 @@ import jetbrains.letsPlot.geom.geomBoxplot
 import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.intern.Feature
-import jetbrains.letsPlot.intern.Plot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 
@@ -27,7 +26,7 @@ fun GGPaired(
     pointSize: Double? = 1.2,
     lineSize: Double? = 0.5,
     lineColor: Any? = "black",
-    linetype: Any? = "solid",
+    linetype: String? = "solid",
     orientation: Orientation = Orientation.Vertical,
     colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
@@ -99,7 +98,7 @@ class GGPaired internal constructor(
     val pointSize: Double?,
     val lineSize: Double?,
     val lineColor: Any?,
-    linetype: Any?,
+    linetype: String?,
     orientation: Orientation,
     colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
     fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
@@ -111,6 +110,7 @@ class GGPaired internal constructor(
     facetBy = facetBy,
     facetNCol = facetNCol,
     facetNRow = facetNRow,
+    linetype = linetype,
     color = color,
     fill = fill,
     orientation = orientation,

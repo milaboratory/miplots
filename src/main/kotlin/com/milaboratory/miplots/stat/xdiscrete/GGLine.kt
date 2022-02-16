@@ -60,8 +60,6 @@ class ggLine(
     }
 }
 
-//* @param colorScale Color scale
-//* @param fillScale Fill scale
 class GGLinePlot(
     data: AnyFrame,
     x: String,
@@ -70,12 +68,12 @@ class GGLinePlot(
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
-    color: String? = null,
+    color: String? = "#000000",
     size: Double? = null,
     linetype: String? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
-    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

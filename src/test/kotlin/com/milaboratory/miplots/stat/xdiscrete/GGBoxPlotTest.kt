@@ -58,9 +58,8 @@ internal class GGBoxPlotTest {
         )
     }
 
-
     @Test
-    internal fun testFacets() {
+    internal fun testAxisProblem() {
 
         val data = mapOf(
             "x" to listOf("A", "B", "A", "B", "A", "B", "A", "B", "A", "B", "A", "B"),
@@ -92,8 +91,6 @@ internal class GGBoxPlotTest {
         }
 
         plt += ylim(100 to 130)
-
-
 
         writePDF(
             Paths.get("scratch/bp.pdf"),

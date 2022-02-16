@@ -1,5 +1,7 @@
 package com.milaboratory.miplots.stat.xcontinious
 
+import com.milaboratory.miplots.color.DiscreteColorMapping
+import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.GGBase
 import com.milaboratory.miplots.stat.xdiscrete.Orientation
@@ -22,12 +24,14 @@ class GGScatter(
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
-    color: String? = null,
+    color: String? = "black",
     fill: String? = null,
     shape: Any? = null,
     size: Number? = null,
     alpha: Double? = null,
     orientation: Orientation = Orientation.Vertical,
+    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(
     x = x,
@@ -43,6 +47,8 @@ class GGScatter(
     width = null,
     linetype = null,
     orientation = orientation,
+    colorScale = colorScale,
+    fillScale = fillScale,
     aesMapping = aesMapping
 ) {
 
@@ -67,12 +73,17 @@ class GGScatter(
             alpha = this.alpha
         ) {
             this.color = aes.color
-            this.fill = aes.color
-            this.shape = aes.color
-            this.size = aes.color
-            this.color = aes.color
+            this.fill = aes.fill
+            this.shape = aes.shape
+            this.size = aes.size
             this.alpha = aes.alpha
         }
+
+        if (aes.color != null)
+            plt += colorScale.colorScale(data[aes.color!!].distinct().toList())
+
+        if (aes.fill != null)
+            plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
 
         if (facetBy != null)
             plt += facetWrap(facets = facetBy, ncol = facetNCol, nrow = facetNRow)
