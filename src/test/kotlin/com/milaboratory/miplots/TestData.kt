@@ -1,6 +1,5 @@
 package com.milaboratory.miplots
 
-import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.column
@@ -60,10 +59,10 @@ object TestData {
         val ycat: String,
     )
 
-    fun sampleMatrix(nRow: Int, nCol: Int, xCat: Int = 5, yCat: Int = 5): AnyFrame = run {
+    fun sampleMatrix(nRow: Int, nCol: Int, xCat: Int = 5, yCat: Int = 5) = run {
         val l = mutableListOf<SampleMatrixRow>()
         val xcat = (0 until nRow).associate { it to "x${(it % xCat)}" }
-        val ycat = (0 until nRow).associate { it to "y${(it % xCat)}" }
+        val ycat = (0 until nCol).associate { it to "y${(it % yCat)}" }
         for (x in 0 until nRow)
             for (y in 0 until nCol)
                 l += SampleMatrixRow("x - $x", "y - $y", 1.0 * x * y, xcat[x]!!, ycat[y]!!)

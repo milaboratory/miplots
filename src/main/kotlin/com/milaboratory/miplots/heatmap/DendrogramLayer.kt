@@ -2,6 +2,7 @@ package com.milaboratory.miplots.heatmap
 
 import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.dendro.geomDendro
+import com.milaboratory.miplots.isLeftRight
 import com.milaboratory.miplots.isTopBottom
 
 fun Heatmap.withDendrogram(
@@ -12,6 +13,12 @@ fun Heatmap.withDendrogram(
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
     if ((pos == Position.Top || pos == Position.Bottom) && xclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
+
+    if (
+        (pos.isTopBottom && xax.size <= 1)
+        || (pos.isLeftRight && yax.size <= 1)
+    )
+        return@run this
 
     val h = heigh / 5
     val w = width / 5

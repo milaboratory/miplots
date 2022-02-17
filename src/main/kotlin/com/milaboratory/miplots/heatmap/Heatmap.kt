@@ -19,9 +19,7 @@ import jetbrains.letsPlot.intern.Scale
 import jetbrains.letsPlot.letsPlot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataRow
-import org.jetbrains.kotlinx.dataframe.api.add
-import org.jetbrains.kotlinx.dataframe.api.rows
-import org.jetbrains.kotlinx.dataframe.api.toMap
+import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.Double.Companion.NaN
 import kotlin.math.max
 import kotlin.math.min
@@ -59,6 +57,8 @@ class Heatmap(
     val z: String,
     val xOrder: Order? = null,
     val yOrder: Order? = null,
+    val fillAbsent: Boolean = true,
+    val fillAbsentWith: Any? = null,
     val fillScale: Scale = Palletes.Diverging.viridis2magma.scaleFillContinuous()
 ) : PlotWrapper {
     companion object {
@@ -140,6 +140,7 @@ class Heatmap(
 
     init {
         var data = _data
+
         val xdata = ax(data, xOrder, x, y, z)
         val ydata = ax(data, yOrder, y, x, z)
         xax = xdata.ax
@@ -151,6 +152,20 @@ class Heatmap(
         ymap = yax.mapIndexed { i, yy -> yy to tileHeight * (1 + i) }.toMap()
         xmaxBase = (xmap[xax.last()] ?: 0.0) + tileWidth / 2
         ymaxBase = (ymap[yax.last()] ?: 0.0) + tileHeight / 2
+
+        // add missing combinations with NA
+        if (fillAbsent) {
+            val existing = data.rows().toList().map { it[x] to it[y] }.toSet()
+            val sampleRow = data.rows().first().toMap().mapValues { null }
+            val toAppend = mutableListOf<Map<String, Any?>>()
+            for (_x in xax) {
+                for (_y in yax) {
+                    if (!existing.contains(_x to _y))
+                        toAppend += sampleRow + (x to _x) + (y to _y) + (z to fillAbsentWith)
+                }
+            }
+            data = data.concat(dataFrameOf(sampleRow.keys) { c -> toAppend.map { it[c] } })
+        }
 
         data = data.add(HeatmapVar.xnum) { xmap[it[x]] }
         data = data.add(HeatmapVar.ynum) { ymap[it[y]] }

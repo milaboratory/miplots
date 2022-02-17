@@ -21,7 +21,7 @@ fun Heatmap.withColorKey(
     labelSep: Double = 0.0,
     labelSize: Double? = 0.0,
     labelAngle: Number? = 0.0,
-    pallete: DiscreteColorMapping = Palletes.Diverging.lime90rose130,
+    pallete: DiscreteColorMapping = Palletes.Categorical.auto,
     textSize: Number? = defTextSize,
     sizeUnit: String = defSizeUnit
 ) = run {

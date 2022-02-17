@@ -5,7 +5,7 @@ import com.milaboratory.miplots.TestData
 import com.milaboratory.miplots.color.Palletes.Categorical
 import com.milaboratory.miplots.writePDF
 import jetbrains.letsPlot.ggsize
-import org.jetbrains.kotlinx.dataframe.api.toDataFrame
+import org.jetbrains.kotlinx.dataframe.api.*
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
 
@@ -225,6 +225,46 @@ internal class HeatmapTest {
 
             .withFillLegend(Left, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
             .withColorKeyLegend(Left)
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
+
+    @Test
+    internal fun testNA() {
+        val data = TestData.sampleMatrix(15, 15)
+            .filter { ("z"<Double>() * 99).toInt() % 10 != 3 }
+            .update("z")
+            .where { ("z"<Double>() * 99).toInt() % 10 == 2 }
+            .withNull()
+
+        val plt = Heatmap(
+            data, "x", "y", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+            .withDendrogram(Top)
+            .withDendrogram(Left)
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
+
+    @Test
+    internal fun test1Row() {
+        val data = TestData.sampleMatrix(1, 5)
+
+        val plt = Heatmap(
+            data, "x", "y", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+            .withDendrogram(Top)
+            .withDendrogram(Left)
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
