@@ -45,6 +45,7 @@ fun Heatmap.withDendrogram(
         fill = "black",
         linetype = 1,
         linewidth = linewidth,
+        linewidthY = linewidth,
         linecolor = "black",
     )
 

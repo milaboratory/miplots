@@ -7,14 +7,11 @@ import com.milaboratory.miplots.dendro.Alignment.Horizontal
 import com.milaboratory.miplots.dendro.Alignment.Vertical
 import com.milaboratory.miplots.plus
 import com.milaboratory.miplots.themeBlank
-import jetbrains.letsPlot.coordFixed
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomPolygon
 import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.intern.FeatureList
 import jetbrains.letsPlot.letsPlot
-import jetbrains.letsPlot.scale.xlim
-import jetbrains.letsPlot.scale.ylim
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -411,6 +408,7 @@ fun geomDendro(
     // edges
     linetype: Any? = null,
     linewidth: Double? = null,
+    linewidthY: Double? = null,
     linecolor: Any? = null,
     // aes
     aesMapping: DendroAes.() -> Unit = {}
@@ -429,15 +427,15 @@ fun geomDendro(
 
     val imposedLeafY = if (balanced) xy.leafY else null
 
-    val linewidthX = linewidth ?: (xy.width / xy.node.leafCount / 10)
-    val linewidthY = abs(linewidthX * xy.height / xy.width)
-    val sizeActual = size ?: (1.1 * linewidthX)
+    val _linewidthX = linewidth ?: (xy.width / xy.node.leafCount / 10)
+    val _linewidthY = linewidthY ?: abs(_linewidthX * xy.height / xy.width)
+    val sizeActual = size ?: (1.1 * _linewidthX)
 
     val dbNodes = DataBuilder()
     val dbEdges = DataBuilder()
 
     xy.addNodesData(dbNodes, rpos.alignment, imposedLeafY)
-    xy.addEdgesData(dbEdges, ctype, einh, rpos, imposedLeafY, linewidthX, linewidthY, 0)
+    xy.addEdgesData(dbEdges, ctype, einh, rpos, imposedLeafY, _linewidthX, _linewidthY, 0)
 
     GeomDendroLayer(
         showNodes = showNodes,
@@ -478,6 +476,7 @@ fun ggDendro(
     // edges
     linetype: Any? = null,
     linewidth: Double? = null,
+    linewidthY: Double? = null,
     linecolor: Any? = null,
     // aes
     aesMapping: DendroAes.() -> Unit = {}
@@ -498,6 +497,7 @@ fun ggDendro(
 
         linetype = linetype,
         linewidth = linewidth,
+        linewidthY = linewidthY,
         linecolor = linecolor,
 
         rpos = rpos,
