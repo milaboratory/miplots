@@ -7,7 +7,8 @@ import com.milaboratory.miplots.isTopBottom
 
 fun Heatmap.withDendrogram(
     pos: Position,
-    sep: Double = 0.0
+    sep: Double = 0.0,
+    linewidth: Double? = 2 * defBorderWidth,
 ) = run {
     if ((pos == Position.Left || pos == Position.Right) && yclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")
@@ -35,14 +36,16 @@ fun Heatmap.withDendrogram(
     val feature = geomDendro(
         clust,
         rpos = pos,
-        points = false,
+        showNodes = false,
         balanced = true,
         rshift = rshift,
         coord = axcoord(pos.ax),
         height = dheight,
         color = "black",
-        linetype = 1,
         fill = "black",
+        linetype = 1,
+        linewidth = linewidth,
+        linecolor = "black",
     )
 
     layers += HLayer(

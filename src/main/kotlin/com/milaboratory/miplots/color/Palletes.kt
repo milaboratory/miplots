@@ -48,7 +48,7 @@ object Palletes {
         )
 
         val auto = object : DiscreteColorMapping {
-            override fun <T> mkMap(objects: List<T>): Map<T, Color> = run {
+            override fun <T> mkMap(objects: List<T?>): Map<T?, Color> = run {
                 val p = if (objects.size <= 9) {
                     Triadic9Bright
                 } else if (objects.size <= 18)
@@ -68,7 +68,8 @@ object Palletes {
             "#86E67B", "#CEF36C", "#FFEA80",
             "#FED470", "#FDA163", "#F36C5A",
             "#D64470", "#A03080", "#702084",
-            "#451777", "#2B125C"
+            "#451777", "#2B125C",
+            na = "#f0f0f0"
         )
 
         val lime90rose130 = GradientBasePallete(
@@ -76,7 +77,8 @@ object Palletes {
             "#8FC758", "#ABDB7B", "#C5EBA0",
             "#DCF5C4", "#FFFFFF", "#FADCF5",
             "#F5C4ED", "#F0A3E3", "#E573D2",
-            "#CC49B6", "#991884", "#701260"
+            "#CC49B6", "#991884", "#701260",
+            na = "#f0f0f0"
         )
     }
 }

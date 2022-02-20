@@ -2,6 +2,10 @@
 
 package com.milaboratory.miplots.dendro
 
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+
 private fun Node<*>.xy(y: Double, depth: Int): XYNode {
     return XYNode(this,
         -1.0,
@@ -13,7 +17,7 @@ private fun Node<*>.xy(y: Double, depth: Int): XYNode {
 
 internal fun Node<*>.xy() = xy(0.0, 0)
 
-internal data class XYNode(
+internal data class XYNode constructor(
     val node: Node<*>,
     val x: Double,
     val y: Double,
@@ -24,6 +28,14 @@ internal data class XYNode(
     val rightmost get() = children.lastOrNull()
     val isLeaf get() = children.isEmpty()
     val height get() = node.totalHeight
+    val xmin: Double get() = min(x, children.minOfOrNull { it.xmin } ?: 0.0)
+    val xmax: Double get() = max(x, children.maxOfOrNull { it.xmax } ?: 0.0)
+    val ymin: Double get() = min(y, children.minOfOrNull { it.ymin } ?: 0.0)
+    val ymax: Double get() = max(y, children.maxOfOrNull { it.ymax } ?: 0.0)
+
+    private val leftmostRecursive: XYNode? get() = if (isLeaf) this else leftmost?.leftmostRecursive
+    private val righttmostRecursive: XYNode? get() = if (isLeaf) this else rightmost?.righttmostRecursive
+    val width get() = abs((leftmostRecursive?.x ?: 0.0) - (righttmostRecursive?.x ?: 0.0))
 }
 
 internal val XYNode.leafY: Double
@@ -93,7 +105,7 @@ internal object Layout {
 
         var left = xy.leftmost
         if (left != null) {
-            val r = Knuth(i, depth + 1, left)
+            val r = Knuth2(i, depth + 1, left)
             i = r.first
             left = r.second
         }
@@ -103,7 +115,7 @@ internal object Layout {
 
         var right = xy.rightmost
         if (right != null) {
-            val r = Knuth(i, depth + 1, right)
+            val r = Knuth2(i, depth + 1, right)
             i = r.first
             right = r.second
         }
@@ -116,20 +128,25 @@ internal object Layout {
 
     /** for any kind of trees */
     private fun Knuth(iSeed: Int, depth: Int, xy: XYNode): Pair<Int, XYNode> {
-        var i = iSeed
+        if (xy.children.isEmpty())
+            return (iSeed + 1) to xy.copy(
+                x = iSeed.toDouble(),
+                depth = depth
+            )
+
 
         val newChildren = mutableListOf<XYNode>()
         val xdata = mutableListOf<Int>()
+        var i = iSeed - 1
         for (child in xy.children) {
-            val r = Knuth(i, depth + 1, child)
+            val r = Knuth(i + 1, depth + 1, child)
+            i = r.first
             xdata += r.first
             newChildren += r.second
-            i = r.first + 1
         }
-        i -= 1
 
         return i to xy.copy(
-            x = if (newChildren.isEmpty()) i.toDouble() else xdata[xdata.size / 2].toDouble(),
+            x = xdata[(xdata.size - 1) / 2].toDouble(),
             depth = depth,
             children = newChildren
         )

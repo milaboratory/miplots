@@ -17,6 +17,7 @@ import kotlin.math.max
 fun Heatmap.withFillLegend(
     pos: Position,
     title: String? = null,
+    size: Double = 1.0,
     sep: Double = 1.5,
     tsep: Double = 0.1,
     bwt: Double = defBorderWidth,
@@ -39,14 +40,14 @@ fun Heatmap.withFillLegend(
         Top -> xmaxBase to ymax + tsep + sep + tileFillHeight + tsep
         Right -> xmax + sep to ymaxBase
         Bottom -> xminBase to ymin - sep
-        Left -> xmin - sep - tsep - tileFillWidth - tsep to yminBase
+        Left -> xmin - sep - tsep - tileFillWidth - tsep to ymaxBase
     }
 
     val (hjust, vjust) = when (pos) {
         Top -> "right" to "bottom"
         Bottom -> "left" to "bottom"
         Right -> "right" to "bottom"
-        Left -> "left" to "bottom"
+        Left -> "right" to "bottom"
     }
 
     val angle = when (pos) {
@@ -67,7 +68,12 @@ fun Heatmap.withFillLegend(
     )
 
     // tiles
-    val axMinmax = minmaxBase(pos.ax)
+    val axMinmax = minmaxBase(pos.ax).let {
+        when (pos) {
+            Bottom -> it.first to it.first + size * (it.second - it.first)
+            else -> it.first + (1 - size) * (it.second - it.first) to it.second
+        }
+    }
     val tw = (axMinmax.second - axMinmax.first) / nTiles
     val zw = (zmax - zmin) / nTiles
 
@@ -106,14 +112,16 @@ fun Heatmap.withFillLegend(
         this.fill = "z"
     }
 
+    // border
     val (bxmin, bxmax) = when (pos) {
-        Top, Bottom -> xminBase to xmaxBase
+        Top -> xminBase + (1 - size) * (xmaxBase - xminBase) to xmaxBase
+        Bottom -> xminBase to xminBase + size * (xmaxBase - xminBase)
         Left -> xmin - sep - tsep - tileFillWidth to xmin - sep - tsep
         Right -> xmax + sep + tsep to xmax + sep + tsep + tileFillWidth
     }
 
     val (bymin, bymax) = when (pos) {
-        Left, Right -> yminBase to ymaxBase
+        Left, Right -> yminBase + (1 - size) * (ymaxBase - yminBase) to ymaxBase
         Top -> ymax + sep + tsep to ymax + sep + tsep + tileFillHeight
         Bottom -> ymin - sep - tsep to ymin - sep - tsep - tileFillHeight
     }

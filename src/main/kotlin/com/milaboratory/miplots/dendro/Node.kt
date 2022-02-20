@@ -70,7 +70,14 @@ data class Node<T>(
 
     val count: Int by lazy {
         if (children.isEmpty())
-            0
+            1
+        else
+            1 + children.sumOf { it.count }
+    }
+
+    val leafCount: Int by lazy {
+        if (children.isEmpty())
+            1
         else
             children.sumOf { it.count }
     }

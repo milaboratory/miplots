@@ -196,6 +196,25 @@ internal class HeatmapTest {
     }
 
     @Test
+    internal fun testLegendTile2() {
+        val plt = Heatmap(
+            TestData.sampleMatrix(15, 15), "x", "y", "z",
+            xOrder = Hierarchical(),
+            yOrder = Hierarchical()
+        )
+            .withBorder()
+            .withFillLegend(Top, size = 0.6, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withFillLegend(Right, size = 0.6, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withFillLegend(Bottom, size = 0.6, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+            .withFillLegend(Left, size = 0.6, title = "Awesome Z label", textSize = 1.5, sizeUnit = "x")
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
+
+    @Test
     internal fun testLegendColorKey() {
         val plt = Heatmap(
             TestData.sampleMatrix(15, 15), "x", "y", "z",

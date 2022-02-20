@@ -6,6 +6,7 @@ import com.milaboratory.miplots.PlotWrapper
 import com.milaboratory.miplots.clustering.HierarchicalClustering
 import com.milaboratory.miplots.clustering.asTree
 import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.UniversalPalette
 import com.milaboratory.miplots.dendro.Node
 import com.milaboratory.miplots.dendro.leaves
 import com.milaboratory.miplots.dendro.mapId
@@ -15,7 +16,6 @@ import jetbrains.letsPlot.coordFixed
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomTile
 import jetbrains.letsPlot.intern.Feature
-import jetbrains.letsPlot.intern.Scale
 import jetbrains.letsPlot.letsPlot
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataRow
@@ -57,9 +57,9 @@ class Heatmap(
     val z: String,
     val xOrder: Order? = null,
     val yOrder: Order? = null,
-    val fillAbsent: Boolean = true,
-    val fillAbsentWith: Any? = null,
-    val fillScale: Scale = Palletes.Diverging.viridis2magma.scaleFillContinuous()
+    val fillNoValue: Boolean = true,
+    val noValue: Any? = null,
+    val fillPallette: UniversalPalette = Palletes.Diverging.viridis2magma
 ) : PlotWrapper {
     companion object {
         private fun toDouble(v: Any?, alt: Double = NaN): Double = run {
@@ -154,14 +154,14 @@ class Heatmap(
         ymaxBase = (ymap[yax.last()] ?: 0.0) + tileHeight / 2
 
         // add missing combinations with NA
-        if (fillAbsent) {
+        if (fillNoValue) {
             val existing = data.rows().toList().map { it[x] to it[y] }.toSet()
             val sampleRow = data.rows().first().toMap().mapValues { null }
             val toAppend = mutableListOf<Map<String, Any?>>()
             for (_x in xax) {
                 for (_y in yax) {
                     if (!existing.contains(_x to _y))
-                        toAppend += sampleRow + (x to _x) + (y to _y) + (z to fillAbsentWith)
+                        toAppend += sampleRow + (x to _x) + (y to _y) + (z to noValue)
                 }
             }
             data = data.concat(dataFrameOf(sampleRow.keys) { c -> toAppend.map { it[c] } })
@@ -188,6 +188,9 @@ class Heatmap(
     val yminvis: Double get() = min(yminBase, layers.minOfOrNull { it.yminvis } ?: yminBase)
     val ymaxvis: Double get() = max(ymaxBase, layers.maxOfOrNull { it.ymaxvis } ?: yminBase)
 
+    val zmin = data[z].convertToDouble().minOrNull() ?: 0.0
+    val zmax = data[z].convertToDouble().maxOrNull() ?: 0.0
+
     val features = mutableListOf<Feature>()
 
     private var debug = false
@@ -206,9 +209,8 @@ class Heatmap(
                 height = tileFillHeight
             )
 
-            plt += fillScale
+            plt += fillPallette.scaleFillContinuous(midpoint = (zmin + zmax) / 2)
 
-            plt += coordFixed()
 
             for (layer in layers) {
                 plt += layer.feature
@@ -229,6 +231,8 @@ class Heatmap(
             for (feature in features) {
                 plt += feature
             }
+
+            plt += coordFixed(ratio = 1.0)
 
             plt
         }

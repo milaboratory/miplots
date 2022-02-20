@@ -4,13 +4,10 @@ import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.color.Palletes
-import jetbrains.datalore.base.values.Color
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.geom.geomTile
 import jetbrains.letsPlot.intern.Feature
-import jetbrains.letsPlot.intern.FeatureList
 import org.jetbrains.kotlinx.dataframe.api.rows
-import kotlin.math.max
 
 fun Heatmap.withColorKey(
     key: String,
@@ -27,7 +24,7 @@ fun Heatmap.withColorKey(
 ) = run {
     val pdata = posData(pos, tileHeight, tileWidth, sep)
 
-    val ck = data.rows().map { it[axCol(pos.ax)] to it[key] }.distinct().toMap()
+    val ck = data.rows().map { it[axCol(pos.ax)] to it[key] }.distinct().filter { it.second != null }.toMap()
     val valuesDistinct = data[key].distinct().toList()
     val cMap = pallete.mkMap(valuesDistinct)
 

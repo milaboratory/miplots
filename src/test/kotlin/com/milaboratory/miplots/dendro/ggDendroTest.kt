@@ -2,12 +2,12 @@
 
 package com.milaboratory.miplots.dendro
 
+import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.dendro.ConnectionType.Rectangle
 import com.milaboratory.miplots.dendro.ConnectionType.Triangle
 import com.milaboratory.miplots.writePDF
 import jetbrains.letsPlot.Figure
-import jetbrains.letsPlot.scale.scaleColorGradient2
 import jetbrains.letsPlot.themeClassic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ import java.nio.file.Paths
  *
  */
 internal class ggDendroTest {
-    val tree =
+    private val tree =
         Node(4.0, "age" to "12", "sex" to "m") {
             Node(1.5, "age" to "10", "sex" to "m") {
                 Node(1.5, "age" to "10", "sex" to "m")
@@ -43,6 +43,20 @@ internal class ggDendroTest {
         ) {
             color = "age"
         }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plot
+        )
+    }
+
+    @Test
+    internal fun test2() {
+        val plot = ggDendro(
+            tree,
+            ctype = Rectangle,
+            einh = EdgeMetaInheritance.Up
+        ) + themeClassic()
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
@@ -120,6 +134,103 @@ internal class ggDendroTest {
         writePDF(
             Paths.get("scratch/bp.pdf"),
             plt
+        )
+    }
+
+    @Test
+    internal fun testRect() {
+        val plt1 = ggDendro(
+            tree,
+            ctype = Triangle,
+            rpos = Right,
+            size = 0.10,
+            color = "red",
+            linewidth = 0.05,
+        )
+
+        val plt2 = ggDendro(
+            tree,
+            ctype = Triangle,
+            rpos = Top,
+            size = 0.10,
+            color = "red",
+            linewidth = 0.05,
+            balanced = true
+        )
+
+        val coord = listOf(12.0, 50.0, 79.0, 211.0)
+        val plt3 = ggDendro(
+            tree,
+            ctype = Triangle,
+            coord = coord,
+            size = 0.0,
+            color = "red",
+            linewidth = 5.0,
+        ) + themeClassic()
+
+        val plt4 = ggDendro(
+            tree,
+            ctype = Triangle,
+            coord = coord,
+            size = 0.0,
+            color = "red",
+            linewidth = 5.0,
+            balanced = true
+        ) + themeClassic()
+
+        val plt5 = ggDendro(
+            tree,
+            rpos = Left,
+            ctype = Triangle,
+            coord = coord,
+            size = 0.0,
+            color = "red",
+            linewidth = 5.0,
+            balanced = true
+        ) + themeClassic()
+
+        val plt6 = ggDendro(
+            tree,
+            ctype = Rectangle,
+            rpos = Top,
+            size = 0.10,
+            color = "red",
+            linewidth = 0.05,
+        )
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt1,
+            plt2,
+            plt3,
+            plt4,
+            plt5,
+            plt6
+        )
+    }
+
+    @Test
+    internal fun testLinewidth() {
+        val tree =
+            Node(20.0) {
+                Node(130.0) {
+                    Node(1.5)
+                    Node(1.5)
+                }
+                Node(130.0) {
+                    Node(1.5)
+                    Node(1.5)
+                }
+            }
+
+        val coord = listOf(0.0, 50.0, 100.0, 150.0)
+        val plots = Position.values().map { pos ->
+            ggDendro(tree, ctype = Rectangle, coord = coord, rpos = pos, linewidth = 10.0) + themeClassic()
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
         )
     }
 }

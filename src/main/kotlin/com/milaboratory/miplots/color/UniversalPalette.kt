@@ -40,6 +40,7 @@ interface UniversalPalette : DiscreteColorMapping, ContinuousColorMapping {
 
     fun scaleFillContinuous(
         name: String? = null,
+        midpoint: Double,
         breaks: List<Number>? = null,
         labels: List<String>? = null,
         limits: Pair<Number?, Number?>? = null,
@@ -60,13 +61,16 @@ interface UniversalPalette : DiscreteColorMapping, ContinuousColorMapping {
 }
 
 
-class GradientBasePallete(val base: List<Color>) : UniversalPalette {
+class GradientBasePallete(
+    val base: List<Color>,
+    val na: Color
+) : UniversalPalette {
     private val mapper = ColorGradient2MapperProvider(
         base[0],
         base[base.size / 2],
         base[base.size - 1],
-        0.5,
-        Color.WHITE
+        null,
+        na
     ).createContinuousMapper(
         ClosedRange(0.0, 1.0),
         0.0, 1.0, Transforms.IDENTITY
@@ -74,9 +78,13 @@ class GradientBasePallete(val base: List<Color>) : UniversalPalette {
 
     override fun mkMapping(): (Double?) -> Color = { mapper.apply(it)!! }
 
-    override fun <T> mkMap(objects: List<T>): Map<T, Color> {
-        val colors = mkColors(objects.size)
-        return objects.mapIndexed { i, e -> e to colors[i] }.toMap()
+    override fun <T> mkMap(objects: List<T?>): Map<T?, Color> {
+        val non = objects.filterNot { it == null }
+        val colors = mkColors(non.size)
+        val m = non.mapIndexed { i, e -> e to colors[i] }.toMap().toMutableMap()
+        if (non.size != objects.size)
+            m += (null to na)
+        return m
     }
 
     fun mkColors(n: Int): List<Color> {
@@ -113,7 +121,7 @@ class GradientBasePallete(val base: List<Color>) : UniversalPalette {
         breaks = breaks,
         labels = labels,
         limits = limits,
-        naValue = naValue,
+        naValue = na,
         format = format,
         guide = guide
     )
@@ -133,13 +141,14 @@ class GradientBasePallete(val base: List<Color>) : UniversalPalette {
         breaks = breaks,
         labels = labels,
         limits = limits,
-        naValue = naValue,
+        naValue = na,
         format = format,
         guide = guide
     )
 
     override fun scaleFillContinuous(
         name: String?,
+        midpoint: Double,
         breaks: List<Number>?,
         labels: List<String>?,
         limits: Pair<Number?, Number?>?,
@@ -150,12 +159,12 @@ class GradientBasePallete(val base: List<Color>) : UniversalPalette {
         low = base[0].toHexColor(),
         mid = base[base.size - 1].toHexColor(),
         high = base[base.size / 2].toHexColor(),
-        midpoint = 0.5,
+        midpoint = midpoint,
         name = name,
         breaks = breaks,
         labels = labels,
         limits = limits,
-        naValue = naValue,
+        naValue = na,
         format = format,
         guide = guide
     )
@@ -177,12 +186,13 @@ class GradientBasePallete(val base: List<Color>) : UniversalPalette {
         breaks = breaks,
         labels = labels,
         limits = limits,
-        naValue = naValue,
+        naValue = na,
         format = format,
         guide = guide
     )
 
     companion object {
-        operator fun invoke(vararg base: String) = GradientBasePallete(base.map { Color.parseHex(it) })
+        operator fun invoke(vararg base: String, na: String) =
+            GradientBasePallete(base.map { Color.parseHex(it) }, Color.parseHex(na))
     }
 }
