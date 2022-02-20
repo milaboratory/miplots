@@ -8,7 +8,7 @@ import com.milaboratory.miplots.isTopBottom
 fun Heatmap.withDendrogram(
     pos: Position,
     sep: Double = 0.0,
-    linewidth: Double? = 2 * defBorderWidth,
+    linewidth: Double? = 1.5 * defBorderWidth,
 ) = run {
     if ((pos == Position.Left || pos == Position.Right) && yclust == null)
         throw IllegalArgumentException("Should use hierarchical ordering for adding dendro layer")

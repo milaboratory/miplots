@@ -69,10 +69,7 @@ data class Node<T>(
     }
 
     val count: Int by lazy {
-        if (children.isEmpty())
-            1
-        else
-            1 + children.sumOf { it.count }
+        1 + children.sumOf { it.count }
     }
 
     val leafCount: Int by lazy {
@@ -121,7 +118,7 @@ fun <I, O> Node<I>.mapId(f: (I?) -> O?): Node<O> =
 
 fun <T : Comparable<T>> Node<T>.normalize(): Node<T> = run {
     val ch = children.sortedWith(
-        compareBy<Node<T>> { it.count }
+        compareBy<Node<T>> { -it.count }
             .thenComparing(compareBy { it.id })
     )
 
