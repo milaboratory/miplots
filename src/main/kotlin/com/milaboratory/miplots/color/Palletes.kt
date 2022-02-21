@@ -47,17 +47,15 @@ object Palletes {
             "#105bcc", "#ad3757", "#5e5e70"
         )
 
-        val auto = object : DiscreteColorMapping {
-            override fun <T> mkMap(objects: List<T?>): Map<T?, Color> = run {
-                val p = if (objects.size <= 9) {
-                    Triadic9Bright
-                } else if (objects.size <= 18)
-                    Triadic18
-                else
-                    Triadic27
+        fun auto(ncats: Int) = if (ncats <= 9) {
+            Triadic9Bright
+        } else if (ncats <= 18)
+            Triadic18
+        else
+            Triadic27
 
-                p.mkMap(objects)
-            }
+        val auto = object : DiscreteColorMapping {
+            override fun <T> mkMap(objects: List<T?>): Map<T?, Color> = auto(objects.size).mkMap(objects)
         }
     }
 

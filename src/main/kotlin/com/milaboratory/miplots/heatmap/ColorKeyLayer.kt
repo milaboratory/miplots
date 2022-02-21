@@ -25,7 +25,7 @@ fun Heatmap.withColorKey(
     val pdata = posData(pos, tileHeight, tileWidth, sep)
 
     val ck = data.rows().map { it[axCol(pos.ax)] to it[key] }.distinct().filter { it.second != null }.toMap()
-    val valuesDistinct = data[key].distinct().toList()
+    val valuesDistinct = ck.values.distinct()
     val cMap = pallete.mkMap(valuesDistinct)
 
     var feature: Feature? = null

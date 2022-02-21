@@ -241,6 +241,8 @@ fun Heatmap.withColorKeyLegend(
         .filter { it.colorMap != null }
         .associate { it.title!! to it.colorMap!! }
         .toList()
+    if (legends.isEmpty())
+        return@run this
 
     val sizes = legends.map { (title, map) ->
         legendWidth(title, map, spacing, textSize ?: defTextSize) to
