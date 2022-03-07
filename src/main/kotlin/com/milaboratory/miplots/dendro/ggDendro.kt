@@ -12,6 +12,7 @@ import jetbrains.letsPlot.geom.geomPolygon
 import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.intern.FeatureList
 import jetbrains.letsPlot.letsPlot
+import jetbrains.letsPlot.sampling.samplingNone
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -297,7 +298,7 @@ internal fun XYNode.addEdgesData(
         }
         eid += child.addEdgesData(edgesDb, ctype, einh, rpos, imposedLeafY, linewidthX, linewidthY, eid)
     }
-    return eid
+    return eid - initialEid
 }
 
 class DendroAes {
@@ -344,6 +345,7 @@ internal class GeomDendroLayer(
             edgesData,
             fill = linecolor,
             linetype = linetype,
+            sampling = samplingNone
         ) {
             x = DendroVar.ex
             y = DendroVar.ey
@@ -359,7 +361,8 @@ internal class GeomDendroLayer(
         color = color,
         fill = fill,
         size = size,
-        sizeUnit = "x"
+        sizeUnit = "x",
+        sampling = samplingNone
     ) {
         x = DendroVar.nx
         y = DendroVar.ny

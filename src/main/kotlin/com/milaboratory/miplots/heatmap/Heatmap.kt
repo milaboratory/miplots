@@ -188,8 +188,9 @@ class Heatmap(
     val yminvis: Double get() = min(yminBase, layers.minOfOrNull { it.yminvis } ?: yminBase)
     val ymaxvis: Double get() = max(ymaxBase, layers.maxOfOrNull { it.ymaxvis } ?: yminBase)
 
-    val zmin = data[z].convertToDouble().minOrNull() ?: 0.0
-    val zmax = data[z].convertToDouble().maxOrNull() ?: 0.0
+    private val zdatad = data[z].convertToDouble().distinct().toList().filterNotNull().filter { !it.isNaN() }
+    val zmin = zdatad.minOrNull() ?: 0.0
+    val zmax = zdatad.maxOrNull() ?: 0.0
 
     val features = mutableListOf<Feature>()
 
@@ -210,7 +211,6 @@ class Heatmap(
             )
 
             plt += fillPallette.scaleFillContinuous(midpoint = (zmin + zmax) / 2)
-
 
             for (layer in layers) {
                 plt += layer.feature

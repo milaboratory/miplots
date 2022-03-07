@@ -1,36 +1,39 @@
 package com.milaboratory.miplots.clustering
 
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 /**
  *
  */
 object HierarchicalClustering {
     fun EuclideanDistance(vectori: DoubleArray, vectorj: DoubleArray): Double {
-        var diff_square_sum = 0.0
+        var diffSquareSum = 0.0
         for (i in vectori.indices) {
-            diff_square_sum += (vectori[i] - vectorj[i]) * (vectori[i] - vectorj[i])
+            val d = na2zero(vectori[i]) - na2zero(vectorj[i])
+            diffSquareSum += d * d
         }
-        return Math.sqrt(diff_square_sum)
+        return sqrt(diffSquareSum)
     }
 
+    fun na2zero(d: Double) = if (d.isNaN()) 0.0 else d
+
     fun ManhattenDistance(vectori: DoubleArray, vectorj: DoubleArray): Double {
-        var abs_sum = 0.0
-        for (i in vectori.indices) {
-            abs_sum += abs(vectori[i] - vectorj[i])
-        }
-        return abs_sum
+        var absSum = 0.0
+        for (i in vectori.indices)
+            absSum += abs(na2zero(vectori[i]) - na2zero(vectorj[i]))
+        return absSum
     }
 
     fun ChebishevDistance(vectori: DoubleArray, vectorj: DoubleArray): Double {
-        var max_distance = 0.0
+        var maxDistance = 0.0
         for (i in vectori.indices) {
-            val distance = abs(vectori[i]) - abs(vectorj[i])
-            if (distance >= max_distance) {
-                max_distance = distance
+            val distance = abs(na2zero(vectori[i])) - abs(na2zero(vectorj[i]))
+            if (distance >= maxDistance) {
+                maxDistance = distance
             }
         }
-        return max_distance
+        return maxDistance
     }
 
     fun <T> clusterize(
@@ -71,10 +74,10 @@ object HierarchicalClustering {
             for (i in 1 until distances.size) {
                 if (distances[i].distance <= currentNodeDistance * (1 + distanceOffset)) {
                     for (j in 0 until children.size) {
-                        if (distances[i].id1 == children.get(j)) {
+                        if (distances[i].id1 == children[j]) {
                             childrenNeighbors.add(distances[i].id2)
                             distanceSum += distances[i].distance
-                        } else if (distances[i].id2 == children.get(j)) {
+                        } else if (distances[i].id2 == children[j]) {
                             childrenNeighbors.add(distances[i].id1)
                             distanceSum += distances[i].distance
                         }

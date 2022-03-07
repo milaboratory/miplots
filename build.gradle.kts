@@ -2,7 +2,7 @@ import com.palantir.gradle.gitversion.VersionDetails
 
 val letsPlotLibraryVersion = "2.2.1"
 val letsPlotKotlinApiVersion = "3.1.1"
-val dataframeVersion = "0.8.0-dev-912"
+val dataframeVersion = "0.8.0-rc-7"
 
 plugins {
     `java-library`
@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
 
     kotlin("jvm") version "1.6.10"
-    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-dev-912"
+    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-rc-7"
     id("com.palantir.git-version") version "0.13.0"
 }
 
@@ -68,11 +68,8 @@ dependencies {
     api("org.apache.commons:commons-math3:3.6.1")
 
     // plots
-    implementation(kotlin("stdlib"))
-
     implementation("org.apache.xmlgraphics:fop-transcoder:2.6")
     implementation("org.apache.pdfbox:pdfbox:2.0.24")
-
     implementation("org.apache.commons:commons-csv:1.9.0")
     api("org.jetbrains.kotlinx:dataframe:$dataframeVersion")
     api("org.jetbrains.lets-plot:lets-plot-common:$letsPlotLibraryVersion")

@@ -5,7 +5,12 @@ import com.milaboratory.miplots.dendro.Node
 /**
  *
  */
-data class HierarchyNode(val id: Int, val children: List<Int>, val height: Double)
+data class HierarchyNode(val id: Int, val children: List<Int>, val height: Double) {
+    init {
+        if (!height.isFinite())
+            throw IllegalArgumentException("Height can't be infinite or NaN")
+    }
+}
 
 fun List<HierarchyNode>.asTree(): Node<Int> = run {
     // id -> hnode

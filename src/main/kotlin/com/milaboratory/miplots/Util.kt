@@ -21,7 +21,9 @@ private val smallNumberFormat = run {
  * Default formatting for p-value
  */
 fun formatPValue(value: Double) =
-    if (abs(value) < 1e-2)
+    if (value.isNaN())
+        "NaN"
+    else if (abs(value) < 1e-2)
         smallNumberFormat.format(value).replace("E", "e")
     else
         "%.2f".format((1000 * value).roundToInt() / 1000.0)
