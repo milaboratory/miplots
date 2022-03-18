@@ -59,7 +59,7 @@ class Heatmap(
     val yOrder: Order? = null,
     val fillNoValue: Boolean = true,
     val noValue: Any? = null,
-    val fillPallette: UniversalPalette = Palletes.Diverging.viridis2magma
+    val fillPalette: UniversalPalette = Palletes.Diverging.viridis2magma
 ) : PlotWrapper {
     companion object {
         private fun toDouble(v: Any?, alt: Double = NaN): Double = run {
@@ -210,7 +210,7 @@ class Heatmap(
                 height = tileFillHeight
             )
 
-            plt += fillPallette.scaleFillContinuous(midpoint = (zmin + zmax) / 2)
+            plt += fillPalette.scaleFillContinuous(midpoint = (zmin + zmax) / 2)
 
             for (layer in layers) {
                 plt += layer.feature

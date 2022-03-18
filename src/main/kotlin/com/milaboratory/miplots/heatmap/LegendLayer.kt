@@ -10,6 +10,7 @@ import jetbrains.letsPlot.geom.geomTile
 import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.intern.FeatureList
 import org.jetbrains.kotlinx.dataframe.api.convertToDouble
+import org.jetbrains.kotlinx.dataframe.api.filter
 import org.jetbrains.kotlinx.dataframe.api.maxOrNull
 import org.jetbrains.kotlinx.dataframe.api.minOrNull
 import kotlin.math.max
