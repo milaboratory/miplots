@@ -31,7 +31,7 @@ fun Heatmap.withFillLegend(
 
     val pdata = posData(pos, 2 * (tsep + tileFillHeight), 2 * (tsep + tileFillWidth), sep)
 
-    val zd = data[z].convertToDouble()
+    val zd = data[z].convertToDouble().filter { it != null && it.isFinite() }
     val zmin = zd.minOrNull() ?: 0.0
     val zmax = zd.maxOrNull() ?: 0.0
 
