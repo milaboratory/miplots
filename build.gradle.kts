@@ -68,11 +68,15 @@ dependencies {
 val writeBuildProperties by tasks.registering(WriteProperties::class) {
     outputFile = file("${sourceSets.main.get().output.resourcesDir}/${project.name}-build.properties")
     property("version", version)
-    property("name", description)
+    property("name", "MiPlot")
     property("revision", gitDetails.gitHash)
     property("branch", gitDetails.branchName ?: "no_branch")
     property("host", InetAddress.getLocalHost().hostName)
     property("timestamp", System.currentTimeMillis())
+}
+
+tasks.processResources {
+    dependsOn(writeBuildProperties)
 }
 
 val createScratch by tasks.registering {
@@ -101,5 +105,9 @@ publishing {
                 }
             }
         }
+    }
+    
+    publications.create<MavenPublication>("mavenJava") {
+        from(components["java"])
     }
 }
