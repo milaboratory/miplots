@@ -1,8 +1,6 @@
 import com.palantir.gradle.gitversion.VersionDetails
-
-val letsPlotLibraryVersion = "2.2.1"
-val letsPlotKotlinApiVersion = "3.1.1"
-val dataframeVersion = "0.8.0-rc-7"
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.InetAddress
 
 plugins {
     `java-library`
@@ -20,11 +18,6 @@ kotlin.sourceSets.getByName("main").kotlin.srcDir("build/generated/ksp/main/kotl
 val miRepoAccessKeyId: String? by project
 val miRepoSecretAccessKey: String? by project
 
-val miGitHubMavenUser: String? by project
-val miGitHubMavenToken: String? by project
-
-val productionBuild: Boolean? by project
-
 val versionDetails: groovy.lang.Closure<VersionDetails> by extra
 val gitDetails = versionDetails()
 
@@ -32,33 +25,29 @@ fun boolProperty(name: String): Boolean {
     return ((properties[name] as String?) ?: "false").toBoolean()
 }
 
-val isMiCi: Boolean = boolProperty("mi-ci")
-val isRelease: Boolean = boolProperty("mi-release")
-
-val longTests: String? by project
-val miCiStage: String? = properties["mi-ci-stage"] as String?
+// val isMiCi: Boolean = boolProperty("mi-ci")
+// val isRelease: Boolean = boolProperty("mi-release")
 
 group = "com.milaboratory"
-val gitLastTag = gitDetails.lastTag.removePrefix("v")
-
-version = if (version != "unspecified") {
-    version
-} else if (gitDetails.commitDistance == 0) {
-    gitLastTag
-} else {
-    "${gitLastTag}-${gitDetails.commitDistance}-${gitDetails.gitHash}"
-}
+version = if (version != "unspecified") version else ""
 description = "MiPlots"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_1_8
     withSourcesJar()
+}
+
+tasks.withType<KotlinCompile> { // this affects to all kotlinCompilation tasks
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
 }
+
+val letsPlotLibraryVersion = "2.2.1"
+val letsPlotKotlinApiVersion = "3.1.1"
+val dataframeVersion = "0.8.0-rc-7"
 
 dependencies {
     implementation(kotlin("stdlib"))
@@ -76,55 +65,41 @@ dependencies {
     api("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:$letsPlotKotlinApiVersion")
 }
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+val writeBuildProperties by tasks.registering(WriteProperties::class) {
+    outputFile = file("${sourceSets.main.get().output.resourcesDir}/${project.name}-build.properties")
+    property("version", version)
+    property("name", description)
+    property("revision", gitDetails.gitHash)
+    property("branch", gitDetails.branchName ?: "no_branch")
+    property("host", InetAddress.getLocalHost().hostName)
+    property("timestamp", System.currentTimeMillis())
 }
 
-val compileKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "11"
-}
-val compileTestKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "11"
-}
-
-publishing {
-    repositories {
-        repositories {
-            maven {
-                name = "MiPrivate"
-                url = uri("s3://milaboratory-artefacts-private-files.s3.eu-central-1.amazonaws.com/maven")
-                authentication {
-                    credentials(AwsCredentials::class) {
-                        accessKey = miRepoAccessKeyId
-                        secretKey = miRepoSecretAccessKey
-                    }
-                }
-            }
-        }
-        if (miGitHubMavenUser != null && miGitHubMavenUser != "") {
-            maven {
-                name = "GitHub"
-                url = uri("https://maven.pkg.github.com/milaboratory/miplots")
-
-                credentials {
-                    username = miGitHubMavenUser
-                    password = miGitHubMavenToken
-                }
-            }
-        }
-    }
-}
-
-tasks.register("createScratch") {
+val createScratch by tasks.registering {
     doLast {
         mkdir("scratch")
     }
 }
 
-tasks.forEach {
-    if (it.name != "createScratch" && it.name != "clean") {
-        it.dependsOn("createScratch")
+tasks.test {
+    dependsOn(createScratch)
+    useJUnitPlatform()
+}
+
+publishing {
+    repositories {
+        if (miRepoAccessKeyId != null) {
+            maven {
+                name = "mipub"
+                url = uri("s3://milaboratory-artefacts-public-files.s3.eu-central-1.amazonaws.com/maven")
+
+                authentication {
+                    credentials(AwsCredentials::class) {
+                        accessKey = miRepoAccessKeyId!!
+                        secretKey = miRepoSecretAccessKey!!
+                    }
+                }
+            }
+        }
     }
 }

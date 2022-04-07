@@ -84,7 +84,7 @@ public class KruskalWallis {
 
     /** Computes Kruskal-Wallis p-value */
     public double kruskalWallisTest(Collection<double[]> datasets) {
-        return kruskalWallisTest(datasets.toArray(double[][]::new));
+        return kruskalWallisTest(datasets.toArray(new double[0][]));
     }
 
     /** Computes Kruskal-Wallis p-value */

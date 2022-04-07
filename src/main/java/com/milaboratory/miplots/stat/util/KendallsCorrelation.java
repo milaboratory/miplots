@@ -77,7 +77,7 @@ public class KendallsCorrelation {
             pairs[i] = new Pair<>(xArray[i], yArray[i]);
         }
 
-        Arrays.sort(pairs, new Comparator<>() {
+        Arrays.sort(pairs, new Comparator<Pair<Double, Double>>() {
             /** {@inheritDoc} */
             public int compare(Pair<Double, Double> pair1, Pair<Double, Double> pair2) {
                 int compareFirst = pair1.getFirst().compareTo(pair2.getFirst());
