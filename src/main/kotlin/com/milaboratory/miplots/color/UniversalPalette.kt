@@ -73,10 +73,10 @@ class GradientBasePallete(
         na
     ).createContinuousMapper(
         ClosedRange(0.0, 1.0),
-        0.0, 1.0, Transforms.IDENTITY
+        Transforms.IDENTITY
     )
 
-    override fun mkMapping(): (Double?) -> Color = { mapper.apply(it)!! }
+    override fun mkMapping(): (Double?) -> Color = { mapper(it)!! }
 
     override fun <T> mkMap(objects: List<T?>): Map<T?, Color> {
         val non = objects.filterNot { it == null }
@@ -95,14 +95,14 @@ class GradientBasePallete(
         val last = 1.0 - first
 
         return if (n == 2)
-            listOf(mapper.apply(first), mapper.apply(last))
+            listOf(mapper(first), mapper(last))
         else {
             val delta = (last - first) / (n - 2)
-            listOf(mapper.apply(first)!!) +
+            listOf(mapper(first)!!) +
                     (0 until n - 2).map {
-                        mapper.apply(first + (1 + it) * delta)
+                        mapper(first + (1 + it) * delta)
                     } +
-                    mapper.apply(last)!!
+                    mapper(last)!!
         }.map { it!! }
     }
 
