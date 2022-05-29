@@ -57,6 +57,12 @@ enum class CorrelationMethod {
     };
 
     abstract operator fun invoke(x: DoubleArray, y: DoubleArray): CorrelationResult
+
+    companion object {
+        fun parse(str: String): CorrelationMethod =
+            values().find { it.name.lowercase().equals(str.lowercase()) }
+                ?: throw IllegalArgumentException("unknown: $str")
+    }
 }
 
 /**
