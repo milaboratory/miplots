@@ -7,8 +7,8 @@ plugins {
     application
     `maven-publish`
 
-    kotlin("jvm") version "1.6.10"
-    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-rc-7"
+    kotlin("jvm") version "1.6.20"
+    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-rc-8"
     id("com.palantir.git-version") version "0.13.0"
 }
 
@@ -45,9 +45,9 @@ repositories {
     mavenCentral()
 }
 
-val letsPlotLibraryVersion = "2.2.1"
-val letsPlotKotlinApiVersion = "3.1.1"
-val dataframeVersion = "0.8.0-rc-7"
+val letsPlotLibraryVersion = "2.3.0"
+val letsPlotKotlinApiVersion = "3.2.0"
+val dataframeVersion = "0.8.0-rc-8"
 
 dependencies {
     implementation(kotlin("stdlib"))
@@ -106,7 +106,7 @@ publishing {
             }
         }
     }
-    
+
     publications.create<MavenPublication>("mavenJava") {
         from(components["java"])
     }
