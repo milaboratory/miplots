@@ -199,16 +199,16 @@ class Heatmap(
 
     override var plot
         get() = run {
-            var plt = letsPlot(data.toMap()) {
-                this.x = HeatmapVar.xnum
-                this.y = HeatmapVar.ynum
-                this.fill = z
-            }
+            var plt = letsPlot(data.toMap())
 
             plt += geomTile(
                 width = tileFillWidth,
                 height = tileFillHeight
-            )
+            ) {
+                this.x = HeatmapVar.xnum
+                this.y = HeatmapVar.ynum
+                this.fill = z
+            }
 
             plt += fillPalette.scaleFillContinuous(midpoint = (zmin + zmax) / 2)
 

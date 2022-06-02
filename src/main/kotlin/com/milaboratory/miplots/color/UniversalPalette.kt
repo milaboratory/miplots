@@ -157,8 +157,8 @@ class GradientBasePallete(
         guide: Any?
     ) = scaleFillGradient2(
         low = base[0].toHexColor(),
-        mid = base[base.size - 1].toHexColor(),
-        high = base[base.size / 2].toHexColor(),
+        mid = base[base.size / 2].toHexColor(),
+        high = base[base.size - 1].toHexColor(),
         midpoint = midpoint,
         name = name,
         breaks = breaks,
