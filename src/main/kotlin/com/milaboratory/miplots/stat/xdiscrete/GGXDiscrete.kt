@@ -193,6 +193,16 @@ operator fun GGXDiscrete.plusAssign(feature: GGXDiscreteFeature) {
         this.appendFeatures).add(feature.getFeature(this))
 }
 
+fun GGXDiscrete.append(feature: GGXDiscreteFeature) = run {
+    this.appendFeatures.add(feature.getFeature(this))
+    this
+}
+
+fun GGXDiscrete.prepend(feature: GGXDiscreteFeature) = run {
+    this.prependFeatures.add(feature.getFeature(this))
+    this
+}
+
 operator fun GGXDiscrete.plus(feature: GGXDiscreteFeature) = run {
     (if (feature.prepend)
         this.prependFeatures

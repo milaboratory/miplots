@@ -1,73 +1,51 @@
-@file:Suppress("ClassName")
-
 package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
-import jetbrains.letsPlot.Pos
-import jetbrains.letsPlot.geom.geomBoxplot
-import jetbrains.letsPlot.intern.layer.PosOptions
+import jetbrains.letsPlot.geom.geomViolin
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
+
 /**
- * Add box plot geometry & stat to the plot
+ * Add violin plot geometry & stat to the plot
  *
  * @param color Outline color
  * @param fill Fill color
+ * @param drawQuantiles list of float, optional.
+ *     Draw horizontal lines at the given quantiles of the density estimate.
+ * @param scale string, optional.
+ *     If 'area' (default), all violins have the same area.
+ *     If 'count', areas are scaled proportionally to the number of observations.
+ *     If 'width', all violins have the same maximum width.
  * @param aesMapping additional aes mapping
  */
-class ggBox(
+class ggDot(
+    alpha: Double? = null,
     /** Outline color */
     color: String? = null,
     /** Fill color */
     fill: String? = null,
-    width: Double? = null,
+    private val trim: Boolean = false,
+    private val scale: String? = null,
+    private val drawQuantiles: Any? = null,
     /** Additional mapping */
     aes: GGAes,
-    val position: PosOptions = Pos.dodge,
-    val outlierColor: Any? = null,
-    val outlierFill: Any? = null,
-    val outlierShape: Any? = 8,
-    val outlierSize: Number? = null,
-) : WithAes(color = color, fill = fill, width = width, aes = aes), GGXDiscreteFeature {
-    constructor(
-        color: String? = null,
-        fill: String? = null,
-        width: Double? = null,
-        position: PosOptions = Pos.dodge,
-        outlierShape: Any? = 8,
-        outlierColor: Any? = null,
-        outlierFill: Any? = null,
-        outlierSize: Number? = null,
-        aesMapping: GGAes.() -> Unit = {}
-    ) : this(
-        color, fill, width, GGAes().apply(aesMapping),
-        position = position,
-        outlierShape = outlierShape,
-        outlierColor = outlierColor,
-        outlierFill = outlierFill,
-        outlierSize = outlierSize,
-    )
-
+) : WithAes(alpha = alpha, color = color, fill = fill, aes = aes), GGXDiscreteFeature {
     override val prepend = true
-    override fun getFeature(base: GGXDiscrete) = run {
-        this.inheritColors(base)
-        geomBoxplot(
+    override fun getFeature(base: GGXDiscrete) =
+        geomViolin(
+            alpha = this.alpha,
             color = this.color,
             fill = this.fill,
-            width = this.width,
-            position = position,
-            outlierColor = outlierColor,
-            outlierFill = outlierFill,
-            outlierShape = outlierShape,
-            outlierSize = outlierSize,
+            drawQuantiles = this.drawQuantiles,
+            scale = this.scale,
+            trim = trim,
         ) {
             this.color = aes.color
             this.fill = aes.fill
         }
-    }
 }
 
 /**
@@ -84,24 +62,29 @@ class ggBox(
  * @param orientation Plot orientation
  * @param colorScale Color scale
  * @param fillScale Fill scale
+ * @param drawQuantiles list of float, optional.
+ *     Draw horizontal lines at the given quantiles of the density estimate.
+ * @param scale string, optional.
+ *     If 'area' (default), all violins have the same area.
+ *     If 'count', areas are scaled proportionally to the number of observations.
+ *     If 'width', all violins have the same maximum width.
  * @param aesMapping Aesthetics mapping
  *
- * */
-class GGBoxPlot(
+ */
+class GGDotPlot(
     data: AnyFrame, x: String, y: String,
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
+    alpha: Double? = null,
     color: String? = "#000000",
     fill: String? = null,
-    width: Double? = null,
+    private val trim: Boolean = false,
+    private val scale: String? = null,
+    private val drawQuantiles: Any? = null,
     orientation: Orientation = Orientation.Vertical,
     colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
     fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
-    val outlierColor: Any? = null,
-    val outlierFill: Any? = null,
-    val outlierShape: Any? = 8,
-    val outlierSize: Number? = null,
     val aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,
@@ -110,6 +93,7 @@ class GGBoxPlot(
     facetBy = facetBy,
     facetNCol = facetNCol,
     facetNRow = facetNRow,
+    alpha = alpha,
     color = color,
     fill = fill,
     orientation = orientation,
@@ -120,14 +104,13 @@ class GGBoxPlot(
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     /** base box plot */
-    override fun basePlot() = super.basePlot() + ggBox(
+    override fun basePlot() = super.basePlot() + ggViolin(
+        alpha = this.alpha,
         color = this.color,
         fill = this.fill,
-        width = this.width,
+        trim = this.trim,
+        drawQuantiles = drawQuantiles,
+        scale = this.scale,
         aes = aes,
-        outlierColor = outlierColor,
-        outlierFill = outlierFill,
-        outlierShape = outlierShape,
-        outlierSize = outlierSize,
     ).getFeature(this)
 }

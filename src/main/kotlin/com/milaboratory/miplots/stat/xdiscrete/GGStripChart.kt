@@ -46,7 +46,7 @@ class ggStrip(
         shape = this.shape,
         fill = this.fill,
         color = this.color,
-        position = position
+        position = this.position
     ) {
         this.fill = aes.fill
         this.color = aes.color
