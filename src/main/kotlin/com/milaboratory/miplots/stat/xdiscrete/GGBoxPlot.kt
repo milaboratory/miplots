@@ -19,12 +19,10 @@ import org.jetbrains.kotlinx.dataframe.AnyFrame
  * @param aesMapping additional aes mapping
  */
 class ggBox(
-    /** Outline color */
     color: String? = null,
-    /** Fill color */
     fill: String? = null,
+    alpha: Double? = null,
     width: Double? = null,
-    /** Additional mapping */
     aes: GGAes,
     val position: PosOptions = Pos.dodge,
     val outlierColor: Any? = null,
@@ -35,6 +33,7 @@ class ggBox(
     constructor(
         color: String? = null,
         fill: String? = null,
+        alpha: Double? = null,
         width: Double? = null,
         position: PosOptions = Pos.dodge,
         outlierShape: Any? = 8,
@@ -43,7 +42,7 @@ class ggBox(
         outlierSize: Number? = null,
         aesMapping: GGAes.() -> Unit = {}
     ) : this(
-        color, fill, width, GGAes().apply(aesMapping),
+        color, fill, alpha, width, GGAes().apply(aesMapping),
         position = position,
         outlierShape = outlierShape,
         outlierColor = outlierColor,
@@ -57,6 +56,7 @@ class ggBox(
         geomBoxplot(
             color = this.color,
             fill = this.fill,
+            alpha = this.alpha,
             width = this.width,
             position = position,
             outlierColor = outlierColor,
@@ -92,6 +92,7 @@ class GGBoxPlot(
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
+    alpha: Double? = null,
     color: String? = "#000000",
     fill: String? = null,
     width: Double? = null,
@@ -110,8 +111,10 @@ class GGBoxPlot(
     facetBy = facetBy,
     facetNCol = facetNCol,
     facetNRow = facetNRow,
+    alpha = alpha,
     color = color,
     fill = fill,
+    width = width,
     orientation = orientation,
     colorScale = colorScale,
     fillScale = fillScale,
@@ -124,6 +127,7 @@ class GGBoxPlot(
         color = this.color,
         fill = this.fill,
         width = this.width,
+        alpha = this.alpha,
         aes = aes,
         outlierColor = outlierColor,
         outlierFill = outlierFill,

@@ -5,6 +5,7 @@ package com.milaboratory.miplots.stat.xdiscrete
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.GGBase
+import com.milaboratory.miplots.stat.WithAes
 import com.milaboratory.miplots.stat.util.DescStatByRow
 import com.milaboratory.miplots.stat.util.NA
 import com.milaboratory.miplots.stat.util.descStatBy
@@ -163,6 +164,13 @@ open class GGXDiscrete(
         }
 
         plt
+    }
+
+    internal fun adjustAes(feature: WithAes) {
+        if (aes.color == null && feature.aes.color != null)
+            this += colorScale.colorScale(data[feature.aes.color!!].distinct().toList())
+        if (aes.fill == null && feature.aes.fill != null)
+            this += fillScale.fillScale(data[feature.aes.fill!!].distinct().toList())
     }
 
     /** base plot */

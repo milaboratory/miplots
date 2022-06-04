@@ -25,22 +25,22 @@ import org.jetbrains.kotlinx.dataframe.AnyFrame
  */
 class ggViolin(
     alpha: Double? = null,
-    /** Outline color */
     color: String? = null,
-    /** Fill color */
     fill: String? = null,
+    width: Double? = null,
     private val trim: Boolean = false,
     private val scale: String? = null,
     private val drawQuantiles: Any? = null,
     /** Additional mapping */
     aes: GGAes,
-) : WithAes(alpha = alpha, color = color, fill = fill, aes = aes), GGXDiscreteFeature {
+) : WithAes(alpha = alpha, color = color, fill = fill, width = width, aes = aes), GGXDiscreteFeature {
     override val prepend = true
     override fun getFeature(base: GGXDiscrete) =
         geomViolin(
             alpha = this.alpha,
             color = this.color,
             fill = this.fill,
+            width = this.width,
             drawQuantiles = this.drawQuantiles,
             scale = this.scale,
             trim = trim,
@@ -81,6 +81,7 @@ class GGViolinPlot(
     alpha: Double? = null,
     color: String? = "#000000",
     fill: String? = null,
+    width: Double? = null,
     private val trim: Boolean = false,
     private val scale: String? = null,
     private val drawQuantiles: Any? = null,
@@ -97,6 +98,7 @@ class GGViolinPlot(
     facetNRow = facetNRow,
     alpha = alpha,
     color = color,
+    width = width,
     fill = fill,
     orientation = orientation,
     colorScale = colorScale,
@@ -111,6 +113,7 @@ class GGViolinPlot(
         color = this.color,
         fill = this.fill,
         trim = this.trim,
+        width = this.width,
         drawQuantiles = drawQuantiles,
         scale = this.scale,
         aes = aes,

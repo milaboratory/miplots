@@ -1,5 +1,6 @@
 package com.milaboratory.miplots.stat
 
+import com.milaboratory.miplots.stat.xdiscrete.GGXDiscrete
 import jetbrains.datalore.plot.base.Aes
 import javax.xml.crypto.dsig.SignedInfo
 

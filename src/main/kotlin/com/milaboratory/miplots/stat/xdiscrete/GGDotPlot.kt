@@ -1,51 +1,55 @@
+@file:Suppress("ClassName")
+
 package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
-import jetbrains.letsPlot.geom.geomViolin
+import jetbrains.letsPlot.geom.geomYDotplot
+import jetbrains.letsPlot.intern.layer.PosOptions
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 
 
 /**
- * Add violin plot geometry & stat to the plot
+ * Add dot plot geometry & stat to the plot
  *
  * @param color Outline color
  * @param fill Fill color
- * @param drawQuantiles list of float, optional.
- *     Draw horizontal lines at the given quantiles of the density estimate.
- * @param scale string, optional.
- *     If 'area' (default), all violins have the same area.
- *     If 'count', areas are scaled proportionally to the number of observations.
- *     If 'width', all violins have the same maximum width.
- * @param aesMapping additional aes mapping
+ * @param aes additional aes
  */
 class ggDot(
     alpha: Double? = null,
-    /** Outline color */
     color: String? = null,
-    /** Fill color */
     fill: String? = null,
-    private val trim: Boolean = false,
-    private val scale: String? = null,
-    private val drawQuantiles: Any? = null,
-    /** Additional mapping */
+    val position: PosOptions? = null,
+    val stackGroups: Boolean? = null,
     aes: GGAes,
 ) : WithAes(alpha = alpha, color = color, fill = fill, aes = aes), GGXDiscreteFeature {
-    override val prepend = true
-    override fun getFeature(base: GGXDiscrete) =
-        geomViolin(
+    constructor(
+        alpha: Double? = null,
+        color: String? = null,
+        fill: String? = null,
+        position: PosOptions? = null,
+        stackGroups: Boolean? = null,
+        aesMapping: GGAes.() -> Unit = {}
+    ) : this(alpha, color, fill, position, stackGroups, GGAes().apply(aesMapping))
+
+    override val prepend = false
+    override fun getFeature(base: GGXDiscrete) = run {
+        inheritColors(base)
+        base.adjustAes(this)
+        geomYDotplot(
             alpha = this.alpha,
             color = this.color,
+            position = this.position,
+            stackGroups = this.stackGroups,
             fill = this.fill,
-            drawQuantiles = this.drawQuantiles,
-            scale = this.scale,
-            trim = trim,
         ) {
             this.color = aes.color
             this.fill = aes.fill
         }
+    }
 }
 
 /**
@@ -62,12 +66,6 @@ class ggDot(
  * @param orientation Plot orientation
  * @param colorScale Color scale
  * @param fillScale Fill scale
- * @param drawQuantiles list of float, optional.
- *     Draw horizontal lines at the given quantiles of the density estimate.
- * @param scale string, optional.
- *     If 'area' (default), all violins have the same area.
- *     If 'count', areas are scaled proportionally to the number of observations.
- *     If 'width', all violins have the same maximum width.
  * @param aesMapping Aesthetics mapping
  *
  */
@@ -79,9 +77,6 @@ class GGDotPlot(
     alpha: Double? = null,
     color: String? = "#000000",
     fill: String? = null,
-    private val trim: Boolean = false,
-    private val scale: String? = null,
-    private val drawQuantiles: Any? = null,
     orientation: Orientation = Orientation.Vertical,
     colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
     fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
@@ -104,13 +99,10 @@ class GGDotPlot(
     override val groupBy = filterGroupBy(aes.fill, aes.color)
 
     /** base box plot */
-    override fun basePlot() = super.basePlot() + ggViolin(
+    override fun basePlot() = super.basePlot() + ggDot(
         alpha = this.alpha,
         color = this.color,
         fill = this.fill,
-        trim = this.trim,
-        drawQuantiles = drawQuantiles,
-        scale = this.scale,
         aes = aes,
     ).getFeature(this)
 }

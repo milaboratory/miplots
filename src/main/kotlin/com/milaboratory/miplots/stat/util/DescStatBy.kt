@@ -27,13 +27,13 @@ fun descStatBy(data: AnyFrame, y: String, by: List<String>) = run {
         DescStatByRow::err.name to mutableListOf()
     )
     for (s in by) {
-        map.put(s, mutableListOf())
+        map[s] = mutableListOf()
     }
 
     for (df in data.groupBy(*by.toTypedArray()).groups.toList()) {
         val row = df.first()
         for (s in by) {
-            map[s]!!.add(row[s]!!)
+            map[s]!!.add(row[s])
         }
 
         val key = by.map { row[it].toString() }.dfKey()
