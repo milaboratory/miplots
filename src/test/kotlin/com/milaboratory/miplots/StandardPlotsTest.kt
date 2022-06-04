@@ -1,7 +1,5 @@
-package com.milaboratory.miplots.stat.xdiscrete
+package com.milaboratory.miplots
 
-import com.milaboratory.miplots.TestData
-import com.milaboratory.miplots.writePDF
 import jetbrains.letsPlot.intern.Plot
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -23,7 +21,7 @@ class StandardPlotsTest {
                 TestData.toothGrowth,
                 y = "len",
                 primaryGroup = "dose",
-            )
+            ).plot
         )
 
         list.add(
@@ -32,7 +30,7 @@ class StandardPlotsTest {
                 y = "len",
                 primaryGroup = "dose",
                 secondaryGroup = "supp"
-            )
+            ).plot
         )
 
         if (type.noGroupingAllowed)
@@ -48,7 +46,7 @@ class StandardPlotsTest {
                 TestData.myeloma,
                 y = "DEPDC1",
                 primaryGroup = "molecular_group"
-            )
+            ).plot
         )
 
         list.add(
@@ -57,7 +55,7 @@ class StandardPlotsTest {
                 y = "DEPDC1",
                 primaryGroup = "molecular_group",
                 secondaryGroup = "chr1q21_status"
-            )
+            ).plot
         )
 
         writePDF(
