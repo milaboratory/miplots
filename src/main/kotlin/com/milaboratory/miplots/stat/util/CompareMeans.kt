@@ -1,7 +1,10 @@
 package com.milaboratory.miplots.stat.util
 
 import com.milaboratory.miplots.formatPValue
-import org.apache.commons.math3.stat.inference.*
+import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest
+import org.apache.commons.math3.stat.inference.OneWayAnova
+import org.apache.commons.math3.stat.inference.TTest
+import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.*
@@ -253,12 +256,12 @@ enum class TestMethod(val multipleGroups: Boolean, val supportPaired: Boolean, v
             val a = arr[0]
             val b = arr[1]
             return if (a.size != b.size)
-                MannWhitneyUTest().mannWhitneyUTest(a, b)
+                MannWhitneyU().mannWhitneyUTest(a, b)
             else
                 return if (paired)
                     WilcoxonSignedRankTest().wilcoxonSignedRankTest(a, b, false)
                 else
-                    MannWhitneyUTest().mannWhitneyUTest(a, b)
+                    MannWhitneyU().mannWhitneyUTest(a, b)
         }
     },
     ANOVA(true, false, "Anova") {
