@@ -38,7 +38,7 @@ fun descStatBy(data: AnyFrame, y: String, by: List<String>) = run {
 
         val key = by.map { row[it].toString() }.dfKey()
         val stat = DescriptiveStatistics()
-        df[y].convertToDouble().castNotNull().forEach { stat.addValue(it) }
+        df[y].convertToDouble().castToNotNullable().forEach { stat.addValue(it) }
 
         map[DescStatByRow::key.name]!!.add(key)
         map[DescStatByRow::count.name]!!.add(stat.n)

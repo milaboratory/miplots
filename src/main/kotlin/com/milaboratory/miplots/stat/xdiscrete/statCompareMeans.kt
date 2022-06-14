@@ -81,7 +81,13 @@ private class StatCompareMeansFeature(
     val statData: StatCompareMeansData,
     val ops: StatCompareMeansOptions
 ) {
-    val textSize = ops.textSize ?: (1.5 * plt.yDelta)
+    val textSize = run {
+        val s = ops.textSize ?: (1.5 * plt.yDelta)
+        if (s.isNaN())
+            0.0
+        else
+            s
+    }
 
     private val mode: BoxPlotMode = run {
         if (plt.groupBy != null && plt.groupBy != plt.x) {

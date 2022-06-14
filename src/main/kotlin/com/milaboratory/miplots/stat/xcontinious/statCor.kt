@@ -141,8 +141,8 @@ class statCor(
     }
 
     private fun corr(base: GGScatter, data: AnyFrame) = run {
-        val xd = data[base.x].convertToDouble().castNotNull().toDoubleArray()
-        val yd = data[base.y].convertToDouble().castNotNull().toDoubleArray()
+        val xd = data[base.x].convertToDouble().castToNotNullable().toDoubleArray()
+        val yd = data[base.y].convertToDouble().castToNotNullable().toDoubleArray()
         if (xd.size <= 2 || yd.size <= 2)
             null
         else

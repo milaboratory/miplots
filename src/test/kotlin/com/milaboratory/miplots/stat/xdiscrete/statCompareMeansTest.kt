@@ -1,8 +1,9 @@
+@file:Suppress("ClassName", "MemberVisibilityCanBePrivate")
+
 package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.TestData.myeloma
 import com.milaboratory.miplots.TestData.toothGrowth
-import com.milaboratory.miplots.stat.xdiscrete.plusAssign
 import com.milaboratory.miplots.stat.util.RefGroup
 import com.milaboratory.miplots.stat.util.TestMethod
 import com.milaboratory.miplots.stat.xdiscrete.LabelFormat.Companion.Formatted

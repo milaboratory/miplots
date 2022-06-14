@@ -9,7 +9,7 @@ plugins {
     `maven-publish`
 
     kotlin("jvm") version "1.6.20"
-    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-rc-8"
+    id("org.jetbrains.kotlin.plugin.dataframe") version "0.8.0-dev-1037"
     id("com.palantir.git-version") version "0.13.0" // don't upgrade, latest version that runs on Java 8
 }
 
@@ -48,7 +48,7 @@ repositories {
 
 val letsPlotLibraryVersion = "2.3.0"
 val letsPlotKotlinApiVersion = "3.2.0"
-val dataframeVersion = "0.8.0-rc-8"
+val dataframeVersion = "0.8.0-dev-1037"
 
 dependencies {
     implementation(kotlin("stdlib"))
