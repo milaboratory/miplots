@@ -23,6 +23,8 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 GGBoxPlot(
@@ -50,12 +52,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGBoxPlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8
                 ) {
@@ -85,12 +91,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGBoxPlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8,
                     outlierSize = 0,
@@ -118,12 +128,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGViolinPlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8
                 ) {
@@ -147,12 +161,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGViolinPlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8
                 ) {
@@ -177,12 +195,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGBarPlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8,
                     position = positionDodge()
@@ -203,12 +225,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGBarPlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8
                 ) {
@@ -228,6 +254,8 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
 
@@ -235,6 +263,8 @@ object StandardPlots {
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     statFun = StatFun.MeanStdErr
                 ) {
@@ -257,6 +287,8 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
 
@@ -265,6 +297,8 @@ object StandardPlots {
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     statFun = StatFun.MeanStdErr
                 ) {
@@ -289,12 +323,16 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGLinePlot(
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     statFun = StatFun.MeanStdErr
                 ) {
@@ -318,6 +356,8 @@ object StandardPlots {
                 y: String,
                 primaryGroup: String,
                 secondaryGroup: String?,
+                primaryGroupValues: List<String>?,
+                secondaryGroupValues: List<String>?,
                 facetBy: String?
             ) = run {
                 val plt = GGScatter(
@@ -345,6 +385,8 @@ object StandardPlots {
             y: String,
             primaryGroup: String,
             secondaryGroup: String? = null,
+            primaryGroupValues: List<String>? = null,
+            secondaryGroupValues: List<String>? = null,
             facetBy: String? = null
         ): GGBase
     }

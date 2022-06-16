@@ -126,7 +126,11 @@ open class GGXDiscrete(
         if (xValues != null) {
             for (xval in xValues) {
                 if (!data.any { it[x] == xval })
-                    throw java.lang.IllegalArgumentException("$xval not found in the dataset")
+                    throw java.lang.IllegalArgumentException(
+                        "$xval not found in the dataset; available fields: ${
+                            data[x].distinct().toList()
+                        })"
+                    )
             }
 
             val xset = xValues.toSet()
@@ -140,7 +144,11 @@ open class GGXDiscrete(
             groupBy!!
             for (xval in groupByValues) {
                 if (!data.any { it[groupBy] == xval })
-                    throw java.lang.IllegalArgumentException("$xval not found in the dataset")
+                    throw java.lang.IllegalArgumentException(
+                        "$xval not found in the dataset; available fields: ${
+                            data[groupBy].distinct().toList()
+                        }"
+                    )
             }
 
             val xset = groupByValues.toSet()
