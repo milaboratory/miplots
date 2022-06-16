@@ -108,6 +108,7 @@ class GGPaired internal constructor(
     x = x,
     y = y,
     xValues = null,
+    groupByValues = null,
     facetBy = facetBy,
     facetNCol = facetNCol,
     facetNRow = facetNRow,

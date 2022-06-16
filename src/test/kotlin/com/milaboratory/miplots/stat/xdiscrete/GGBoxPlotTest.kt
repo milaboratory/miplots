@@ -133,4 +133,58 @@ internal class GGBoxPlotTest {
             plt3,
         )
     }
+
+    @Test
+    internal fun testGroupByValues() {
+        fun strip() = ggStrip(position = positionJitterDodge(jitterWidth = 0.2, dodgeWidth = 0.8)) {
+            color = "supp"
+        }
+
+        val plt1 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+            groupByValues = listOf("VC", "OJ")
+        ) {
+            color = "supp"
+        } + strip()
+
+        val plt2 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+            xValues = listOf("0.5", "2.0"),
+            groupByValues = listOf("VC", "OJ")
+        ) {
+            color = "supp"
+        } + strip()
+
+        val plt3 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+            xValues = listOf("2.0", "0.5"),
+            groupByValues = listOf("VC", "OJ")
+        ) {
+            color = "supp"
+        } + strip()
+
+        val plt4 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+            xValues = listOf("2.0", "0.5"),
+            groupByValues = listOf("OJ", "VC")
+        ) {
+            color = "supp"
+        } + strip()
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt1,
+            plt2,
+            plt3,
+            plt4
+        )
+    }
 }

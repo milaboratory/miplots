@@ -1,9 +1,5 @@
 package com.milaboratory.miplots.stat
 
-import com.milaboratory.miplots.stat.xdiscrete.GGXDiscrete
-import jetbrains.datalore.plot.base.Aes
-import javax.xml.crypto.dsig.SignedInfo
-
 /**
  * @param fill fill color
  * @param color outline color
@@ -37,6 +33,17 @@ open class GGAes(
         if (fill == null) fill = oth.fill
         if (color == null) color = oth.color
     }
+
+    val list
+        get() = listOf(
+            color,
+            fill,
+            shape,
+            linetype,
+            size,
+            width,
+            alpha,
+        )
 }
 
 abstract class WithAes internal constructor(

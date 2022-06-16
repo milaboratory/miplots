@@ -6,6 +6,7 @@ import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.GGBase
 import com.milaboratory.miplots.stat.WithAes
+import com.milaboratory.miplots.stat.isCategorial
 import com.milaboratory.miplots.stat.util.DescStatByRow
 import com.milaboratory.miplots.stat.util.NA
 import com.milaboratory.miplots.stat.util.descStatBy
@@ -36,6 +37,8 @@ open class GGXDiscrete(
     y: String,
     /** plot only for specific x values */
     val xValues: List<Any>?,
+    /** plot only for specific x values */
+    val groupByValues: List<Any>?,
     /** Organize data in facets */
     facetBy: String? = null,
     /** Number of columns in facet view */
@@ -112,6 +115,14 @@ open class GGXDiscrete(
         if (data[x].all { it is Double })
             throw IllegalArgumentException("x must be categorical")
 
+        val groupBy = aes.list.filterNotNull()
+            .filter { it != x }
+            .filter { data[it].isCategorial() }
+            .firstOrNull()
+
+        if (groupByValues != null && groupBy == null)
+            throw IllegalArgumentException("groupBy is null while groupByValues is not")
+
         if (xValues != null) {
             for (xval in xValues) {
                 if (!data.any { it[x] == xval })
@@ -123,6 +134,20 @@ open class GGXDiscrete(
             data = data
                 .filter { xset.contains(it[x]) }
                 .sortWith(Comparator.comparing { xmap[it[x]]!! })
+        }
+
+        if (groupByValues != null) {
+            groupBy!!
+            for (xval in groupByValues) {
+                if (!data.any { it[groupBy] == xval })
+                    throw java.lang.IllegalArgumentException("$xval not found in the dataset")
+            }
+
+            val xset = groupByValues.toSet()
+            val xmap = groupByValues.mapIndexed { i, v -> v to i }.toMap()
+            data = data
+                .filter { xset.contains(it[groupBy]) }
+                .sortWith(Comparator.comparing { xmap[it[groupBy]]!! })
         }
 
         xdist = data[x].distinct().toList()
