@@ -70,7 +70,10 @@ class ggDot(
  *
  */
 class GGDotPlot(
-    data: AnyFrame, x: String, y: String,
+    data: AnyFrame,
+    x: String,
+    y: String,
+    xValues: List<Any>? = null,
     facetBy: String? = null,
     facetNCol: Int? = null,
     facetNRow: Int? = null,
@@ -85,6 +88,7 @@ class GGDotPlot(
     _data = data,
     x = x,
     y = y,
+    xValues = xValues,
     facetBy = facetBy,
     facetNCol = facetNCol,
     facetNRow = facetNRow,

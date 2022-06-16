@@ -97,4 +97,40 @@ internal class GGBoxPlotTest {
             plt
         )
     }
+
+    @Test
+    internal fun testXValues() {
+        val plt1 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+        ) {
+            color = "dose"
+        } + ggStrip(position = positionJitterDodge(jitterWidth = 0.2))
+
+        val plt2 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+            xValues = listOf("0.5", "2.0")
+        ) {
+            color = "dose"
+        } + ggStrip(position = positionJitterDodge(jitterWidth = 0.2))
+
+        val plt3 = GGBoxPlot(
+            TestData.toothGrowth,
+            x = "dose",
+            y = "len",
+            xValues = listOf("2.0", "0.5")
+        ) {
+            color = "dose"
+        } + ggStrip(position = positionJitterDodge(jitterWidth = 0.2))
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt1,
+            plt2,
+            plt3,
+        )
+    }
 }

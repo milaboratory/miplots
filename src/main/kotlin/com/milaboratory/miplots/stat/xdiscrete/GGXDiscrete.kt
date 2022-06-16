@@ -34,6 +34,8 @@ open class GGXDiscrete(
     x: String,
     /** y series (continuous) */
     y: String,
+    /** plot only for specific x values */
+    val xValues: List<Any>?,
     /** Organize data in facets */
     facetBy: String? = null,
     /** Number of columns in facet view */
@@ -106,13 +108,27 @@ open class GGXDiscrete(
     internal val xnum: Map<Any?, Double>
 
     init {
-        if (_data[x].all { it is Double })
+        var data = _data
+        if (data[x].all { it is Double })
             throw IllegalArgumentException("x must be categorical")
 
-        xdist = _data[x].distinct().toList()
+        if (xValues != null) {
+            for (xval in xValues) {
+                if (!data.any { it[x] == xval })
+                    throw java.lang.IllegalArgumentException("$xval not found in the dataset")
+            }
+
+            val xset = xValues.toSet()
+            val xmap = xValues.mapIndexed { i, v -> v to i }.toMap()
+            data = data
+                .filter { xset.contains(it[x]) }
+                .sortWith(Comparator.comparing { xmap[it[x]]!! })
+        }
+
+        xdist = data[x].distinct().toList()
         xord = xdist.mapIndexed { i, v -> v to i }.toMap()
         xnum = xord.mapValues { (_, v) -> v.toDouble() }
-        this.data = _data
+        this.data = data
             .fillNA { cols(x, *listOfNotNull(facetBy).toTypedArray()) }
             .with { NA }
             .add(xNumeric) { xnum[it[x]]!! }
