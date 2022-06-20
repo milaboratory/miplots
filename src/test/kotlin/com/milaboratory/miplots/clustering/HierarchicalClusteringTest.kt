@@ -80,22 +80,22 @@ class HierarchicalClusteringTest {
 
         Assertions.assertEquals(4, tree.depth)
 
-        val expected = Node(4.12) {
-            Node(3.91) {
-                Node(2.69) {
-                    Node(2.12) {
-                        Node(0, 0.0)
-                        Node(1, 0.0)
+        val expected = Node(0.0) {
+            Node(4.12) {
+                Node(3.91) {
+                    Node(2.69) {
+                        Node(0, 2.12)
+                        Node(1, 2.12)
                     }
 
-                    Node(1.5) {
-                        Node(4, 0.0)
-                        Node(5, 0.0)
+                    Node(2.69) {
+                        Node(4, 1.5)
+                        Node(5, 1.5)
                     }
                 }
-                Node(2, 0.0)
+                Node(2, 3.91)
             }
-            Node(3, 0.0)
+            Node(3, 4.12)
         }
 
         Assertions.assertEquals(expected, tree)
