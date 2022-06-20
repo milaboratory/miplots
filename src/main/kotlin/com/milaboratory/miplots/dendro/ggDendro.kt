@@ -1,27 +1,30 @@
+@file:Suppress("LocalVariableName")
+
 package com.milaboratory.miplots.dendro
 
-import com.milaboratory.miplots.FeatureWrapper
-import com.milaboratory.miplots.Position
+import com.milaboratory.miplots.*
 import com.milaboratory.miplots.Position.*
+import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.dendro.Alignment.Horizontal
 import com.milaboratory.miplots.dendro.Alignment.Vertical
-import com.milaboratory.miplots.plus
-import com.milaboratory.miplots.themeBlank
+import jetbrains.letsPlot.coordFixed
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomPolygon
 import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.intern.FeatureList
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.sampling.samplingNone
+import jetbrains.letsPlot.scale.xlim
+import jetbrains.letsPlot.scale.ylim
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 internal class DataBuilder {
-    val result: Map<String, List<Any?>> get() = accumulator
-    private val accumulator = mutableMapOf<String, MutableList<Any?>>()
+    val result: Map<Any, List<Any?>> get() = accumulator
+    private val accumulator = mutableMapOf<Any, MutableList<Any?>>()
 
-    fun add(record: Map<String, Any>) {
+    fun add(record: Map<Any, Any?>) {
         val numberOfRecords = accumulator.values.firstOrNull()?.size ?: 0
         val unionKeys = accumulator.keys + record.keys
         unionKeys.forEach { key ->
@@ -29,7 +32,7 @@ internal class DataBuilder {
         }
     }
 
-    fun add(vararg pairs: Pair<String, Any>) = run {
+    fun add(vararg pairs: Pair<Any, Any?>) = run {
         add(pairs.toMap())
         this
     }
@@ -325,17 +328,23 @@ internal class GeomDendroLayer(
     // data
     val showNodes: Boolean,
     val showEdges: Boolean,
-    val nodesData: Map<String, List<Any?>>,
-    val edgesData: Map<String, List<Any?>>,
+    val nodesData: Map<Any, List<Any?>>,
+    val edgesData: Map<Any, List<Any?>>,
     // nodes
     val shape: Any?,
     val color: Any?,
     val fill: Any?,
+    val sizeUnit: String?,
     val size: Double?,
     //edges
     val linetype: Any?,
     val linewidth: Double?,
     val linecolor: Any?,
+    //override size
+    val xlim: Any?,
+    val ylim: Any?,
+    // coord ratio
+    val ratio: Double?,
     //aes
     val aes: DendroAes,
 ) : FeatureWrapper {
@@ -360,8 +369,8 @@ internal class GeomDendroLayer(
         shape = shape,
         color = color,
         fill = fill,
-        size = size,
-        sizeUnit = "x",
+        size = if (aes.size == null) size else null,
+        sizeUnit = if (aes.size == null) sizeUnit else null,
         sampling = samplingNone
     ) {
         x = DendroVar.nx
@@ -372,12 +381,18 @@ internal class GeomDendroLayer(
         size = aes.size
     }
 
+
     override val feature = run {
         var f: Feature = FeatureList(emptyList())
         if (showEdges)
             f += edgesLayer
         if (showNodes)
             f += nodesLayer
+        if (xlim != null)
+            f += xlim(xlim)
+        if (ylim != null)
+            f += ylim(ylim)
+        f += coordFixed(ratio = ratio)
         f
     }
 }
@@ -414,10 +429,8 @@ fun geomDendro(
     linewidthY: Double? = null,
     linecolor: Any? = null,
     // aes
-    aesMapping: DendroAes.() -> Unit = {}
+    aes: DendroAes = DendroAes()
 ): FeatureWrapper = run {
-    val aes = DendroAes().apply(aesMapping)
-
     var xy = Layout.Knuth(tree.xy())
     if (rpos == Top || rpos == Right)
         xy = xy.flipY()
@@ -430,15 +443,29 @@ fun geomDendro(
 
     val imposedLeafY = if (balanced) xy.leafY else null
 
-    val _linewidthX = linewidth ?: (xy.width / xy.node.leafCount / 10)
-    val _linewidthY = linewidthY ?: abs(_linewidthX * xy.height / xy.width)
-    val sizeActual = size ?: (1.1 * _linewidthX)
+    val lwx = linewidth ?: xy.width.let {
+        if (it != 0.0)
+            xy.width / xy.node.leafCount / 5
+        else
+            xy.height / 10
+    }
+    val lwy = linewidthY ?: xy.width.let {
+        if (it != 0.0)
+            abs(lwx * xy.height / it)
+        else
+            lwx
+    }
+    val xlim = if (xy.width == 0.0 && rpos.isTopBottom) -10 * lwx to 10 * lwx else null
+    val ylim = if (xy.width == 0.0 && rpos.isLeftRight) -10 * lwy to 10 * lwy else null
+
+    val sizeUnit = if (rpos.isTopBottom) "x" else "y"
+    val sizeActual = (size ?: 2.0) * lwx
 
     val dbNodes = DataBuilder()
     val dbEdges = DataBuilder()
 
     xy.addNodesData(dbNodes, rpos.alignment, imposedLeafY)
-    xy.addEdgesData(dbEdges, ctype, einh, rpos, imposedLeafY, _linewidthX, _linewidthY, 0)
+    xy.addEdgesData(dbEdges, ctype, einh, rpos, imposedLeafY, lwx, lwy, 0)
 
     GeomDendroLayer(
         showNodes = showNodes,
@@ -449,12 +476,16 @@ fun geomDendro(
         shape = shape,
         color = color,
         fill = fill,
+        sizeUnit = sizeUnit,
         size = sizeActual,
 
         linetype = linetype,
         linewidth = linewidth,
         linecolor = linecolor,
 
+        xlim = xlim,
+        ylim = ylim,
+        ratio = if (rpos.isTopBottom) lwx / lwy else lwy / lwx,
         aes = aes,
     )
 }
@@ -484,6 +515,7 @@ fun ggDendro(
     // aes
     aesMapping: DendroAes.() -> Unit = {}
 ) = run {
+    val aes = DendroAes().apply(aesMapping)
     var plt = letsPlot()
     plt += geomDendro(
         tree = tree,
@@ -508,9 +540,13 @@ fun ggDendro(
         balanced = balanced,
         coord = coord,
         height = height,
-        aesMapping = aesMapping,
+        aes = aes,
     )
-    plt += themeBlank()
+    plt += themeBlank().legendPositionRight()
+    if (aes.color != null)
+        plt += Palletes.Categorical.auto.colorScale(
+            tree.toList().map { it.metadata[aes.color] }.distinct().filterNotNull()
+        )
     plt
 }
 

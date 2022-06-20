@@ -52,10 +52,10 @@ class Children<T> : ChildrenReceiver<T> {
 
 data class Node<T>(
     val id: T?,
-    /** distance to children */
+    /** distance to parent */
     val height: Double,
     val children: List<Node<T>>,
-    val metadata: Map<String, Any>
+    val metadata: Map<Any, Any?>
 ) {
     val leftmost get() = children.firstOrNull()
     val rightmost get() = children.lastOrNull()
@@ -83,6 +83,8 @@ data class Node<T>(
     val totalHeight: Double by lazy {
         height + (children.maxOfOrNull { it.totalHeight } ?: 0.0)
     }
+
+    fun toList(): List<Node<T>> = listOf(this) + children.flatMap { it.toList() }
 
     companion object {
         operator fun <T> invoke(

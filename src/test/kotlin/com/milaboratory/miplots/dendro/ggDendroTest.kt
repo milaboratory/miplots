@@ -12,20 +12,22 @@ import jetbrains.letsPlot.themeClassic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
+import java.util.*
+import kotlin.math.abs
 
 /**
  *
  */
 internal class ggDendroTest {
     private val tree =
-        Node(4.0, "age" to "12", "sex" to "m") {
+        Node(0.0, "age" to "12", "sex" to "m") {
             Node(1.5, "age" to "10", "sex" to "m") {
                 Node(1.5, "age" to "10", "sex" to "m")
                 Node(1.5, "age" to "10", "sex" to "m")
             }
             Node(2.1, "age" to "11", "sex" to "f") {
                 Node(1.5, "age" to "10", "sex" to "m")
-                Node(1.5, "age" to "10", "sex" to "m")
+                Node(5.5, "age" to "10", "sex" to "m")
             }
         }
 
@@ -93,6 +95,17 @@ internal class ggDendroTest {
     }
 
     @Test
+    internal fun testImposeX2() {
+        val coord = listOf(12.0, 50.0, 79.0, 211.0)
+        val plt = ggDendro(tree, coord = coord, rpos = Left) + themeClassic()
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plt
+        )
+    }
+
+    @Test
     internal fun testHeight() {
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
         val plt = ggDendro(tree, coord = coord, height = 2.0, rpos = Left) + themeClassic()
@@ -122,10 +135,10 @@ internal class ggDendroTest {
 
     @Test
     internal fun testTrivial() {
-        val tree1 = Node(1.0) {
-            Node(0.0)
-            Node(0.0)
-            Node(0.0)
+        val tree1 = Node(0.0) {
+            Node(1.0)
+            Node(1.0)
+            Node(1.0)
         }
 
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
@@ -227,6 +240,206 @@ internal class ggDendroTest {
         val plots = Position.values().map { pos ->
             ggDendro(tree, ctype = Rectangle, coord = coord, rpos = pos, linewidth = 10.0) + themeClassic()
         }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testRShift() {
+        val tree =
+            Node(0.0) {
+                Node(1.0) {
+                    Node(1.5)
+                    Node(2.5)
+                }
+                Node(2.0) {
+                    Node(2.5)
+                    Node(3.5)
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            ggDendro(tree, ctype = Rectangle, rshift = tree.totalHeight, rpos = pos) + themeClassic()
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testRShiftHeight() {
+        val tree =
+            Node(0.0) {
+                Node(1.0) {
+                    Node(1.5)
+                    Node(2.5)
+                }
+                Node(2.0) {
+                    Node(2.5)
+                    Node(3.5)
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            ggDendro(tree, ctype = Rectangle, rshift = tree.totalHeight, height = 1.0, rpos = pos) + themeClassic()
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testSingleChild1() {
+        val tree =
+            Node(0.0) {
+                Node(1.0) {
+                    Node(1.5)
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            ggDendro(tree, ctype = Rectangle, height = 1.0, rpos = pos) + themeClassic()
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testSingleChild2() {
+        val tree =
+            Node(0.0) {
+                Node(1.0) {
+                    Node(1.5)
+                    Node(3.5)
+                }
+                Node(1.0) {
+                    Node(4.0)
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            ggDendro(tree, ctype = Rectangle, height = 1.0, rpos = pos) + themeClassic()
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testColor() {
+        val igg = "igg"
+        val igm = "igm"
+        val iga = "iga"
+        val isotype = "isotype"
+
+        val tree =
+            Node(0.0, isotype to igg) {
+                Node(1.0, isotype to igg) {
+                    Node(1.5, isotype to igm)
+                    Node(3.5, isotype to iga)
+                }
+                Node(1.0, isotype to iga) {
+                    Node(4.0, isotype to igm)
+                    Node(4.0, isotype to igm)
+                }
+            }
+
+        val plots =
+            ggDendro(tree, height = 1.0, linewidth = 0.05, size = 0.2, linecolor = "#aaaaaa") {
+                color = isotype
+            }
+
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testBig1() {
+        val igg = "igg"
+        val igm = "igm"
+        val iga = "iga"
+        val isotype = "isotype"
+        val abundance = "abundance"
+
+        val rnd = Random()
+        fun ab() = Math.log10(1.0 + ( abs(rnd.nextInt()) % 10))
+        val tree =
+            Node(0.0, isotype to igg, abundance to ab()) {
+                Node(1.0, isotype to igg, abundance to ab()) {
+                    Node(1.5, isotype to igm, abundance to ab()) {
+                        Node(13.5, isotype to iga, abundance to ab())
+                        Node(23.5, isotype to iga, abundance to ab())
+                        Node(34.5, isotype to igm, abundance to ab()) {
+                            Node(13.5, isotype to iga, abundance to ab())
+                            Node(1.5, isotype to igg, abundance to ab())
+                        }
+                    }
+                    Node(3.5, isotype to iga, abundance to 3.0)
+                }
+                Node(1.0, isotype to iga, abundance to 3.0) {
+                    Node(4.0, isotype to igm, abundance to 3.0)
+                    Node(4.0, isotype to igm, abundance to 3.0) {
+                        Node(24.0, isotype to igm, abundance to 3.0)
+                        Node(4.0, isotype to igm, abundance to 3.0) {
+                            Node(4.0, isotype to igg, abundance to 3.0)
+                            Node(14.0, isotype to iga, abundance to 3.0) {
+                                Node(3.0, isotype to igg, abundance to 3.0)
+                                Node(3.0, isotype to igm, abundance to 3.0)
+                                Node(3.0, isotype to igm, abundance to 3.0)
+                            }
+                        }
+                    }
+
+                    Node(1.0, isotype to igm, abundance to 3.0) {
+                        Node(4.0, isotype to igm, abundance to 3.0)
+                        Node(4.0, isotype to igm, abundance to 3.0) {
+                            Node(14.0, isotype to iga, abundance to ab())
+                            Node(41.0, isotype to igg, abundance to ab())
+                            Node(14.0, isotype to iga, abundance to ab())
+                            Node(41.0, isotype to igg, abundance to ab())
+                            Node(41.0, isotype to igg, abundance to ab()) {
+                                Node(14.0, isotype to igg, abundance to ab())
+                                Node(41.0, isotype to igm, abundance to ab())
+                                Node(14.0, isotype to iga, abundance to ab()) {
+                                    Node(3.0, isotype to igg, abundance to ab())
+                                    Node(3.0, isotype to igm, abundance to ab())
+                                    Node(3.0, isotype to igm, abundance to ab())
+                                }
+                            }
+                            Node(14.0, isotype to iga, abundance to 3.0) {
+                                Node(3.0, isotype to igg, abundance to ab())
+                                Node(3.0, isotype to igm, abundance to ab())
+                                Node(3.0, isotype to igm, abundance to ab())
+                            }
+                        }
+                    }
+                }
+            }
+
+        val plots =
+            ggDendro(
+                tree,
+                rpos = Left,
+                linecolor = "#aaaaaa"
+            ) {
+                color = isotype
+                size = abundance
+            }
 
         writePDF(
             Paths.get("scratch/bp.pdf"),

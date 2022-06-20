@@ -9,7 +9,7 @@ import kotlin.math.min
 private fun Node<*>.xy(y: Double, depth: Int): XYNode {
     return XYNode(this,
         -1.0,
-        y,
+        y + height,
         depth,
         children.map { it.xy(y + height, depth + 1) }
     )
@@ -27,7 +27,8 @@ internal data class XYNode constructor(
     val leftmost get() = children.firstOrNull()
     val rightmost get() = children.lastOrNull()
     val isLeaf get() = children.isEmpty()
-    val height get() = node.totalHeight
+    val height get() = heightOverride ?: node.totalHeight
+    internal var heightOverride: Double? = null
     val xmin: Double get() = min(x, children.minOfOrNull { it.xmin } ?: 0.0)
     val xmax: Double get() = max(x, children.maxOfOrNull { it.xmax } ?: 0.0)
     val ymin: Double get() = min(y, children.minOfOrNull { it.ymin } ?: 0.0)
@@ -36,6 +37,15 @@ internal data class XYNode constructor(
     private val leftmostRecursive: XYNode? get() = if (isLeaf) this else leftmost?.leftmostRecursive
     private val righttmostRecursive: XYNode? get() = if (isLeaf) this else rightmost?.righttmostRecursive
     val width get() = abs((leftmostRecursive?.x ?: 0.0) - (righttmostRecursive?.x ?: 0.0))
+}
+
+internal fun XYNode.mapMetadata(column: Any, f: (Any?) -> Any?): XYNode = run {
+    copy(
+        node = node.copy(
+            metadata = node.metadata + (column to f(node.metadata[column]))
+        ),
+        children = children.map { it.mapMetadata(column, f) }
+    )
 }
 
 internal val XYNode.leafY: Double
@@ -80,7 +90,11 @@ internal fun XYNode.imposeX(coord: List<Double>, center: Boolean, iLeaf: Int): P
         copy(x = newX, children = newChildren) to nextLeaf
     }
 
-internal fun XYNode.scaleHeight(height: Double): XYNode = mulHeight(height / this.height)
+internal fun XYNode.scaleHeight(height: Double): XYNode = run {
+    val r = mulHeight(height / this.height)
+    r.heightOverride = height
+    r
+}
 
 private fun XYNode.mulHeight(factor: Double): XYNode = copy(
     y = y * factor,
@@ -134,7 +148,6 @@ internal object Layout {
                 depth = depth
             )
 
-
         val newChildren = mutableListOf<XYNode>()
         val xdata = mutableListOf<Int>()
         var i = iSeed - 1
@@ -145,8 +158,14 @@ internal object Layout {
             newChildren += r.second
         }
 
+        val x =
+            if (xy.children.size == 1)
+                newChildren[0].x
+            else
+                xdata[(xdata.size - 1) / 2].toDouble()
+
         return i to xy.copy(
-            x = xdata[(xdata.size - 1) / 2].toDouble(),
+            x = x,
             depth = depth,
             children = newChildren
         )
