@@ -2,6 +2,7 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.Orientation
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.GGBase
@@ -23,11 +24,6 @@ import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.*
 import kotlin.math.abs
-
-enum class Orientation {
-    Vertical,
-    Horizontal
-}
 
 open class GGXDiscrete(
     _data: AnyFrame,

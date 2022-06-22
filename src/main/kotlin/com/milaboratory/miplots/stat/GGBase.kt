@@ -3,7 +3,7 @@ package com.milaboratory.miplots.stat
 import com.milaboratory.miplots.PlotWrapper
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.color.Palletes
-import com.milaboratory.miplots.stat.xdiscrete.Orientation
+import com.milaboratory.miplots.Orientation
 import jetbrains.letsPlot.intern.layer.PosOptions
 import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.DataColumn

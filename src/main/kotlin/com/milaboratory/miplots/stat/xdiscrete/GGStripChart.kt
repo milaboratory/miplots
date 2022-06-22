@@ -2,6 +2,7 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.Orientation
 import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes

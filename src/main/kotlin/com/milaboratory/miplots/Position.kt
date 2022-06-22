@@ -7,3 +7,5 @@ enum class Position { Top, Right, Bottom, Left }
 
 val Position.isTopBottom get() = (this == Top) || (this == Bottom)
 val Position.isLeftRight get() = !isTopBottom
+
+enum class Orientation { Vertical, Horizontal }

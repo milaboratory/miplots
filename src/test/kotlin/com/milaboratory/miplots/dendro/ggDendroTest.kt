@@ -377,7 +377,7 @@ internal class ggDendroTest {
         val abundance = "abundance"
 
         val rnd = Random()
-        fun ab() = Math.log10(1.0 + ( abs(rnd.nextInt()) % 10))
+        fun ab() = Math.log10(1.0 + (abs(rnd.nextInt()) % 10))
         val tree =
             Node(0.0, isotype to igg, abundance to ab()) {
                 Node(1.0, isotype to igg, abundance to ab()) {
@@ -435,11 +435,99 @@ internal class ggDendroTest {
             ggDendro(
                 tree,
                 rpos = Left,
-                linecolor = "#aaaaaa"
+                linecolor = "#aaaaaa",
+                alpha = 0.5
             ) {
                 color = isotype
                 size = abundance
             }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testLabels() {
+        val igg = "igg"
+        val igm = "igm"
+        val iga = "iga"
+        val isotype = "isotype"
+        val label = "label"
+
+        val tree =
+            Node(0.0, isotype to igg) {
+                Node(1.0, isotype to igg) {
+                    Node(1.5, isotype to igm, label to "A")
+                    Node(3.5, isotype to iga, label to "B")
+                }
+                Node(1.0, isotype to iga) {
+                    Node(4.0, isotype to igm, label to "C")
+                    Node(4.0, isotype to igm, label to "asdfas")
+                }
+            }
+
+        val plots = Position.values().flatMap { pos ->
+            listOf(0.0, 45, 90.0).map { angle ->
+                ggDendro(
+                    tree,
+                    rpos = pos,
+                    height = 1.0,
+                    linewidth = 0.05,
+                    size = 2.0,
+                    angle = angle,
+                    linecolor = "#aaaaaa"
+                ) {
+                    color = isotype
+                    this.label = label
+                }
+            }
+        }
+
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testLabelBorder() {
+        val igg = "igg"
+        val igm = "igm"
+        val iga = "iga"
+        val isotype = "isotype"
+        val label = "label"
+
+        val tree =
+            Node(0.0, isotype to igg) {
+                Node(1.0, isotype to igg) {
+                    Node(1.5, isotype to igm, label to "A")
+                    Node(3.5, isotype to iga, label to "B")
+                }
+                Node(1.0, isotype to iga) {
+                    Node(4.0, isotype to igm, label to "C")
+                    Node(4.0, isotype to igm, label to "D")
+                }
+            }
+
+        val plots = Position.values().flatMap { pos ->
+            listOf(0.0, 45, 90.0).map { angle ->
+                ggDendro(
+                    tree,
+                    rpos = pos,
+                    height = 1.0,
+                    linewidth = 0.05,
+                    size = 2.0,
+                    angle = angle,
+                    linecolor = "#aaaaaa"
+                ) {
+                    color = isotype
+                    this.label = label
+                } + themeClassic()
+            }
+        }
 
         writePDF(
             Paths.get("scratch/bp.pdf"),

@@ -4,7 +4,7 @@ import com.milaboratory.miplots.color.DiscreteColorMapping
 import com.milaboratory.miplots.color.Palletes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.GGBase
-import com.milaboratory.miplots.stat.xdiscrete.Orientation
+import com.milaboratory.miplots.Orientation
 import jetbrains.letsPlot.facet.facetWrap
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.letsPlot
