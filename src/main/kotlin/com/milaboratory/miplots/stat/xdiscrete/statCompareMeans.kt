@@ -328,7 +328,7 @@ private class StatCompareMeansFeature(
             plt.y to yVals
         )
         if (facet != null)
-            data += plt.facetBy!! to listOf(facet)
+            data += plt.facetBy!! to List(labels.size) { facet }
 
         geomText(
             data,
