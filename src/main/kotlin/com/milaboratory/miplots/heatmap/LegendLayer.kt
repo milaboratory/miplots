@@ -1,5 +1,6 @@
 package com.milaboratory.miplots.heatmap
 
+import com.milaboratory.miplots.MiFonts
 import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.formatPValue
@@ -65,7 +66,8 @@ fun Heatmap.withFillLegend(
         vjust = vjust,
         angle = angle,
         size = textSize,
-        sizeUnit = sizeUnit
+        sizeUnit = sizeUnit,
+        family = MiFonts.monospace
     )
 
     // tiles
@@ -172,6 +174,7 @@ fun Heatmap.withFillLegend(
         sizeUnit = sizeUnit,
         hjust = lhjust,
         vjust = lvjust,
+        family = MiFonts.monospace
     ) {
         x = "x"
         y = "y"
@@ -315,7 +318,8 @@ internal fun Heatmap.mkColorKeyLegend(
         sizeUnit = sizeUnit,
         fontface = "bold",
         hjust = "left",
-        vjust = "top"
+        vjust = "top",
+        family = MiFonts.monospace
     )
 
     // tiles
@@ -340,7 +344,8 @@ internal fun Heatmap.mkColorKeyLegend(
             size = textSize,
             sizeUnit = sizeUnit,
             hjust = "left",
-            vjust = "center"
+            vjust = "center",
+            family = MiFonts.monospace
         )
         i += 1
     }

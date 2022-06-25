@@ -1,9 +1,10 @@
 package com.milaboratory.miplots.heatmap
 
+import com.milaboratory.miplots.MiFonts
 import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.geom.geomTile
 import jetbrains.letsPlot.intern.Feature
@@ -18,7 +19,7 @@ fun Heatmap.withColorKey(
     labelSep: Double = 0.0,
     labelSize: Double? = 0.0,
     labelAngle: Number? = 0.0,
-    pallete: DiscreteColorMapping = Palletes.Categorical.auto,
+    pallete: DiscreteColorMapping = Palettes.Categorical.auto,
     textSize: Number? = defTextSize,
     sizeUnit: String = defSizeUnit
 ) = run {
@@ -87,7 +88,8 @@ fun Heatmap.withColorKey(
                 vjust = vjust,
                 hjust = hjust,
                 size = textSize,
-                sizeUnit = sizeUnit
+                sizeUnit = sizeUnit,
+                family = MiFonts.monospace
             )
         )
     }

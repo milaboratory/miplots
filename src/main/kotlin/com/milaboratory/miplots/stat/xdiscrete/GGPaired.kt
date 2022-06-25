@@ -4,7 +4,7 @@ package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.Orientation
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.stat.GGAes
 import jetbrains.letsPlot.geom.geomBoxplot
 import jetbrains.letsPlot.geom.geomPath
@@ -29,8 +29,8 @@ fun GGPaired(
     lineColor: Any? = "black",
     linetype: String? = "solid",
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
-    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    colorScale: DiscreteColorMapping = Palettes.Diverging.viridis2magma,
+    fillScale: DiscreteColorMapping = Palettes.Diverging.viridis2magma,
     aesMapping: GGAes.() -> Unit = {}
 ) = run {
     val _data: AnyFrame
@@ -101,8 +101,8 @@ class GGPaired internal constructor(
     val lineColor: Any?,
     linetype: String?,
     orientation: Orientation,
-    colorScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
-    fillScale: DiscreteColorMapping = Palletes.Diverging.viridis2magma,
+    colorScale: DiscreteColorMapping = Palettes.Diverging.viridis2magma,
+    fillScale: DiscreteColorMapping = Palettes.Diverging.viridis2magma,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

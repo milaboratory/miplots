@@ -1,7 +1,7 @@
 package com.milaboratory.miplots.stat.xcontinious
 
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.GGBase
 import com.milaboratory.miplots.Orientation
@@ -30,8 +30,8 @@ class GGScatter(
     size: Number? = null,
     alpha: Double? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
-    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    colorScale: DiscreteColorMapping = Palettes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palettes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGBase(
     x = x,

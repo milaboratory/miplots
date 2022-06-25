@@ -4,7 +4,7 @@ package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.Orientation
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
 import jetbrains.letsPlot.Pos
@@ -89,8 +89,8 @@ class GGStripChart(
     size: Double? = null,
     position: PosOptions = positionJitterDodge(dodgeWidth = 0.2, jitterWidth = 0.2),
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
-    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    colorScale: DiscreteColorMapping = Palettes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palettes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

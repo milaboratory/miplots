@@ -1,5 +1,6 @@
 package com.milaboratory.miplots.heatmap
 
+import com.milaboratory.miplots.MiFonts
 import com.milaboratory.miplots.Position
 import jetbrains.letsPlot.geom.geomText
 
@@ -27,7 +28,8 @@ fun Heatmap.withLabels(
         vjust = pdata.vjust,
         hjust = pdata.hjust,
         size = textSize,
-        sizeUnit = sizeUnit
+        sizeUnit = sizeUnit,
+        family = MiFonts.monospace
     ) {
         this.x = "x"
         this.y = "y"

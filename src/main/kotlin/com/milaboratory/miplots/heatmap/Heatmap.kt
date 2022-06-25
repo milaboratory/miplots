@@ -5,7 +5,7 @@ package com.milaboratory.miplots.heatmap
 import com.milaboratory.miplots.PlotWrapper
 import com.milaboratory.miplots.clustering.HierarchicalClustering
 import com.milaboratory.miplots.clustering.asTree
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.color.UniversalPalette
 import com.milaboratory.miplots.dendro.Node
 import com.milaboratory.miplots.dendro.leaves
@@ -59,7 +59,7 @@ class Heatmap(
     val yOrder: Order? = null,
     val fillNoValue: Boolean = true,
     val noValue: Any? = null,
-    val fillPalette: UniversalPalette = Palletes.Diverging.viridis2magma
+    val fillPalette: UniversalPalette = Palettes.Diverging.viridis2magma
 ) : PlotWrapper {
     companion object {
         private fun toDouble(v: Any?, alt: Double = NaN): Double = run {

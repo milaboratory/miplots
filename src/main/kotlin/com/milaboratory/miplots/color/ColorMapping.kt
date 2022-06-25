@@ -10,7 +10,7 @@ interface ContinuousColorMapping {
 }
 
 interface DiscreteColorMapping {
-    fun <T> mkMap(objects: List<T?>): Map<T?, Color>
+    fun <T> mkMap(objects: List<T?>, loop: Boolean = false): Map<T?, Color>
 
     fun <T> mkMapping(objects: List<T?>): (T?) -> Color {
         val map = mkMap(objects)

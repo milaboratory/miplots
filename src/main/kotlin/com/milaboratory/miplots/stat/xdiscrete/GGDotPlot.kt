@@ -4,7 +4,7 @@ package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.Orientation
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
 import jetbrains.letsPlot.geom.geomYDotplot
@@ -83,8 +83,8 @@ class GGDotPlot(
     color: String? = "#000000",
     fill: String? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
-    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    colorScale: DiscreteColorMapping = Palettes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palettes.Categorical.auto,
     val aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

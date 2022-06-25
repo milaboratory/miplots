@@ -2,7 +2,7 @@ package com.milaboratory.miplots.heatmap
 
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.TestData
-import com.milaboratory.miplots.color.Palletes.Categorical
+import com.milaboratory.miplots.color.Palettes.Categorical
 import com.milaboratory.miplots.writePDF
 import jetbrains.letsPlot.ggsize
 import org.jetbrains.kotlinx.dataframe.api.*

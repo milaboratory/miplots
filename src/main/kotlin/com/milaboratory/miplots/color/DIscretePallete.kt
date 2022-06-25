@@ -5,18 +5,18 @@ import jetbrains.datalore.base.values.Color
 /**
  *
  */
-class DiscretePallete(val colors: List<Color>) : DiscreteColorMapping {
+class DiscretePalette(val colors: List<Color>) : DiscreteColorMapping {
     val nColors = colors.size
 
-    override fun <T> mkMap(objects: List<T?>): Map<T?, Color> {
-        if (objects.size > colors.size)
+    override fun <T> mkMap(objects: List<T?>, loop: Boolean): Map<T?, Color> {
+        if (!loop && objects.size > colors.size)
             throw IllegalArgumentException("not enough colors")
-        return objects.mapIndexed { i, e -> e to colors[i] }.toMap()
+        return objects.mapIndexed { i, e -> e to colors[i % colors.size] }.toMap()
     }
 
     companion object {
-        operator fun invoke(vararg colors: String) = DiscretePallete(colors.map { Color.parseHex(it) })
+        operator fun invoke(vararg colors: String) = DiscretePalette(colors.map { Color.parseHex(it) })
     }
 
-    fun shift(n: Int) = DiscretePallete(colors.drop(n))
+    fun shift(n: Int) = DiscretePalette(colors.drop(n))
 }

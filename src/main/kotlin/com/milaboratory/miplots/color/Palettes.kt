@@ -6,9 +6,9 @@ import jetbrains.datalore.base.values.Color
 /**
  *
  */
-object Palletes {
+object Palettes {
     object Categorical {
-        val Triadic27 = DiscretePallete(
+        val Triadic27 = DiscretePalette(
             "#99E099", "#42B842", "#198020",
             "#C1ADFF", "#845CFF", "#5F31CC",
             "#FFCB8F", "#FF9429", "#C26A27",
@@ -20,7 +20,7 @@ object Palletes {
             "#D3D7E0", "#929BAD", "#5E5E70"
         )
 
-        val Triadic18 = DiscretePallete(
+        val Triadic18 = DiscretePalette(
             "#99E099", "#42B842", "#C1ADFF",
             "#845CFF", "#FFCB8F", "#FF9429",
             "#90E0E0", "#27C2C2", "#FAAAFA",
@@ -29,19 +29,19 @@ object Palletes {
             "#F05670", "#D3D7E0", "#929BAD"
         )
 
-        val Triadic9Light = DiscretePallete(
+        val Triadic9Light = DiscretePalette(
             "#99e099", "#c1adff", "#ffcb8f",
             "#99e0e0", "#faaafa", "#cbeb67",
             "#99ccff", "#ffadba", "#d3d7e0"
         )
 
-        val Triadic9Bright = DiscretePallete(
+        val Triadic9Bright = DiscretePalette(
             "#42b842", "#845cff", "#ff9429",
             "#27c2c2", "#e553e5", "#95c700",
             "#2d93fa", "#f05670", "#929bad"
         )
 
-        val Triadic9Dark = DiscretePallete(
+        val Triadic9Dark = DiscretePalette(
             "#198020", "#5f31cc", "#c36a27",
             "#068a94", "#a324b2", "#659406",
             "#105bcc", "#ad3757", "#5e5e70"
@@ -55,7 +55,7 @@ object Palletes {
             Triadic27
 
         val auto = object : DiscreteColorMapping {
-            override fun <T> mkMap(objects: List<T?>): Map<T?, Color> = auto(objects.size).mkMap(objects)
+            override fun <T> mkMap(objects: List<T?>, loop: Boolean): Map<T?, Color> = auto(objects.size).mkMap(objects, loop)
         }
     }
 

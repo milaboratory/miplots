@@ -4,7 +4,7 @@ package com.milaboratory.miplots.stat.xdiscrete
 
 import com.milaboratory.miplots.Orientation
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.stat.GGAes
 import com.milaboratory.miplots.stat.WithAes
 import com.milaboratory.miplots.stat.util.StatFun
@@ -97,8 +97,8 @@ class GGBarPlot(
     size: Number? = null,
     width: Double? = null,
     orientation: Orientation = Orientation.Vertical,
-    colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
-    fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    colorScale: DiscreteColorMapping = Palettes.Categorical.auto,
+    fillScale: DiscreteColorMapping = Palettes.Categorical.auto,
     aesMapping: GGAes.() -> Unit = {}
 ) : GGXDiscrete(
     _data = data,

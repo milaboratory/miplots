@@ -6,8 +6,13 @@ import com.milaboratory.miplots.Position
 import com.milaboratory.miplots.Position.*
 import com.milaboratory.miplots.dendro.ConnectionType.Rectangle
 import com.milaboratory.miplots.dendro.ConnectionType.Triangle
+import com.milaboratory.miplots.dendro.GGDendroTest.TestNodeUtil.alignment
+import com.milaboratory.miplots.dendro.GGDendroTest.TestNodeUtil.isotype
+import com.milaboratory.miplots.dendro.GGDendroTest.TestNodeUtil.label
+import com.milaboratory.miplots.dendro.GGDendroTest.TestNodeUtil.node
+import com.milaboratory.miplots.dendro.GGDendroTest.TestNodeUtil.root
+import com.milaboratory.miplots.dendro.GGDendroTest.TestNodeUtil.text
 import com.milaboratory.miplots.writePDF
-import jetbrains.letsPlot.Figure
 import jetbrains.letsPlot.themeClassic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -18,7 +23,7 @@ import kotlin.math.abs
 /**
  *
  */
-internal class ggDendroTest {
+internal class GGDendroTest {
     private val tree =
         Node(0.0, "age" to "12", "sex" to "m") {
             Node(1.5, "age" to "10", "sex" to "m") {
@@ -38,7 +43,7 @@ internal class ggDendroTest {
 
     @Test
     internal fun test1() {
-        val plot = ggDendro(
+        val plot = GGDendroPlot(
             tree,
             ctype = Triangle,
             einh = EdgeMetaInheritance.Up
@@ -54,7 +59,7 @@ internal class ggDendroTest {
 
     @Test
     internal fun test2() {
-        val plot = ggDendro(
+        val plot = GGDendroPlot(
             tree,
             ctype = Rectangle,
             einh = EdgeMetaInheritance.Up
@@ -69,11 +74,11 @@ internal class ggDendroTest {
     @Test
     internal fun testRootPos() {
         val plots = ConnectionType.values().flatMap { ct ->
-            listOf<Figure>(
-                ggDendro(tree, ctype = ct, rpos = Top),
-                ggDendro(tree, ctype = ct, rpos = Right),
-                ggDendro(tree, ctype = ct, rpos = Bottom),
-                ggDendro(tree, ctype = ct, rpos = Left)
+            listOf(
+                GGDendroPlot(tree, ctype = ct, rpos = Top),
+                GGDendroPlot(tree, ctype = ct, rpos = Right),
+                GGDendroPlot(tree, ctype = ct, rpos = Bottom),
+                GGDendroPlot(tree, ctype = ct, rpos = Left)
             )
         }
 
@@ -86,7 +91,7 @@ internal class ggDendroTest {
     @Test
     internal fun testImposeX() {
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
-        val plt = ggDendro(tree, coord = coord) + themeClassic()
+        val plt = GGDendroPlot(tree, coord = coord) + themeClassic()
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
@@ -97,7 +102,7 @@ internal class ggDendroTest {
     @Test
     internal fun testImposeX2() {
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
-        val plt = ggDendro(tree, coord = coord, rpos = Left) + themeClassic()
+        val plt = GGDendroPlot(tree, coord = coord, rpos = Left) + themeClassic()
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
@@ -108,7 +113,7 @@ internal class ggDendroTest {
     @Test
     internal fun testHeight() {
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
-        val plt = ggDendro(tree, coord = coord, height = 2.0, rpos = Left) + themeClassic()
+        val plt = GGDendroPlot(tree, coord = coord, height = 2.0, rpos = Left) + themeClassic()
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
@@ -119,11 +124,11 @@ internal class ggDendroTest {
     @Test
     internal fun testBalanced() {
         val plots = ConnectionType.values().flatMap { ct ->
-            listOf<Figure>(
-                ggDendro(tree, ctype = ct, rpos = Top, balanced = true),
-                ggDendro(tree, ctype = ct, rpos = Right, balanced = true),
-                ggDendro(tree, ctype = ct, rpos = Bottom, balanced = true),
-                ggDendro(tree, ctype = ct, rpos = Left, balanced = true)
+            listOf(
+                GGDendroPlot(tree, ctype = ct, rpos = Top, balanced = true),
+                GGDendroPlot(tree, ctype = ct, rpos = Right, balanced = true),
+                GGDendroPlot(tree, ctype = ct, rpos = Bottom, balanced = true),
+                GGDendroPlot(tree, ctype = ct, rpos = Left, balanced = true)
             )
         }
 
@@ -142,7 +147,7 @@ internal class ggDendroTest {
         }
 
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
-        val plt = ggDendro(tree1, coord = coord, height = 2.0, rpos = Top, ctype = Rectangle) + themeClassic()
+        val plt = GGDendroPlot(tree1, coord = coord, height = 2.0, rpos = Top, ctype = Rectangle) + themeClassic()
 
         writePDF(
             Paths.get("scratch/bp.pdf"),
@@ -152,7 +157,7 @@ internal class ggDendroTest {
 
     @Test
     internal fun testRect() {
-        val plt1 = ggDendro(
+        val plt1 = GGDendroPlot(
             tree,
             ctype = Triangle,
             rpos = Right,
@@ -161,7 +166,7 @@ internal class ggDendroTest {
             linewidth = 0.05,
         )
 
-        val plt2 = ggDendro(
+        val plt2 = GGDendroPlot(
             tree,
             ctype = Triangle,
             rpos = Top,
@@ -172,7 +177,7 @@ internal class ggDendroTest {
         )
 
         val coord = listOf(12.0, 50.0, 79.0, 211.0)
-        val plt3 = ggDendro(
+        val plt3 = GGDendroPlot(
             tree,
             ctype = Triangle,
             coord = coord,
@@ -181,7 +186,7 @@ internal class ggDendroTest {
             linewidth = 5.0,
         ) + themeClassic()
 
-        val plt4 = ggDendro(
+        val plt4 = GGDendroPlot(
             tree,
             ctype = Triangle,
             coord = coord,
@@ -191,7 +196,7 @@ internal class ggDendroTest {
             balanced = true
         ) + themeClassic()
 
-        val plt5 = ggDendro(
+        val plt5 = GGDendroPlot(
             tree,
             rpos = Left,
             ctype = Triangle,
@@ -202,7 +207,7 @@ internal class ggDendroTest {
             balanced = true
         ) + themeClassic()
 
-        val plt6 = ggDendro(
+        val plt6 = GGDendroPlot(
             tree,
             ctype = Rectangle,
             rpos = Top,
@@ -238,7 +243,7 @@ internal class ggDendroTest {
 
         val coord = listOf(0.0, 50.0, 100.0, 150.0)
         val plots = Position.values().map { pos ->
-            ggDendro(tree, ctype = Rectangle, coord = coord, rpos = pos, linewidth = 10.0) + themeClassic()
+            GGDendroPlot(tree, ctype = Rectangle, coord = coord, rpos = pos, linewidth = 10.0) + themeClassic()
         }
 
         writePDF(
@@ -262,7 +267,7 @@ internal class ggDendroTest {
             }
 
         val plots = Position.values().map { pos ->
-            ggDendro(tree, ctype = Rectangle, rshift = tree.totalHeight, rpos = pos) + themeClassic()
+            GGDendroPlot(tree, ctype = Rectangle, rshift = tree.totalHeight, rpos = pos) + themeClassic()
         }
 
         writePDF(
@@ -286,7 +291,7 @@ internal class ggDendroTest {
             }
 
         val plots = Position.values().map { pos ->
-            ggDendro(tree, ctype = Rectangle, rshift = tree.totalHeight, height = 1.0, rpos = pos) + themeClassic()
+            GGDendroPlot(tree, ctype = Rectangle, rshift = tree.totalHeight, height = 1.0, rpos = pos) + themeClassic()
         }
 
         writePDF(
@@ -305,7 +310,7 @@ internal class ggDendroTest {
             }
 
         val plots = Position.values().map { pos ->
-            ggDendro(tree, ctype = Rectangle, height = 1.0, rpos = pos) + themeClassic()
+            GGDendroPlot(tree, ctype = Rectangle, height = 1.0, rpos = pos) + themeClassic()
         }
 
         writePDF(
@@ -328,7 +333,7 @@ internal class ggDendroTest {
             }
 
         val plots = Position.values().map { pos ->
-            ggDendro(tree, ctype = Rectangle, height = 1.0, rpos = pos) + themeClassic()
+            GGDendroPlot(tree, ctype = Rectangle, height = 1.0, rpos = pos) + themeClassic()
         }
 
         writePDF(
@@ -357,7 +362,7 @@ internal class ggDendroTest {
             }
 
         val plots =
-            ggDendro(tree, height = 1.0, linewidth = 0.05, size = 0.2, linecolor = "#aaaaaa") {
+            GGDendroPlot(tree, height = 1.0, linewidth = 0.05, size = 0.2, linecolor = "#aaaaaa") {
                 color = isotype
             }
 
@@ -432,7 +437,7 @@ internal class ggDendroTest {
             }
 
         val plots =
-            ggDendro(
+            GGDendroPlot(
                 tree,
                 rpos = Left,
                 linecolor = "#aaaaaa",
@@ -470,18 +475,17 @@ internal class ggDendroTest {
 
         val plots = Position.values().flatMap { pos ->
             listOf(0.0, 45, 90.0).map { angle ->
-                ggDendro(
+                GGDendroPlot(
                     tree,
                     rpos = pos,
                     height = 1.0,
                     linewidth = 0.05,
                     size = 2.0,
-                    angle = angle,
+
                     linecolor = "#aaaaaa"
                 ) {
                     color = isotype
-                    this.label = label
-                }
+                }.withLabels(label, labelAngle = angle)
             }
         }
 
@@ -514,19 +518,201 @@ internal class ggDendroTest {
 
         val plots = Position.values().flatMap { pos ->
             listOf(0.0, 45, 90.0).map { angle ->
-                ggDendro(
+                GGDendroPlot(
                     tree,
                     rpos = pos,
                     height = 1.0,
                     linewidth = 0.05,
                     size = 2.0,
-                    angle = angle,
                     linecolor = "#aaaaaa"
                 ) {
                     color = isotype
-                    this.label = label
-                } + themeClassic()
+                }.withLabels(label, labelAngle = angle) + themeClassic()
             }
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testTextLayer() {
+        val igg = "igg"
+        val igm = "igm"
+        val iga = "iga"
+        val isotype = "isotype"
+        val label = "label"
+        val text = "text"
+        val rnd = Random()
+        fun text() = text to (0..rnd.nextInt(1, 10)).map { ('a'..'z').toList()[it] }.joinToString("")
+
+        val tree =
+            Node(0.0, isotype to igg, text()) {
+                Node(1.0, isotype to igg, text()) {
+                    Node(1.5, isotype to igm, label to "A", text())
+                    Node(3.5, isotype to iga, label to "B", text())
+                }
+                Node(1.0, isotype to iga, text()) {
+                    Node(4.0, isotype to igm, label to "C", text())
+                    Node(4.0, isotype to igm, label to "D", text())
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            GGDendroPlot(
+                tree,
+                rpos = pos,
+                height = 1.0,
+                linewidth = 0.05,
+                size = 2.0,
+                linecolor = "#aaaaaa"
+            ) {
+                color = isotype
+            }
+                .withLabels(label)
+                .withTextLayer(text) +
+                    themeClassic()
+
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    object TestNodeUtil {
+        val isotype = "isotype"
+        val label = "label"
+        val text = "text"
+        val rnd = Random()
+        val alignment = "alignment"
+        private val chars: List<Char> = ('a'..'z').toList() + ('a'..'z').toList().map { it.uppercaseChar() }
+        private fun rndChar() = chars[rnd.nextInt(0, chars.size)]
+        fun isotype() = isotype to listOf("IGG", "IGM", "IGA", "IGM")[rnd.nextInt(4)]
+        fun label() = label to listOf("A", "B", "C", "D")[rnd.nextInt(4)]
+        fun text() = text to (0..rnd.nextInt(1, 100)).map { rndChar() }.joinToString("").uppercase()
+        fun alignment() = alignment to run {
+            val str = "ATCGC-JASD-KHBFNDFJHGAS-BMNCASXCASD--HJLASD".toCharArray()
+            repeat(5) {
+                str[rnd.nextInt(str.size)] = rndChar()
+            }
+            String(str)
+        }
+
+        fun h() = rnd.nextDouble(1.0, 10.0)
+
+        fun root(builder: ChildrenReceiver<*>.() -> Unit = {}) =
+            Node(h(), label(), isotype(), text(), alignment(), builder = builder)
+
+        fun ChildrenReceiver<*>.node(builder: ChildrenReceiver<*>.() -> Unit = {}) =
+            this.Node(h(), label(), isotype(), text(), alignment(), builder = builder)
+    }
+
+    @Test
+    internal fun testTextLayer2() {
+        val tree =
+            root {
+                repeat(5) {
+                    node {
+                        repeat(5) {
+                            node {
+                                repeat(5) {
+                                    node()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        val plots = GGDendroPlot(
+            tree,
+            rpos = Left,
+            linecolor = "#aaaaaa"
+        ) {
+            color = isotype
+        }
+            .withLabels(label)
+            .withTextLayer(text) +
+                themeClassic()
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testTextLayer3() {
+        val tree =
+            root {
+                repeat(2) {
+                    node {
+                        repeat(2) {
+                            node {
+                                repeat(2) {
+                                    node {
+                                        repeat(2) {
+                                            node()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            GGDendroPlot(
+                tree,
+                rpos = pos
+            ) {
+                color = label
+            }
+                .withLabels(label)
+                .withTextLayer(text) + themeClassic()
+        }
+
+        writePDF(
+            Paths.get("scratch/bp.pdf"),
+            plots
+        )
+    }
+
+    @Test
+    internal fun testAlignmentLayer1() {
+        val tree =
+            root {
+                repeat(2) {
+                    node {
+                        repeat(2) {
+                            node {
+                                repeat(2) {
+                                    node {
+                                        repeat(2) {
+                                            node()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        val plots = Position.values().map { pos ->
+            GGDendroPlot(
+                tree,
+                rpos = pos
+            ) {
+                color = label
+            }
+                .withLabels(label)
+                .withAlignmentLayer(alignment) + themeClassic()
         }
 
         writePDF(

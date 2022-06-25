@@ -2,6 +2,7 @@
 
 package com.milaboratory.miplots.stat.xcontinious
 
+import com.milaboratory.miplots.MiFonts
 import com.milaboratory.miplots.formatPValue
 import com.milaboratory.miplots.stat.util.KendallsCorrelation
 import jetbrains.letsPlot.geom.geomSmooth
@@ -134,7 +135,13 @@ class statCor(
         geomSmooth(method = "lm") {
             color = base.aes.color
             linetype = base.aes.linetype
-        } + geomText(data, hjust = 1.0, vjust = 1.0, showLegend = false) {
+        } + geomText(
+            data,
+            hjust = 1.0,
+            vjust = 1.0,
+            showLegend = false,
+            family = MiFonts.monospace
+        ) {
             label = "label"
             color = base.aes.color
         }

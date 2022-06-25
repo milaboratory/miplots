@@ -1,19 +1,19 @@
-@file:Suppress("LocalVariableName")
+@file:Suppress("LocalVariableName", "ClassName")
 
 package com.milaboratory.miplots.dendro
 
 import com.milaboratory.miplots.*
 import com.milaboratory.miplots.Position.*
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.dendro.Alignment.Horizontal
 import com.milaboratory.miplots.dendro.Alignment.Vertical
 import jetbrains.letsPlot.coordFixed
-import jetbrains.letsPlot.geom.geomPath
 import jetbrains.letsPlot.geom.geomPoint
 import jetbrains.letsPlot.geom.geomPolygon
 import jetbrains.letsPlot.geom.geomText
 import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.intern.FeatureList
+import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.sampling.samplingNone
 import jetbrains.letsPlot.scale.xlim
@@ -51,7 +51,7 @@ internal class DataBuilder {
 //        keys.associateWith { key -> newRows.map { it[key] } }
 //    }
 
-private object DendroVar {
+internal object DendroVar {
     // node
     const val nx = "x"
     const val ny = "y"
@@ -92,7 +92,7 @@ internal enum class Alignment {
     open fun apply(l: Line): Line = l
 }
 
-private fun XYNode.yImposed(imposedLeafY: Double?) = if (isLeaf) imposedLeafY ?: y else y
+internal fun XYNode.yImposed(imposedLeafY: Double?) = if (isLeaf) imposedLeafY ?: y else y
 
 internal fun XYNode.addNodesData(
     db: DataBuilder,
@@ -114,81 +114,6 @@ internal fun XYNode.addNodesData(
     )
 
     children.forEach { it.addNodesData(db, al, imposedLeafY, shiftLabelX, shiftLabelY) }
-}
-
-internal fun XYNode.addLabelsData(
-    db: DataBuilder,
-    al: Alignment,
-    imposedLeafY: Double?,
-    shiftLabelX: Double = 0.0,
-    shiftLabelY: Double = 0.0
-) {
-
-    val (lx, ly) = al.apply(Point(this.x + shiftLabelX, this.yImposed(imposedLeafY) + shiftLabelY))
-    db.add(
-        DendroVar.lx to lx,
-        DendroVar.ly to ly,
-        DendroVar.depth to depth,
-        *node.metadata.toList().toTypedArray()
-    )
-
-    children.forEach { it.addLabelsData(db, al, imposedLeafY, shiftLabelX, shiftLabelY) }
-}
-
-internal fun XYNode.addLabelBorder(
-    db: DataBuilder,
-    al: Alignment,
-    imposedLeafY: Double?,
-    label: Any,
-    sx: Double,
-    sy: Double,
-    shiftLabelX: Double = 0.0,
-    shiftLabelY: Double = 0.0,
-    eid: Int = 0
-): Int {
-
-    var i = eid
-    if (this.node.metadata[label] != null) {
-        val ix = this.x + shiftLabelX
-        val iy = this.yImposed(imposedLeafY) + shiftLabelY
-
-        val (px1, py1, px2, py2) = al.apply(Line(ix - sx, iy - sy, ix - sx, iy + sy))
-        val (px3, py3, px4, py4) = al.apply(Line(ix + sx, iy + sy, ix + sx, iy - sy))
-
-        db.add(
-            DendroVar.lex to px1,
-            DendroVar.ley to py1,
-            DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
-        )
-        db.add(
-            DendroVar.lex to px2,
-            DendroVar.ley to py2,
-            DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
-        )
-        db.add(
-            DendroVar.lex to px3,
-            DendroVar.ley to py3,
-            DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
-        )
-        db.add(
-            DendroVar.lex to px4,
-            DendroVar.ley to py4,
-            DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
-        )
-        db.add(
-            DendroVar.lex to px1,
-            DendroVar.ley to py1,
-            DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
-        )
-        i += 1
-    }
-    children.forEach { i += it.addLabelBorder(db, al, imposedLeafY, label, sx, sy, shiftLabelX, shiftLabelY, i) }
-    return i - eid
 }
 
 internal fun XYNode.addEdgesData(
@@ -415,9 +340,6 @@ class DendroAes {
 
     /** Edge width */
     var linewidth: Any? = null
-
-    /** Labels layers*/
-    var label: Any? = null
 }
 
 enum class ConnectionType { Triangle, Rectangle }
@@ -429,13 +351,21 @@ internal val Position.alignment
         else -> Horizontal
     }
 
-class geomDendro(
+internal val Position.ysign
+    get() = when (this) {
+        Top, Right -> -1.0
+        Bottom, Left -> 1.0
+    }
+
+class ggDendro(
     tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+
+    // tree layout
     val showNodes: Boolean = true,
     val showEdges: Boolean = true,
-    center: Boolean = true,
+    val center: Boolean = true,
     val rpos: Position = Top,
     balanced: Boolean = false,
     coord: List<Double>? = null,
@@ -447,9 +377,7 @@ class geomDendro(
     val alpha: Number? = null,
     val fill: Any? = null,
     val nodeSize: Double? = null,
-    val labelSize: Double? = null,
-    val labelAngle: Number? = null,
-    val fillLabels: Boolean = true,
+
     // edges
     val linetype: Any? = null,
     val linewidth: Double? = null,
@@ -458,17 +386,18 @@ class geomDendro(
     // aes
     val aes: DendroAes = DendroAes()
 ) : FeatureWrapper {
-    private val xy: XYNode
-    private val lwx: Double
-    private val lwy: Double
-    private val imposedLeafY: Double?
-    private val xlim: Pair<Double, Double>?
-    private val ylim: Pair<Double, Double>?
-    private val nodeSizeActual: Double
-    private val nodeSizeUnit: String
+    internal val xy: XYNode
+    internal val lwx: Double
+    internal val lwy: Double
+    internal val imposedLeafY: Double?
+    internal val xlim: Pair<Double, Double>?
+    internal val ylim: Pair<Double, Double>?
+    internal val nodeSizeActual: Double
+    internal val nodeSizeUnit: String
+    internal val nodes: Map<Any, List<Any?>>
+    internal val edges: Map<Any, List<Any?>>
 
-    private val nodes: Map<Any, List<Any?>>
-    private val edges: Map<Any, List<Any?>>
+    var yDelta = 0.0
 
     init {
         var xy = Layout.Knuth(tree.xy())
@@ -547,107 +476,7 @@ class geomDendro(
         this.size = aes.size
     }
 
-    private fun labelsLayer() = run {
-        val textSizeUnit = nodeSizeUnit
-        val sizeBase = labelSize ?: nodeSize ?: 2.0
-        val textSize = 4 * sizeBase
-        val textSizeActual = textSize * lwx
-        val textWd = sizeBase * lwx
-        val textHt = sizeBase * lwy
-
-        val lshiftX = 0.0
-        val lshiftY = when (rpos) {
-            Top, Right -> -3 * lwy
-            Bottom, Left -> 3 * lwy
-        }
-        val hjust = when (rpos) {
-            Top -> if (labelAngle == 0.0) "center" else "right"
-            Bottom -> if (labelAngle == 0.0) "center" else "left"
-            Left -> if (labelAngle == 0.0) "left" else "center"
-            Right -> if (labelAngle == 0.0) "right" else "center"
-        }
-        val vjust = when (rpos) {
-            Bottom -> if (labelAngle == 0.0) "bottom" else "center"
-            Top -> if (labelAngle == 0.0) "top" else "center"
-            Left -> if (labelAngle == 0.0) "center" else "top"
-            Right -> if (labelAngle == 0.0) "center" else "bottom"
-        }
-
-        val dbLabels = DataBuilder()
-        val dbLabelsBorder = DataBuilder()
-
-        xy.addLabelsData(
-            dbLabels,
-            rpos.alignment,
-            imposedLeafY,
-            lshiftX,
-            lshiftY
-        )
-
-        xy.addLabelBorder(
-            dbLabelsBorder,
-            rpos.alignment,
-            imposedLeafY,
-            aes.label!!,
-            textWd,
-            textHt,
-            lshiftX,
-            lshiftY + when (rpos) {
-                Top, Right -> -textHt / 2
-                Bottom, Left -> +textHt / 2
-            }
-        )
-
-        val labels = geomText(
-            dbLabels.result,
-            naText = "",
-            angle = labelAngle,
-            size = textSizeActual,
-            hjust = hjust,
-            vjust = vjust,
-            sizeUnit = textSizeUnit,
-        ) {
-            this.x = DendroVar.lx
-            this.y = DendroVar.ly
-            this.label = DendroVar.label
-        }
-
-        val borders = geomPath(
-            dbLabelsBorder.result,
-            color = linecolor,
-            size = lwx / 5,
-            sampling = samplingNone,
-        ) {
-            this.x = DendroVar.lex
-            this.y = DendroVar.ley
-            this.group = DendroVar.lid
-        }
-
-        val fills = geomPolygon(
-            dbLabelsBorder.result,
-            alpha = 0.1,
-            sampling = samplingNone,
-            showLegend = false
-        ) {
-            this.x = DendroVar.lex
-            this.y = DendroVar.ley
-            this.fill = aes.label
-            this.group = DendroVar.lid
-        }
-
-        val r = mutableListOf<Feature>()
-        r += labels
-
-        if (fillLabels && xy.node.toList()
-                .mapNotNull { it.metadata[aes.label] }
-                .none { it.toString().length > 1 }
-        ) {
-            r += borders
-            r += fills
-        }
-
-        r.toList()
-    }
+    val annotationLayers = mutableListOf<Feature>()
 
     override val feature: Feature
         get() = run {
@@ -657,22 +486,37 @@ class geomDendro(
                 f += edgesLayer()
             if (showNodes)
                 f += nodesLayer()
-            if (aes.label != null) {
-                labelsLayer().forEach { f += it }
-            }
+
+            annotationLayers.forEach { f += it }
+
             if (xlim != null)
                 f += xlim(xlim)
             if (ylim != null)
                 f += ylim(ylim)
+            if (yDelta != 0.0) {
+                // add empty element to fix layout
+                val (x, y) = rpos.alignment.apply(Point(0.0, xy.leafY + yDelta))
+                f += geomText(
+                    x = x,
+                    y = y,
+                    size = nodeSize,
+                    sizeUnit = nodeSizeUnit,
+                    label = "",
+                    color = "red"
+                )
+            }
+
             f += coordFixed(ratio = ratio)
             f
         }
 }
 
-fun ggDendro(
-    tree: Node<*>,
+class GGDendroPlot constructor(
+    val tree: Node<*>,
     ctype: ConnectionType = ConnectionType.Rectangle,
     einh: EdgeMetaInheritance = EdgeMetaInheritance.Up,
+
+    // tree layout
     showNodes: Boolean = true,
     showEdges: Boolean = true,
     center: Boolean = true,
@@ -681,14 +525,14 @@ fun ggDendro(
     coord: List<Double>? = null,
     rshift: Double? = null,
     height: Double? = null,
+
     // nodes
     shape: Any? = null,
     color: Any? = null,
     alpha: Number? = null,
     fill: Any? = null,
     size: Double? = null,
-    angle: Number? = null,
-    fillLabels: Boolean = true,
+
     // edges
     linetype: Any? = null,
     linewidth: Double? = null,
@@ -696,10 +540,10 @@ fun ggDendro(
     linecolor: Any? = null,
     // aes
     aesMapping: DendroAes.() -> Unit = {}
-) = run {
+) : PlotWrapper {
     val aes = DendroAes().apply(aesMapping)
-    var plt = letsPlot()
-    plt += geomDendro(
+
+    val ggDendro = ggDendro(
         tree = tree,
         ctype = ctype,
         einh = einh,
@@ -712,8 +556,6 @@ fun ggDendro(
         alpha = alpha,
         fill = fill,
         nodeSize = size,
-        labelAngle = angle,
-        fillLabels = fillLabels,
 
         linetype = linetype,
         linewidth = linewidth,
@@ -727,11 +569,28 @@ fun ggDendro(
         height = height,
         aes = aes,
     )
-    plt += themeBlank().legendPositionRight()
-    if (aes.color != null)
-        plt += Palletes.Categorical.auto.colorScale(
-            tree.toList().map { it.metadata[aes.color] }.distinct().filterNotNull()
-        )
-    plt
+
+    val features = mutableListOf<Feature>()
+
+    override var plot: Plot
+        get() = run {
+            var plt = letsPlot()
+            plt += ggDendro
+            plt += themeBlank().legendPositionRight()
+            if (aes.color != null)
+                plt += Palettes.Categorical.auto.colorScale(
+                    tree.toList().map { it.metadata[aes.color] }.distinct().filterNotNull()
+                )
+            plt + FeatureList(features)
+        }
+        set(value) {}
 }
 
+operator fun GGDendroPlot.plusAssign(f: Feature) = run {
+    features += f
+}
+
+operator fun GGDendroPlot.plus(f: Feature) = run {
+    features += f
+    this
+}

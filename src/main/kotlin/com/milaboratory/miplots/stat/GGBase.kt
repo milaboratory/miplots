@@ -2,7 +2,7 @@ package com.milaboratory.miplots.stat
 
 import com.milaboratory.miplots.PlotWrapper
 import com.milaboratory.miplots.color.DiscreteColorMapping
-import com.milaboratory.miplots.color.Palletes
+import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.Orientation
 import jetbrains.letsPlot.intern.layer.PosOptions
 import org.jetbrains.kotlinx.dataframe.AnyFrame
@@ -34,9 +34,9 @@ abstract class GGBase(
     /** Plot orientation */
     val orientation: Orientation = Orientation.Vertical,
     /** Color scale */
-    val colorScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    val colorScale: DiscreteColorMapping = Palettes.Categorical.auto,
     /** Fill scale */
-    val fillScale: DiscreteColorMapping = Palletes.Categorical.auto,
+    val fillScale: DiscreteColorMapping = Palettes.Categorical.auto,
     /** Aesthetics mapping */
     aesMapping: GGAes.() -> Unit = {}
 ) : WithAes(color, fill, shape, linetype, size, width, alpha, aesMapping), PlotWrapper {

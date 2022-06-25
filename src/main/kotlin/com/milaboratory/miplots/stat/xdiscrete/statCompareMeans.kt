@@ -2,6 +2,7 @@
 
 package com.milaboratory.miplots.stat.xdiscrete
 
+import com.milaboratory.miplots.MiFonts
 import com.milaboratory.miplots.stat.util.*
 import com.milaboratory.miplots.stat.xdiscrete.LabelFormat.Companion.Formatted
 import com.milaboratory.miplots.stat.xdiscrete.LabelFormat.Companion.Significance
@@ -126,7 +127,8 @@ private class StatCompareMeansFeature(
             size = textSize,
             color = ops.color,
             sizeUnit = ops.sizeUnit,
-            hjust = 1.0
+            hjust = 1.0,
+            family = MiFonts.monospace
         ) {
             this.label = "label"
         }
@@ -189,7 +191,8 @@ private class StatCompareMeansFeature(
             data,
             size = textSize,
             color = ops.color,
-            sizeUnit = ops.sizeUnit
+            sizeUnit = ops.sizeUnit,
+            family = MiFonts.monospace
         ) { label = "__label" }
     }
 
@@ -271,7 +274,8 @@ private class StatCompareMeansFeature(
                 textData,
                 size = textSize,
                 color = ops.color,
-                sizeUnit = ops.sizeUnit
+                sizeUnit = ops.sizeUnit,
+                family = MiFonts.monospace
             ) {
                 label = "__label"
             } to yValue
@@ -334,7 +338,8 @@ private class StatCompareMeansFeature(
             data,
             size = textSize,
             color = ops.color,
-            sizeUnit = ops.sizeUnit
+            sizeUnit = ops.sizeUnit,
+            family = MiFonts.monospace
         ) { label = "labels" }
     }
 

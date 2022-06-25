@@ -78,7 +78,7 @@ class GradientBasePallete(
 
     override fun mkMapping(): (Double?) -> Color = { mapper(it)!! }
 
-    override fun <T> mkMap(objects: List<T?>): Map<T?, Color> {
+    override fun <T> mkMap(objects: List<T?>, loop: Boolean): Map<T?, Color> {
         val non = objects.filterNot { it == null }
         val colors = mkColors(non.size)
         val m = non.mapIndexed { i, e -> e to colors[i] }.toMap().toMutableMap()

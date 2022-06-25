@@ -1,7 +1,7 @@
 package com.milaboratory.miplots.heatmap
 
 import com.milaboratory.miplots.Position
-import com.milaboratory.miplots.dendro.geomDendro
+import com.milaboratory.miplots.dendro.ggDendro
 import com.milaboratory.miplots.isLeftRight
 import com.milaboratory.miplots.isTopBottom
 
@@ -33,7 +33,7 @@ fun Heatmap.withDendrogram(
         Position.Left -> xmin - dheight
     }
 
-    val feature = geomDendro(
+    val feature = ggDendro(
         clust,
         rpos = pos,
         showNodes = false,
