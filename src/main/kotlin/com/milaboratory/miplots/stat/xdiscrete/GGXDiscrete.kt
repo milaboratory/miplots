@@ -120,15 +120,9 @@ open class GGXDiscrete(
             throw IllegalArgumentException("groupBy is null while groupByValues is not")
 
         if (xValues != null) {
-            for (xval in xValues) {
-                if (!data.any { it[x] == xval })
-                    throw java.lang.IllegalArgumentException(
-                        "$xval not found in the dataset; available fields: ${
-                            data[x].distinct().toList()
-                        })"
-                    )
-            }
 
+            val vals = data[x].distinct().toSet()
+            val xValues = this.xValues.filter { vals.contains(it) }
             val xset = xValues.toSet()
             val xmap = xValues.mapIndexed { i, v -> v to i }.toMap()
             data = data
@@ -138,15 +132,9 @@ open class GGXDiscrete(
 
         if (groupByValues != null) {
             groupBy!!
-            for (xval in groupByValues) {
-                if (!data.any { it[groupBy] == xval })
-                    throw java.lang.IllegalArgumentException(
-                        "$xval not found in the dataset; available fields: ${
-                            data[groupBy].distinct().toList()
-                        }"
-                    )
-            }
 
+            val vals = data[groupBy].distinct().toSet()
+            val groupByValues = this.groupByValues.filter { vals.contains(it) }
             val xset = groupByValues.toSet()
             val xmap = groupByValues.mapIndexed { i, v -> v to i }.toMap()
             data = data
