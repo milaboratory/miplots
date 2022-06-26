@@ -17,7 +17,6 @@ import jetbrains.letsPlot.themeClassic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
-import java.util.*
 import kotlin.math.abs
 
 /**
@@ -381,7 +380,7 @@ internal class GGDendroTest {
         val isotype = "isotype"
         val abundance = "abundance"
 
-        val rnd = Random()
+        val rnd = kotlin.random.Random(System.currentTimeMillis())
         fun ab() = Math.log10(1.0 + (abs(rnd.nextInt()) % 10))
         val tree =
             Node(0.0, isotype to igg, abundance to ab()) {
@@ -545,7 +544,7 @@ internal class GGDendroTest {
         val isotype = "isotype"
         val label = "label"
         val text = "text"
-        val rnd = Random()
+        val rnd = kotlin.random.Random(System.currentTimeMillis())
         fun text() = text to (0..rnd.nextInt(1, 10)).map { ('a'..'z').toList()[it] }.joinToString("")
 
         val tree =
@@ -587,7 +586,7 @@ internal class GGDendroTest {
         val isotype = "isotype"
         val label = "label"
         val text = "text"
-        val rnd = Random()
+        val rnd = kotlin.random.Random(System.currentTimeMillis())
         val alignment = "alignment"
         private val chars: List<Char> = ('a'..'z').toList() + ('a'..'z').toList().map { it.uppercaseChar() }
         private fun rndChar() = chars[rnd.nextInt(0, chars.size)]
