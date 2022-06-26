@@ -160,18 +160,18 @@ internal class GGDendroTest {
             tree,
             ctype = Triangle,
             rpos = Right,
-            size = 0.10,
-            color = "red",
-            linewidth = 0.05,
+            nodeSize = 0.10,
+            nodeColor = "red",
+            lineWidth = 0.05,
         )
 
         val plt2 = GGDendroPlot(
             tree,
             ctype = Triangle,
             rpos = Top,
-            size = 0.10,
-            color = "red",
-            linewidth = 0.05,
+            nodeSize = 0.10,
+            nodeColor = "red",
+            lineWidth = 0.05,
             balanced = true
         )
 
@@ -180,18 +180,18 @@ internal class GGDendroTest {
             tree,
             ctype = Triangle,
             coord = coord,
-            size = 0.0,
-            color = "red",
-            linewidth = 5.0,
+            nodeSize = 0.0,
+            nodeColor = "red",
+            lineWidth = 5.0,
         ) + themeClassic()
 
         val plt4 = GGDendroPlot(
             tree,
             ctype = Triangle,
             coord = coord,
-            size = 0.0,
-            color = "red",
-            linewidth = 5.0,
+            nodeSize = 0.0,
+            nodeColor = "red",
+            lineWidth = 5.0,
             balanced = true
         ) + themeClassic()
 
@@ -200,9 +200,9 @@ internal class GGDendroTest {
             rpos = Left,
             ctype = Triangle,
             coord = coord,
-            size = 0.0,
-            color = "red",
-            linewidth = 5.0,
+            nodeSize = 0.0,
+            nodeColor = "red",
+            lineWidth = 5.0,
             balanced = true
         ) + themeClassic()
 
@@ -210,9 +210,9 @@ internal class GGDendroTest {
             tree,
             ctype = Rectangle,
             rpos = Top,
-            size = 0.10,
-            color = "red",
-            linewidth = 0.05,
+            nodeSize = 0.10,
+            nodeColor = "red",
+            lineWidth = 0.05,
         )
 
         writePDF(
@@ -242,7 +242,7 @@ internal class GGDendroTest {
 
         val coord = listOf(0.0, 50.0, 100.0, 150.0)
         val plots = Position.values().map { pos ->
-            GGDendroPlot(tree, ctype = Rectangle, coord = coord, rpos = pos, linewidth = 10.0) + themeClassic()
+            GGDendroPlot(tree, ctype = Rectangle, coord = coord, rpos = pos, lineWidth = 10.0) + themeClassic()
         }
 
         writePDF(
@@ -361,7 +361,7 @@ internal class GGDendroTest {
             }
 
         val plots =
-            GGDendroPlot(tree, height = 1.0, linewidth = 0.05, size = 0.2, linecolor = "#aaaaaa") {
+            GGDendroPlot(tree, height = 1.0, lineWidth = 0.05, nodeSize = 0.2, lineColor = "#aaaaaa") {
                 color = isotype
             }
 
@@ -439,8 +439,8 @@ internal class GGDendroTest {
             GGDendroPlot(
                 tree,
                 rpos = Left,
-                linecolor = "#aaaaaa",
-                alpha = 0.5
+                lineColor = "#aaaaaa",
+                nodeAlpha = 0.5
             ) {
                 color = isotype
                 size = abundance
@@ -478,10 +478,10 @@ internal class GGDendroTest {
                     tree,
                     rpos = pos,
                     height = 1.0,
-                    linewidth = 0.05,
-                    size = 2.0,
+                    lineWidth = 0.05,
+                    nodeSize = 2.0,
 
-                    linecolor = "#aaaaaa"
+                    lineColor = "#aaaaaa"
                 ) {
                     color = isotype
                 }.withLabels(label, labelAngle = angle)
@@ -521,9 +521,9 @@ internal class GGDendroTest {
                     tree,
                     rpos = pos,
                     height = 1.0,
-                    linewidth = 0.05,
-                    size = 2.0,
-                    linecolor = "#aaaaaa"
+                    lineWidth = 0.05,
+                    nodeSize = 2.0,
+                    lineColor = "#aaaaaa"
                 ) {
                     color = isotype
                 }.withLabels(label, labelAngle = angle) + themeClassic()
@@ -564,9 +564,9 @@ internal class GGDendroTest {
                 tree,
                 rpos = pos,
                 height = 1.0,
-                linewidth = 0.05,
-                size = 2.0,
-                linecolor = "#aaaaaa"
+                lineWidth = 0.05,
+                nodeSize = 2.0,
+                lineColor = "#aaaaaa"
             ) {
                 color = isotype
             }
@@ -630,7 +630,7 @@ internal class GGDendroTest {
         val plots = GGDendroPlot(
             tree,
             rpos = Left,
-            linecolor = "#aaaaaa"
+            lineColor = "#aaaaaa"
         ) {
             color = isotype
         }

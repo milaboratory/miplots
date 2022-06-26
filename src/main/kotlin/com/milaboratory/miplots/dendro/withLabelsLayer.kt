@@ -10,26 +10,28 @@ import jetbrains.letsPlot.intern.Feature
 import jetbrains.letsPlot.sampling.samplingNone
 import kotlin.math.sign
 
-private  fun XYNode.addLabelsData(
+private fun XYNode.addLabelsData(
     db: DataBuilder,
+    label: Any,
     al: Alignment,
     imposedLeafY: Double?,
     shiftLabelX: Double = 0.0,
     shiftLabelY: Double = 0.0
 ) {
 
-    val (lx, ly) = al.apply(Point(this.x + shiftLabelX, this.yImposed(imposedLeafY) + shiftLabelY))
-    db.add(
-        DendroVar.lx to lx,
-        DendroVar.ly to ly,
-        DendroVar.depth to depth,
-        *node.metadata.toList().toTypedArray()
-    )
+    if (node.metadata[label] != null) {
+        val (lx, ly) = al.apply(Point(this.x + shiftLabelX, this.yImposed(imposedLeafY) + shiftLabelY))
+        db.add(
+            DendroVar.lx to lx,
+            DendroVar.ly to ly,
+            DendroVar.label to node.metadata[label]
+        )
+    }
 
-    children.forEach { it.addLabelsData(db, al, imposedLeafY, shiftLabelX, shiftLabelY) }
+    children.forEach { it.addLabelsData(db, label, al, imposedLeafY, shiftLabelX, shiftLabelY) }
 }
 
-private  fun XYNode.addLabelBorder(
+private fun XYNode.addLabelBorder(
     db: DataBuilder,
     al: Alignment,
     imposedLeafY: Double?,
@@ -53,46 +55,36 @@ private  fun XYNode.addLabelBorder(
             DendroVar.lex to px1,
             DendroVar.ley to py1,
             DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
+            DendroVar.label to node.metadata[label]
         )
         db.add(
             DendroVar.lex to px2,
             DendroVar.ley to py2,
             DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
+            DendroVar.label to node.metadata[label]
         )
         db.add(
             DendroVar.lex to px3,
             DendroVar.ley to py3,
             DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
+            DendroVar.label to node.metadata[label]
         )
         db.add(
             DendroVar.lex to px4,
             DendroVar.ley to py4,
             DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
+            DendroVar.label to node.metadata[label]
         )
         db.add(
             DendroVar.lex to px1,
             DendroVar.ley to py1,
             DendroVar.lid to i,
-            *node.metadata.toList().toTypedArray()
+            DendroVar.label to node.metadata[label]
         )
         i += 1
     }
     children.forEach { i += it.addLabelBorder(db, al, imposedLeafY, label, sx, sy, shiftLabelX, shiftLabelY, i) }
     return i - eid
-}
-
-fun GGDendroPlot.withLabels(
-    label: Any,
-    labelSize: Double? = null,
-    labelAngle: Number = 0.0,
-    fillLabels: Boolean = true
-) = run {
-    this.ggDendro.withLabels(label, labelSize, labelAngle, fillLabels)
-    this
 }
 
 internal fun hjust(rpos: Position, angle: Number) = when (rpos) {
@@ -113,7 +105,8 @@ fun ggDendro.withLabels(
     label: Any,
     labelSize: Double? = null,
     labelAngle: Number = 0.0,
-    fillLabels: Boolean = true
+    fillLabels: Boolean = true,
+    fillAlpha: Number? = null,
 ) = run {
     val textSizeUnit = nodeSizeUnit
     val sizeBase = labelSize ?: nodeSize ?: 2.0
@@ -135,6 +128,7 @@ fun ggDendro.withLabels(
 
     xy.addLabelsData(
         dbLabels,
+        label,
         rpos.alignment,
         imposedLeafY,
         lshiftX,
@@ -174,7 +168,7 @@ fun ggDendro.withLabels(
 
     val borders = geomPath(
         dbLabelsBorder.result,
-        color = linecolor,
+        color = lineColor,
         size = lwx / 5,
         sampling = samplingNone,
     ) {
@@ -185,13 +179,13 @@ fun ggDendro.withLabels(
 
     val fills = geomPolygon(
         dbLabelsBorder.result,
-        alpha = 0.1,
+        alpha = fillAlpha,
         sampling = samplingNone,
         showLegend = false
     ) {
         this.x = DendroVar.lex
         this.y = DendroVar.ley
-        this.fill = label
+        this.fill = DendroVar.label
         this.group = DendroVar.lid
     }
 
@@ -207,4 +201,15 @@ fun ggDendro.withLabels(
     }
 
     annotationLayers.addAll(r)
+}
+
+fun GGDendroPlot.withLabels(
+    label: Any,
+    labelSize: Double? = null,
+    labelAngle: Number = 0.0,
+    fillLabels: Boolean = true,
+    fillAlpha: Number? = 0.1
+) = run {
+    this.ggDendro.withLabels(label, labelSize, labelAngle, fillLabels, fillAlpha)
+    this
 }

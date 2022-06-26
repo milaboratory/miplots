@@ -4,6 +4,7 @@ package com.milaboratory.miplots.dendro
 
 import com.milaboratory.miplots.*
 import com.milaboratory.miplots.Position.*
+import com.milaboratory.miplots.color.DiscretePalette
 import com.milaboratory.miplots.color.Palettes
 import com.milaboratory.miplots.dendro.Alignment.Horizontal
 import com.milaboratory.miplots.dendro.Alignment.Vertical
@@ -16,6 +17,8 @@ import jetbrains.letsPlot.intern.FeatureList
 import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.sampling.samplingNone
+import jetbrains.letsPlot.scale.scaleColorManual
+import jetbrains.letsPlot.scale.scaleFillManual
 import jetbrains.letsPlot.scale.xlim
 import jetbrains.letsPlot.scale.ylim
 import kotlin.math.abs
@@ -43,7 +46,7 @@ internal class DataBuilder {
 //internal fun Map<String, List<Any?>>.map(mapper: (Map<String, Any?>) -> Map<String, Any?>): Map<String, List<Any?>> =
 //    run {
 //        val keys = this.keys
-//        val values = values
+//        val values = valuese
 //        val n = values.firstOrNull()?.size ?: 0
 //        val newRows = (0 until n).map { iRow ->
 //            mapper(keys.associateWith { key -> this[key]!![iRow] })
@@ -329,17 +332,11 @@ class DendroAes {
     /** Edge/node color */
     var color: Any? = null
 
-    /** Node fill */
-    var fill: Any? = null
-
     /** Node size */
     var size: Any? = null
 
     /** Edge linetype */
     var linetype: Any? = null
-
-    /** Edge width */
-    var linewidth: Any? = null
 }
 
 enum class ConnectionType { Triangle, Rectangle }
@@ -371,18 +368,23 @@ class ggDendro(
     coord: List<Double>? = null,
     rshift: Double? = null,
     height: Double? = null,
+
     // nodes
-    val shape: Any? = null,
-    val color: Any? = null,
-    val alpha: Number? = null,
-    val fill: Any? = null,
+    val nodeShape: Any? = null,
+    val nodeColor: Any? = null,
+    val nodeAlpha: Number? = null,
+    val nodeFill: Any? = null,
     val nodeSize: Double? = null,
 
     // edges
-    val linetype: Any? = null,
-    val linewidth: Double? = null,
-    val linewidthY: Double? = null,
-    val linecolor: Any? = null,
+    val lineType: Any? = null,
+    val lineWidth: Double? = null,
+    val lineWidthY: Double? = null,
+    val lineColor: Any? = null,
+
+    // colors
+    val colorPalette: DiscretePalette? = null,
+
     // aes
     val aes: DendroAes = DendroAes()
 ) : FeatureWrapper {
@@ -410,14 +412,14 @@ class ggDendro(
         if (rshift != null)
             xy = xy.shiftY(rshift)
 
-        val lwx = linewidth ?: xy.width.let {
+        val lwx = lineWidth ?: xy.width.let {
             if (it != 0.0)
                 xy.width / xy.node.leafCount / 5
             else
                 xy.height / 10
         }
 
-        val lwy = linewidthY ?: xy.width.let {
+        val lwy = lineWidthY ?: xy.width.let {
             if (it != 0.0)
                 abs(lwx * xy.height / it)
             else
@@ -447,8 +449,8 @@ class ggDendro(
 
     private fun edgesLayer() = geomPolygon(
         edges,
-        fill = linecolor,
-        linetype = linetype,
+        fill = lineColor,
+        linetype = lineType,
         sampling = samplingNone
     ) {
         this.x = DendroVar.ex
@@ -460,17 +462,16 @@ class ggDendro(
 
     private fun nodesLayer() = geomPoint(
         nodes,
-        shape = shape,
-        color = color,
-        alpha = alpha,
-        fill = fill,
+        shape = nodeShape,
+        color = nodeColor,
+        alpha = nodeAlpha,
+        fill = nodeFill,
         size = if (aes.size == null) nodeSizeActual else null,
         sizeUnit = if (aes.size == null) nodeSizeUnit else null,
         sampling = samplingNone
     ) {
         x = DendroVar.nx
         y = DendroVar.ny
-        this.fill = aes.fill
         this.color = aes.color
         this.shape = aes.shape
         this.size = aes.size
@@ -506,6 +507,21 @@ class ggDendro(
                 )
             }
 
+            if (aes.color != null) {
+                val breaks = xy.node.toList().mapNotNull { it.metadata[aes.color] }.distinct()
+                val colors = (colorPalette ?: Palettes.Categorical.auto(breaks.size))
+                f += scaleFillManual(
+                    values = colors.colors,
+                    breaks = breaks,
+                    name = aes.color.toString()
+                )
+                f += scaleColorManual(
+                    values = colors.colors,
+                    breaks = breaks,
+                    name = aes.color.toString()
+                )
+            }
+
             f += coordFixed(ratio = ratio)
             f
         }
@@ -527,17 +543,21 @@ class GGDendroPlot constructor(
     height: Double? = null,
 
     // nodes
-    shape: Any? = null,
-    color: Any? = null,
-    alpha: Number? = null,
-    fill: Any? = null,
-    size: Double? = null,
+    nodeShape: Any? = null,
+    nodeColor: Any? = null,
+    nodeAlpha: Number? = null,
+    nodeFill: Any? = null,
+    nodeSize: Double? = null,
 
     // edges
-    linetype: Any? = null,
-    linewidth: Double? = null,
-    linewidthY: Double? = null,
-    linecolor: Any? = null,
+    lineType: Any? = null,
+    lineWidth: Double? = null,
+    lineWidthY: Double? = null,
+    lineColor: Any? = null,
+
+    // colors
+    colorPalette: DiscretePalette? = null,
+
     // aes
     aesMapping: DendroAes.() -> Unit = {}
 ) : PlotWrapper {
@@ -551,22 +571,25 @@ class GGDendroPlot constructor(
         showEdges = showEdges,
         center = center,
 
-        shape = shape,
-        color = color,
-        alpha = alpha,
-        fill = fill,
-        nodeSize = size,
+        nodeShape = nodeShape,
+        nodeColor = nodeColor,
+        nodeAlpha = nodeAlpha,
+        nodeFill = nodeFill,
+        nodeSize = nodeSize,
 
-        linetype = linetype,
-        linewidth = linewidth,
-        linewidthY = linewidthY,
-        linecolor = linecolor,
+        lineType = lineType,
+        lineWidth = lineWidth,
+        lineWidthY = lineWidthY,
+        lineColor = lineColor,
 
         rpos = rpos,
         rshift = rshift,
         balanced = balanced,
         coord = coord,
         height = height,
+
+        colorPalette = colorPalette,
+
         aes = aes,
     )
 
@@ -590,7 +613,8 @@ operator fun GGDendroPlot.plusAssign(f: Feature) = run {
     features += f
 }
 
-operator fun GGDendroPlot.plus(f: Feature) = run {
+operator fun GGDendroPlot.
+        plus(f: Feature) = run {
     features += f
     this
 }

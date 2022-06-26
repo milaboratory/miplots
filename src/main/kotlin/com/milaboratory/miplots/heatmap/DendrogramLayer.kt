@@ -41,12 +41,12 @@ fun Heatmap.withDendrogram(
         rshift = rshift,
         coord = axcoord(pos.ax),
         height = dheight,
-        color = "black",
-        fill = "black",
-        linetype = 1,
-        linewidth = linewidth,
-        linewidthY = linewidth,
-        linecolor = "black",
+        nodeColor = "black",
+        nodeFill = "black",
+        lineType = 1,
+        lineWidth = linewidth,
+        lineWidthY = linewidth,
+        lineColor = "black",
     )
 
     layers += HLayer(

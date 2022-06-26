@@ -8,25 +8,32 @@ import jetbrains.letsPlot.geom.geomText
 private fun XYNode.addTextLayer(
     db: DataBuilder,
     al: Alignment,
+    leafsOnly: Boolean,
     y: Double,
 ) {
-    val (lx, ly) = al.apply(Point(this.x, y))
-    db.add(
-        DendroVar.lx to lx,
-        DendroVar.ly to ly,
-        *node.metadata.toList().toTypedArray()
-    )
+    if (!leafsOnly || isLeaf) {
+        val (lx, ly) = al.apply(Point(this.x, y))
+        db.add(
+            DendroVar.lx to lx,
+            DendroVar.ly to ly,
+            *node.metadata.toList().toTypedArray()
+        )
+    }
 
-    children.forEach { it.addTextLayer(db, al, y) }
+    children.forEach { it.addTextLayer(db, al, leafsOnly, y) }
 }
 
-fun GGDendroPlot.withTextLayer(textMeta: String) = run {
-    ggDendro.withTextLayer(textMeta)
+fun GGDendroPlot.withTextLayer(
+    textMeta: String,
+    leafsOnly: Boolean = false
+) = run {
+    ggDendro.withTextLayer(textMeta, leafsOnly)
     this
 }
 
 fun ggDendro.withTextLayer(
     textMeta: String,
+    leafsOnly: Boolean = false
 ) {
     val textSizeUnit = nodeSizeUnit
     val sizeBase = nodeSize ?: 2.0
@@ -46,7 +53,12 @@ fun ggDendro.withTextLayer(
     val shift = lwy * 2 * rpos.ysign
 
     val db = DataBuilder()
-    xy.addTextLayer(db, rpos.alignment, xy.leafY + yDelta + shift)
+    xy.addTextLayer(
+        db,
+        rpos.alignment,
+        leafsOnly,
+        xy.leafY + yDelta + shift
+    )
     annotationLayers += geomText(
         db.result,
         hjust = hjust,

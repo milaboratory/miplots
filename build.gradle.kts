@@ -63,6 +63,8 @@ dependencies {
     api("org.jetbrains.lets-plot:lets-plot-common:$letsPlotLibraryVersion")
     api("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:$letsPlotKotlinApiVersion")
 
+    implementation("org.slf4j:slf4j-nop:1.7.37")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
