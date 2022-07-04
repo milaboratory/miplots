@@ -46,8 +46,8 @@ repositories {
     mavenCentral()
 }
 
-val letsPlotLibraryVersion = "2.3.0"
-val letsPlotKotlinApiVersion = "3.2.0"
+val letsPlotLibraryVersion = "2.4.0"
+val letsPlotKotlinApiVersion = "3.3.0"
 val dataframeVersion = "0.8.0-dev-1037"
 
 dependencies {

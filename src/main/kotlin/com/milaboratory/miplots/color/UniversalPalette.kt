@@ -12,14 +12,14 @@
  */
 package com.milaboratory.miplots.color
 
-import jetbrains.datalore.base.gcommon.collect.ClosedRange
+import jetbrains.datalore.base.interval.DoubleSpan
 import jetbrains.datalore.base.values.Color
 import jetbrains.datalore.plot.base.scale.transform.Transforms
-import jetbrains.datalore.plot.builder.scale.provider.ColorGradient2MapperProvider
+import jetbrains.datalore.plot.builder.scale.provider.ColorGradientnMapperProvider
 import jetbrains.letsPlot.intern.Scale
-import jetbrains.letsPlot.scale.scaleColorGradient2
+import jetbrains.letsPlot.scale.scaleColorGradientN
 import jetbrains.letsPlot.scale.scaleColorManual
-import jetbrains.letsPlot.scale.scaleFillGradient2
+import jetbrains.letsPlot.scale.scaleFillGradientN
 import jetbrains.letsPlot.scale.scaleFillManual
 
 /**
@@ -77,14 +77,11 @@ class GradientBasePallete(
     val base: List<Color>,
     val na: Color
 ) : UniversalPalette {
-    private val mapper = ColorGradient2MapperProvider(
-        base[0],
-        base[base.size / 2],
-        base[base.size - 1],
-        null,
+    private val mapper = ColorGradientnMapperProvider(
+        base,
         na
     ).createContinuousMapper(
-        ClosedRange(0.0, 1.0),
+        DoubleSpan(0.0, 1.0),
         Transforms.IDENTITY
     )
 
@@ -167,11 +164,8 @@ class GradientBasePallete(
         naValue: Any?,
         format: String?,
         guide: Any?
-    ) = scaleFillGradient2(
-        low = base[0].toHexColor(),
-        mid = base[base.size / 2].toHexColor(),
-        high = base[base.size - 1].toHexColor(),
-        midpoint = midpoint,
+    ) = scaleFillGradientN(
+        colors = base.map { it.toHexColor() },
         name = name,
         breaks = breaks,
         labels = labels,
@@ -189,11 +183,8 @@ class GradientBasePallete(
         naValue: Any?,
         format: String?,
         guide: Any?
-    ) = scaleColorGradient2(
-        low = base[0].toHexColor(),
-        mid = base[base.size - 1].toHexColor(),
-        high = base[base.size / 2].toHexColor(),
-        midpoint = 0.5,
+    ) = scaleColorGradientN(
+        colors = base.map { it.toHexColor() },
         name = name,
         breaks = breaks,
         labels = labels,
