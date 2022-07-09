@@ -70,15 +70,25 @@ private val fopConfig = DefaultConfigurationBuilder()
         file.toFile()
     })
 
-private fun toVector(svg: String, type: ExportType) = run {
+private fun replaceFont(svg: String) = run {
+    svg.replace("font-family:", "font-family: \"IBM Plex Mono\",")
+}
+
+private fun toVector(svg: String, type: ExportType): ByteArray {
     val pdfTranscoder = if (type == PDF) PDFTranscoder() else EPSTranscoder()
     ContainerUtil.configure(pdfTranscoder, fopConfig)
-    val input = TranscoderInput(ByteArrayInputStream(svg.toByteArray()))
-    ByteArrayOutputStream().use { byteArrayOutputStream ->
-        val output = TranscoderOutput(byteArrayOutputStream)
-        pdfTranscoder.transcode(input, output)
-        byteArrayOutputStream.toByteArray()
+    for (s in listOf(replaceFont(svg), svg)) { // try to replace fonts and write
+        val input = TranscoderInput(ByteArrayInputStream(s.toByteArray()))
+        try {
+            return ByteArrayOutputStream().use { byteArrayOutputStream ->
+                val output = TranscoderOutput(byteArrayOutputStream)
+                pdfTranscoder.transcode(input, output)
+                byteArrayOutputStream.toByteArray()
+            }
+        } catch (_: Throwable) {
+        }
     }
+    throw RuntimeException()
 }
 
 fun writeEPS(destination: Path, image: ByteArray) {
