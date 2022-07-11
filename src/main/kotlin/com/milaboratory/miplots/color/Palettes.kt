@@ -19,6 +19,42 @@ import jetbrains.datalore.base.values.Color
  *
  */
 object Palettes {
+    @JvmStatic
+    fun parse(palette: String) = when (palette.lowercase()) {
+        "diverging",
+        "viridis2magma" -> Diverging.viridis2magma
+        "lime2rose" -> Diverging.lime2rose15
+        "blue2red" -> Diverging.blue2red15
+        "teal2red" -> Diverging.teal2red15
+        "softspectral" -> Diverging.softSpectral15
+
+        "sequential",
+        "viridis" -> Sequential.viridis15
+        "magma" -> Sequential.magma15
+        "sunset" -> Sequential.sunset15
+        "rainbow" -> Sequential.rainbow15
+        "salinity" -> Sequential.salinity
+        "density" -> Sequential.density
+        else -> throw IllegalArgumentException("unknown palette: $palette")
+    }
+
+    @JvmStatic
+    val paletteNames = listOf(
+        "diverging",
+        "viridis2magma",
+        "lime2rose",
+        "blue2red",
+        "teal2red",
+        "softSpectral",
+        "sequential",
+        "viridis",
+        "magma",
+        "sunset",
+        "rainbow",
+        "salinity",
+        "density",
+    )
+
     object Categorical {
         val Triadic27 = DiscretePalette(
             "#99E099", "#42B842", "#198020",
@@ -83,7 +119,7 @@ object Palettes {
             na = "#f0f0f0"
         )
 
-        val limeRose15 = GradientBasePallete(
+        val lime2rose15 = GradientBasePallete(
             "#2E5C00", "#49850D", "#6FA33B",
             "#8FC758", "#ABDB7B", "#C5EBA0",
             "#DCF5C4", "#FFFFFF", "#FADCF5",
@@ -92,7 +128,7 @@ object Palettes {
             na = "#f0f0f0"
         )
 
-        val blueRed15 = GradientBasePallete(
+        val blue2red15 = GradientBasePallete(
             "#0E0E8F", "#1D23B8", "#3748E5",
             "#647DFA", "#96A7FA", "#C3CCFA",
             "#E1E5FA", "#F0F0F0", "#F9DBDB",
@@ -101,7 +137,7 @@ object Palettes {
             na = "#f0f0f0"
         )
 
-        val tealRead15 = GradientBasePallete(
+        val teal2red15 = GradientBasePallete(
             "#122B5C", "#1A496B", "#1D7C8F",
             "#21A3A3", "#5FC7AB", "#99E0B1",
             "#CEF0CE", "#F0F0F0", "#FAE6D2",
@@ -154,6 +190,24 @@ object Palettes {
             "#56D7AC", "#50C7C7", "#56B4D7",
             "#6898EB", "#7481FA", "#8769FA",
             "#9450EB", "#9634D6", "#942AAE",
+            na = "#f0f0f0"
+        )
+
+        val salinity = GradientBasePallete(
+            "#FAFAB4", "#ECFBA1", "#D6F598",
+            "#BEEB91", "#A2E082", "#82D67C",
+            "#67C77E", "#4FB281", "#429E8C",
+            "#36898F", "#2B668F", "#254B85",
+            "#213475", "#1E1E6B", "#1C0F5C",
+            na = "#f0f0f0"
+        )
+
+        val density = GradientBasePallete(
+            "#DFFADC", "#C9F5D3", "#B3F2CF",
+            "#9AEBCD", "#80DCCC", "#6DC8D2",
+            "#61B7DB", "#5C97DB", "#5A7CD6",
+            "#6060C7", "#674BB3", "#693799",
+            "#6A277B", "#671D60", "#611347",
             na = "#f0f0f0"
         )
     }
