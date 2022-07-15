@@ -98,7 +98,8 @@ internal class statCompareMeansTest {
     fun toothAllComps() = toothEmpty() + statCompareMeans(
         allComparisons = true,
         method = TestMethod.KruskalWallis,
-        multipleGroupsMethod = TestMethod.KruskalWallis
+        multipleGroupsMethod = TestMethod.KruskalWallis,
+        labelFormat = LabelFormat.Significance
     ) + statCompareMeans()
 
     fun toothGrouped() = GGBoxPlot(

@@ -266,7 +266,7 @@ private class StatCompareMeansFeature(
                 textData[plt.xNumeric]!!.addAll(listOf((gr1 + gr2) / 2.0))
                 textData[plt.y]!!.addAll(listOf(yValue + plt.yDelta / 2))
                 val label = when (lf) {
-                    Significance -> row.pSignif
+                    Significance -> row.pSignif.string
                     is Formatted -> lf.format(compareMeans.method, row.pValueFmt)
                     else -> throw RuntimeException()
                 }

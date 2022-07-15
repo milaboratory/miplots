@@ -202,7 +202,7 @@ open class GGXDiscrete(
         if (aes.fill != null)
             plt += fillScale.fillScale(data[aes.fill!!].distinct().toList())
 
-        plt += theme(axisLineY = elementLine())
+        plt += theme(axisLineY = elementLine(), panelBorder = elementLine())
 
         for (f in prependFeatures) {
             plt += f

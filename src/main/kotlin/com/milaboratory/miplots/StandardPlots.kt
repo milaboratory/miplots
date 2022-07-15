@@ -43,6 +43,8 @@ object StandardPlots {
                     data,
                     x = primaryGroup,
                     y = y,
+                    xValues = primaryGroupValues,
+                    groupByValues = secondaryGroupValues,
                     facetBy = facetBy,
                     width = 0.8
                 ) {
