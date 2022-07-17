@@ -121,10 +121,14 @@ private fun svgSize(svg: String) = run {
     context.isDynamic = true
     val builder = GVTBuilder()
     val root: GraphicsNode = builder.build(context, document)
-    Dimensions(root.primitiveBounds.width.toFloat(), root.primitiveBounds.height.toFloat())
+    Dimensions(root.primitiveBounds.width, root.primitiveBounds.height)
 }
 
-private data class Dimensions(val w: Float, val h: Float)
+private data class Dimensions(val w: Double, val h: Double)
+
+private const val DEFAULT_DPI = 1200f
+private const val DIMENSION_SCALE = DEFAULT_DPI / 72f
+private const val PIXEL_UNIT_TO_MILLIMETER = 25.4f / DEFAULT_DPI
 
 private fun toBytes(svg: String, type: ExportType): ByteArray {
     if (type == SVG)
@@ -136,15 +140,11 @@ private fun toBytes(svg: String, type: ExportType): ByteArray {
         PNG -> {
             val t = PNGTranscoder()
             val (w, h) = svgSize(svg)
-
-            val dpi = 1200f
-            val scale = dpi / 72f
-            val sw = w * scale
-            val sh = h * scale
-            val pixelUnitToMM = 25.4f / dpi
-            t.addTranscodingHint(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, pixelUnitToMM)
-            t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, sw)
-            t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, sh)
+            val sw = w * DIMENSION_SCALE
+            val sh = h * DIMENSION_SCALE
+            t.addTranscodingHint(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, PIXEL_UNIT_TO_MILLIMETER.toFloat())
+            t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, sw.toFloat())
+            t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, sh.toFloat())
             t
         }
         JPEG -> {
