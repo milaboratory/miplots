@@ -167,6 +167,10 @@ private fun toBytes(svg: String, type: ExportType): ByteArray {
     }
 }
 
+fun writeFile(destination: Path, plot: Plot) {
+    writeFile(destination, listOf(plot))
+}
+
 fun writeFile(destination: Path, plots: List<Plot>) {
     val type = ExportType.determine(destination)
     if (type != PDF && plots.size > 1)
