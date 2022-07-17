@@ -18,9 +18,17 @@ import jetbrains.letsPlot.Figure
 import jetbrains.letsPlot.GGBunch
 import jetbrains.letsPlot.intern.Plot
 import jetbrains.letsPlot.intern.toSpec
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory
+import org.apache.batik.bridge.BridgeContext
+import org.apache.batik.bridge.DocumentLoader
+import org.apache.batik.bridge.GVTBuilder
+import org.apache.batik.bridge.UserAgentAdapter
+import org.apache.batik.gvt.GraphicsNode
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
+import org.apache.batik.transcoder.image.JPEGTranscoder
 import org.apache.batik.transcoder.image.PNGTranscoder
+import org.apache.batik.util.XMLResourceDescriptor
 import org.apache.fop.activity.ContainerUtil
 import org.apache.fop.configuration.Configurable
 import org.apache.fop.configuration.DefaultConfigurationBuilder
@@ -28,10 +36,7 @@ import org.apache.fop.render.ps.EPSTranscoder
 import org.apache.fop.svg.PDFTranscoder
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.multipdf.PDFMergerUtility
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStreamReader
+import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -48,11 +53,31 @@ fun Figure.toSpec() = when (this) {
 fun Figure.toSvg() = PlotSvgExport.buildSvgImageFromRawSpecs(toSpec())
 fun Figure.toPDF() = toPDF(toSvg())
 fun Figure.toEPS() = toEPS(this.toSvg())
-
 fun toPDF(svg: String) = toBytes(svg, PDF)
 fun toEPS(svg: String) = toBytes(svg, EPS)
 
-enum class ExportType { PDF, EPS, SVG, PNG }
+enum class ExportType {
+    PDF, EPS, SVG, PNG, JPEG;
+
+    companion object {
+        @JvmStatic
+        fun determine(path: Path) = run {
+            val name = path.fileName.toString()
+            if (name.endsWith(".pdf"))
+                PDF
+            else if (name.endsWith(".svg"))
+                SVG
+            else if (name.endsWith(".eps"))
+                EPS
+            else if (name.endsWith(".png"))
+                PNG
+            else if (name.endsWith(".jpg") || name.endsWith(".jpeg"))
+                JPEG
+            else
+                throw IllegalArgumentException("un")
+        }
+    }
+}
 
 private val javaClass = object {}.javaClass
 
@@ -82,6 +107,25 @@ private fun fixFonts(svg: String) = run {
     fixed
 }
 
+private fun svgSize(svg: String) = run {
+    val saxFactory = SAXSVGDocumentFactory(
+        XMLResourceDescriptor.getXMLParserClassName()
+    )
+    val document = saxFactory.createDocument(
+        "file:temp",
+        StringReader(svg)
+    )
+    val agent = UserAgentAdapter()
+    val loader = DocumentLoader(agent)
+    val context = BridgeContext(agent, loader)
+    context.isDynamic = true
+    val builder = GVTBuilder()
+    val root: GraphicsNode = builder.build(context, document)
+    Dimensions(root.primitiveBounds.width.toFloat(), root.primitiveBounds.height.toFloat())
+}
+
+private data class Dimensions(val w: Float, val h: Float)
+
 private fun toBytes(svg: String, type: ExportType): ByteArray {
     if (type == SVG)
         return svg.toByteArray()
@@ -89,24 +133,48 @@ private fun toBytes(svg: String, type: ExportType): ByteArray {
     val transcoder = when (type) {
         PDF -> PDFTranscoder()
         EPS -> EPSTranscoder()
-        PNG -> PNGTranscoder()
+        PNG -> {
+            val t = PNGTranscoder()
+            val (w, h) = svgSize(svg)
+
+            val dpi = 1200f
+            val scale = dpi / 72f
+            val sw = w * scale
+            val sh = h * scale
+            val pixelUnitToMM = 25.4f / dpi
+            t.addTranscodingHint(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, pixelUnitToMM)
+            t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, sw)
+            t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, sh)
+            t
+        }
+        JPEG -> {
+            val t = JPEGTranscoder()
+            t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, 0.95)
+            t
+        }
         else -> throw RuntimeException()
     }
     if (transcoder is Configurable)
         ContainerUtil.configure(transcoder, fopConfig)
-    for (s in listOf(fixFonts(svg), svg)) { // try to replace fonts and write
-        val input = TranscoderInput(ByteArrayInputStream(s.toByteArray()))
-        try {
-            return ByteArrayOutputStream().use { byteArrayOutputStream ->
-                val output = TranscoderOutput(byteArrayOutputStream)
-                transcoder.transcode(input, output)
-                byteArrayOutputStream.toByteArray()
-            }
-        } catch (t: Throwable) {
-            throw RuntimeException(t)
-        }
+
+    val svgFixed = fixFonts(svg)
+    val input = TranscoderInput(ByteArrayInputStream(svgFixed.toByteArray()))
+
+    return ByteArrayOutputStream().use { byteArrayOutputStream ->
+        val output = TranscoderOutput(byteArrayOutputStream)
+        transcoder.transcode(input, output)
+        byteArrayOutputStream.toByteArray()
     }
-    throw RuntimeException()
+}
+
+fun writeFile(destination: Path, plots: List<Plot>) {
+    val type = ExportType.determine(destination)
+    if (type != PDF && plots.size > 1)
+        throw IllegalArgumentException("$type does not allow to write multiple plots in one file")
+    when (type) {
+        PDF -> writePDF(destination, plots)
+        else -> destination.writeBytes(toBytes(plots[0].toSvg(), type))
+    }
 }
 
 fun writeEPS(destination: Path, image: ByteArray) {

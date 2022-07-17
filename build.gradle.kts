@@ -57,6 +57,7 @@ dependencies {
 
     // plots
     implementation("org.apache.xmlgraphics:fop-transcoder:2.6")
+    implementation("org.apache.xmlgraphics:batik-codec:1.14")
     implementation("org.apache.pdfbox:pdfbox:2.0.24")
     implementation("org.apache.commons:commons-csv:1.9.0")
     api("org.jetbrains.kotlinx:dataframe:$dataframeVersion")
