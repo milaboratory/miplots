@@ -132,7 +132,7 @@ private const val PIXEL_UNIT_TO_MILLIMETER = 25.4f / DEFAULT_DPI
 
 private fun toBytes(svg: String, type: ExportType): ByteArray {
     if (type == SVG)
-        return svg.toByteArray()
+        return fixFonts(svg).toByteArray()
 
     val transcoder = when (type) {
         PDF -> PDFTranscoder()

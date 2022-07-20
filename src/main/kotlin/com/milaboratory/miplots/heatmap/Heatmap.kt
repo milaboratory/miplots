@@ -222,7 +222,7 @@ class Heatmap(
                 this.fill = z
             }
 
-            plt += fillPalette.scaleFillContinuous(midpoint = (zmin + zmax) / 2)
+            plt += fillPalette.scaleFillContinuous()
 
             for (layer in layers) {
                 plt += layer.feature

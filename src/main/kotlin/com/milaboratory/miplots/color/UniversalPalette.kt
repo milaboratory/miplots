@@ -52,7 +52,6 @@ interface UniversalPalette : DiscreteColorMapping, ContinuousColorMapping {
 
     fun scaleFillContinuous(
         name: String? = null,
-        midpoint: Double,
         breaks: List<Number>? = null,
         labels: List<String>? = null,
         limits: Pair<Number?, Number?>? = null,
@@ -157,7 +156,6 @@ class GradientBasePallete(
 
     override fun scaleFillContinuous(
         name: String?,
-        midpoint: Double,
         breaks: List<Number>?,
         labels: List<String>?,
         limits: Pair<Number?, Number?>?,
