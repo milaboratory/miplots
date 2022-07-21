@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2022, MiLaboratories Inc. All Rights Reserved
+ * Copyright (c) 2014-2022, MiLaboratories Inc. All Rights Reserved
  *
  * Before downloading or accessing the software, please read carefully the
  * License Agreement available at:
@@ -33,6 +33,8 @@ import jetbrains.letsPlot.scale.scaleColorManual
 import jetbrains.letsPlot.scale.scaleFillManual
 import jetbrains.letsPlot.scale.xlim
 import jetbrains.letsPlot.scale.ylim
+import java.util.*
+import java.util.stream.IntStream
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -109,29 +111,33 @@ internal enum class Alignment {
 
 internal fun XYNode.yImposed(imposedLeafY: Double?) = if (isLeaf) imposedLeafY ?: y else y
 
-internal fun XYNode.addNodesData(
+internal tailrec fun addNodesData(
+    nodes: Collection<XYNode>,
     db: DataBuilder,
     al: Alignment,
     imposedLeafY: Double?,
     shiftLabelX: Double = 0.0,
     shiftLabelY: Double = 0.0
 ) {
+    if (nodes.isEmpty()) return
+    nodes.forEach { node ->
+        val (x, y) = al.apply(Point(node.x, node.yImposed(imposedLeafY)))
+        val (lx, ly) = al.apply(Point(node.x + shiftLabelX, node.yImposed(imposedLeafY) + shiftLabelY))
+        db.add(
+            DendroVar.nx to x,
+            DendroVar.ny to y,
+            DendroVar.lx to lx,
+            DendroVar.ly to ly,
+            DendroVar.depth to node.depth,
+            *node.node.metadata.toList().toTypedArray()
+        )
+    }
 
-    val (x, y) = al.apply(Point(this.x, this.yImposed(imposedLeafY)))
-    val (lx, ly) = al.apply(Point(this.x + shiftLabelX, this.yImposed(imposedLeafY) + shiftLabelY))
-    db.add(
-        DendroVar.nx to x,
-        DendroVar.ny to y,
-        DendroVar.lx to lx,
-        DendroVar.ly to ly,
-        DendroVar.depth to depth,
-        *node.metadata.toList().toTypedArray()
-    )
-
-    children.forEach { it.addNodesData(db, al, imposedLeafY, shiftLabelX, shiftLabelY) }
+    addNodesData(nodes.flatMap { it.children }, db, al, imposedLeafY, shiftLabelX, shiftLabelY)
 }
 
-internal fun XYNode.addEdgesData(
+internal tailrec fun addEdgesData(
+    nodes: Collection<XYNode>,
     edgesDb: DataBuilder,
     ctype: ConnectionType,
     einh: EdgeMetaInheritance,
@@ -139,29 +145,112 @@ internal fun XYNode.addEdgesData(
     imposedLeafY: Double?,
     linewidthX: Double,
     linewidthY: Double,
-    initialEid: Int
-): Int {
-    val al = rpos.alignment
-    var eid = initialEid
-    children.forEachIndexed { childIndex, child ->
-        val metadata = if (einh == EdgeMetaInheritance.Down) {
-            node.metadata.toList().toTypedArray()
-        } else {
-            child.node.metadata.toList().toTypedArray()
+    idGenerator: PrimitiveIterator.OfInt,
+    alignment: Alignment
+) {
+    if (nodes.isEmpty()) return
+    nodes.forEach { node ->
+        node.children.forEachIndexed { childIndex, child ->
+            node.addEdgeData(
+                child,
+                childIndex,
+                einh,
+                ctype,
+                imposedLeafY,
+                linewidthY,
+                linewidthX,
+                alignment,
+                idGenerator,
+                edgesDb,
+                rpos
+            )
         }
+    }
+    addEdgesData(
+        nodes.flatMap { it.children },
+        edgesDb,
+        ctype,
+        einh,
+        rpos,
+        imposedLeafY,
+        linewidthX,
+        linewidthY,
+        idGenerator,
+        alignment
+    )
+}
 
-        when (ctype) {
-            ConnectionType.Triangle -> {
+private fun XYNode.addEdgeData(
+    child: XYNode,
+    childIndex: Int,
+    einh: EdgeMetaInheritance,
+    ctype: ConnectionType,
+    imposedLeafY: Double?,
+    linewidthY: Double,
+    linewidthX: Double,
+    alignment: Alignment,
+    idGenerator: PrimitiveIterator.OfInt,
+    edgesDb: DataBuilder,
+    rpos: Position
+) {
+    val metadata = if (einh == EdgeMetaInheritance.Down) {
+        node.metadata.toList().toTypedArray()
+    } else {
+        child.node.metadata.toList().toTypedArray()
+    }
+
+    when (ctype) {
+        ConnectionType.Triangle -> {
+            // initial coordinates
+            val (ix1, iy1, ix2, iy2) = Line(this.x, this.y, child.x, child.yImposed(imposedLeafY))
+
+            // add polygon
+            val tlw =
+                0.5 * linewidthY * sqrt((ix2 - ix1).pow(2.0) + ((iy2 - iy1) * linewidthX / linewidthY).pow(2.0)) / abs(
+                    ix2 - ix1
+                )
+            val (px1, py1, px2, py2) = alignment.apply(Line(ix1, iy1 + tlw, ix2, iy2 + tlw))
+            val (px3, py3, px4, py4) = alignment.apply(Line(ix2, iy2 - tlw, ix1, iy1 - tlw))
+            val eid = idGenerator.nextInt()
+            edgesDb.add(
+                DendroVar.ex to px1,
+                DendroVar.ey to py1,
+                DendroVar.eid to eid,
+                *metadata
+            )
+            edgesDb.add(
+                DendroVar.ex to px2,
+                DendroVar.ey to py2,
+                DendroVar.eid to eid,
+                *metadata
+            )
+            edgesDb.add(
+                DendroVar.ex to px3,
+                DendroVar.ey to py3,
+                DendroVar.eid to eid,
+                *metadata
+            )
+            edgesDb.add(
+                DendroVar.ex to px4,
+                DendroVar.ey to py4,
+                DendroVar.eid to eid,
+                *metadata
+            )
+        }
+        ConnectionType.Rectangle -> {
+            if (child.x == this.x) {
                 // initial coordinates
-                val (ix1, iy1, ix2, iy2) = Line(this.x, this.y, child.x, child.yImposed(imposedLeafY))
+                val (ix1, iy1, _, iy2) = Line(
+                    this.x,
+                    this.y,
+                    child.x,
+                    child.yImposed(imposedLeafY)
+                )
 
-                // add polygon
-                val tlw =
-                    0.5 * linewidthY * sqrt((ix2 - ix1).pow(2.0) + ((iy2 - iy1) * linewidthX / linewidthY).pow(2.0)) / abs(
-                        ix2 - ix1
-                    )
-                val (px1, py1, px2, py2) = al.apply(Line(ix1, iy1 + tlw, ix2, iy2 + tlw))
-                val (px3, py3, px4, py4) = al.apply(Line(ix2, iy2 - tlw, ix1, iy1 - tlw))
+                // add vertical polygon
+                val (px1, py1, px2, py2) = alignment.apply(Line(ix1 - linewidthX / 2, iy1, ix1 + linewidthX / 2, iy1))
+                val (px3, py3, px4, py4) = alignment.apply(Line(ix1 + linewidthX / 2, iy2, ix1 - linewidthX / 2, iy2))
+                val eid = idGenerator.nextInt()
                 edgesDb.add(
                     DendroVar.ex to px1,
                     DendroVar.ey to py1,
@@ -186,155 +275,130 @@ internal fun XYNode.addEdgesData(
                     DendroVar.eid to eid,
                     *metadata
                 )
-
-                ++eid
-            }
-            ConnectionType.Rectangle -> {
-                if (child.x == this.x) {
-                    // initial coordinates
-                    val (ix1, iy1, ix2, iy2) = Line(
-                        this.x,
-                        this.y,
-                        child.x,
-                        child.yImposed(imposedLeafY)
-                    )
-
-                    // add vertical polygon
-                    val (px1, py1, px2, py2) = al.apply(Line(ix1 - linewidthX / 2, iy1, ix1 + linewidthX / 2, iy1))
-                    val (px3, py3, px4, py4) = al.apply(Line(ix1 + linewidthX / 2, iy2, ix1 - linewidthX / 2, iy2))
-                    edgesDb.add(
-                        DendroVar.ex to px1,
-                        DendroVar.ey to py1,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to px2,
-                        DendroVar.ey to py2,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to px3,
-                        DendroVar.ey to py3,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to px4,
-                        DendroVar.ey to py4,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-
-                    ++eid
-                } else {
-                    val x2 =
-                        if ((childIndex + 1 <= children.size && childIndex + 1 >= 0)
-                            && ((child.x < x && children[childIndex + 1].x >= x)
-                                    || (child.x > x && children[childIndex - 1].x <= x))
-                        ) {
-                            x
-                        } else if (child.x < x) {
-                            children[childIndex + 1].x
-                        } else if ((child.x > x)) {
-                            children[childIndex - 1].x
-                        } else {
-                            x
-                        }
-
-                    // initial coordinates (vertical line)
-                    val (vx1, vy1, vx2, vy2) = Line(
-                        child.x,
-                        this.y,
-                        child.x,
-                        child.yImposed(imposedLeafY)
-                    )
-
-                    // add vertical polygon
-                    val sign = when (rpos) {
-                        Top, Right -> 1.0
-                        Bottom, Left -> -1.0
+            } else {
+                val x2 =
+                    if ((childIndex + 1 <= children.size && childIndex + 1 >= 0)
+                        && ((child.x < x && children[childIndex + 1].x >= x)
+                                || (child.x > x && children[childIndex - 1].x <= x))
+                    ) {
+                        x
+                    } else if (child.x < x) {
+                        children[childIndex + 1].x
+                    } else if ((child.x > x)) {
+                        children[childIndex - 1].x
+                    } else {
+                        x
                     }
 
-                    val (vpx1, vpy1, vpx2, vpy2) = al.apply(
-                        Line(
-                            vx1 - linewidthX / 2,
-                            vy1 + sign * linewidthY / 2,
-                            vx1 + linewidthX / 2,
-                            vy1 + sign * linewidthY / 2
-                        )
-                    )
-                    val (vpx3, vpy3, vpx4, vpy4) = al.apply(Line(vx1 + linewidthX / 2, vy2, vx1 - linewidthX / 2, vy2))
-                    edgesDb.add(
-                        DendroVar.ex to vpx1,
-                        DendroVar.ey to vpy1,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to vpx2,
-                        DendroVar.ey to vpy2,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to vpx3,
-                        DendroVar.ey to vpy3,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to vpx4,
-                        DendroVar.ey to vpy4,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    ++eid
+                // initial coordinates (vertical line)
+                val (vx1, vy1, _, vy2) = Line(
+                    child.x,
+                    this.y,
+                    child.x,
+                    child.yImposed(imposedLeafY)
+                )
 
-                    // initial coordinates (horizontal line)
-                    val (hx1, hy1, hx2, hy2) = Line(
-                        child.x,
-                        this.y,
-                        x2,
-                        this.y
-                    )
-
-                    // add horizontal polygon
-                    val (hpx1, hpy1, hpx2, hpy2) = al.apply(Line(hx1, hy1 - linewidthY / 2, hx2, hy1 - linewidthY / 2))
-                    val (hpx3, hpy3, hpx4, hpy4) = al.apply(Line(hx2, hy1 + linewidthY / 2, hx1, hy1 + linewidthY / 2))
-                    edgesDb.add(
-                        DendroVar.ex to hpx1,
-                        DendroVar.ey to hpy1,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to hpx2,
-                        DendroVar.ey to hpy2,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to hpx3,
-                        DendroVar.ey to hpy3,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-                    edgesDb.add(
-                        DendroVar.ex to hpx4,
-                        DendroVar.ey to hpy4,
-                        DendroVar.eid to eid,
-                        *metadata
-                    )
-
-                    ++eid
+                // add vertical polygon
+                val sign = when (rpos) {
+                    Top, Right -> 1.0
+                    Bottom, Left -> -1.0
                 }
+
+                val (vpx1, vpy1, vpx2, vpy2) = alignment.apply(
+                    Line(
+                        vx1 - linewidthX / 2,
+                        vy1 + sign * linewidthY / 2,
+                        vx1 + linewidthX / 2,
+                        vy1 + sign * linewidthY / 2
+                    )
+                )
+                val (vpx3, vpy3, vpx4, vpy4) = alignment.apply(
+                    Line(
+                        vx1 + linewidthX / 2,
+                        vy2,
+                        vx1 - linewidthX / 2,
+                        vy2
+                    )
+                )
+                var eid = idGenerator.nextInt()
+                edgesDb.add(
+                    DendroVar.ex to vpx1,
+                    DendroVar.ey to vpy1,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+                edgesDb.add(
+                    DendroVar.ex to vpx2,
+                    DendroVar.ey to vpy2,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+                edgesDb.add(
+                    DendroVar.ex to vpx3,
+                    DendroVar.ey to vpy3,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+                edgesDb.add(
+                    DendroVar.ex to vpx4,
+                    DendroVar.ey to vpy4,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+
+                // initial coordinates (horizontal line)
+                val (hx1, hy1, hx2, _) = Line(
+                    child.x,
+                    this.y,
+                    x2,
+                    this.y
+                )
+
+                // add horizontal polygon
+                val (hpx1, hpy1, hpx2, hpy2) = alignment.apply(
+                    Line(
+                        hx1,
+                        hy1 - linewidthY / 2,
+                        hx2,
+                        hy1 - linewidthY / 2
+                    )
+                )
+                val (hpx3, hpy3, hpx4, hpy4) = alignment.apply(
+                    Line(
+                        hx2,
+                        hy1 + linewidthY / 2,
+                        hx1,
+                        hy1 + linewidthY / 2
+                    )
+                )
+                eid = idGenerator.nextInt()
+                edgesDb.add(
+                    DendroVar.ex to hpx1,
+                    DendroVar.ey to hpy1,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+                edgesDb.add(
+                    DendroVar.ex to hpx2,
+                    DendroVar.ey to hpy2,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+                edgesDb.add(
+                    DendroVar.ex to hpx3,
+                    DendroVar.ey to hpy3,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
+                edgesDb.add(
+                    DendroVar.ex to hpx4,
+                    DendroVar.ey to hpy4,
+                    DendroVar.eid to eid,
+                    *metadata
+                )
             }
         }
-        eid += child.addEdgesData(edgesDb, ctype, einh, rpos, imposedLeafY, linewidthX, linewidthY, eid)
     }
-    return eid - initialEid
 }
 
 class DendroAes {
@@ -453,8 +517,9 @@ class ggDendro(
 
         val dbNodes = DataBuilder()
         val dbEdges = DataBuilder()
-        xy.addNodesData(dbNodes, rpos.alignment, imposedLeafY)
-        xy.addEdgesData(dbEdges, ctype, einh, rpos, imposedLeafY, lwx, lwy, 0)
+        addNodesData(listOf(xy), dbNodes, rpos.alignment, imposedLeafY)
+        val idGenerator = IntStream.iterate(0) { it + 1 }.iterator()
+        addEdgesData(listOf(xy), dbEdges, ctype, einh, rpos, imposedLeafY, lwx, lwy, idGenerator, rpos.alignment)
         this.nodes = dbNodes.result
         this.edges = dbEdges.result
     }
@@ -618,15 +683,14 @@ class GGDendroPlot constructor(
                 )
             plt + FeatureList(features)
         }
-        set(value) {}
+        set(_) {}
 }
 
 operator fun GGDendroPlot.plusAssign(f: Feature) = run {
     features += f
 }
 
-operator fun GGDendroPlot.
-        plus(f: Feature) = run {
+operator fun GGDendroPlot.plus(f: Feature) = run {
     features += f
     this
 }
